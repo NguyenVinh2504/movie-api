@@ -1,0 +1,23 @@
+{
+  "name": "movie-api",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NguyenVinh2504/movie-api.git"
+  },
+  "author": "HoangVinh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NguyenVinh2504/movie-api/issues"
+  },
+  "homepage": "https://github.com/NguyenVinh2504/movie-api#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
