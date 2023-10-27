@@ -1,32 +1,43 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
+/* eslint-disable no-console */
 
 import express from 'express'
-import { mapOrder } from '~/utils/sorts.js'
+import exitHook from 'async-exit-hook'
+import { CONNECT_DB, CLOSE_DB } from './config/mongodb.js'
+import { API_V1 } from './routes/v1/index.js'
+import { env } from './config/environment.js'
+import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 
-const app = express()
+const START_SERVER = () => {
+  const app = express()
 
-const hostname = 'localhost'
-const port = 2504
+  // Bật req.body json data
+  app.use(express.json())
 
-app.get('/', (req, res) => {
-  // Test Absolute import mapOrder
-  console.log(mapOrder(
-    [ { id: 'id-1', name: 'One' },
-      { id: 'id-2', name: 'Two' },
-      { id: 'id-3', name: 'Three' },
-      { id: 'id-4', name: 'Four' },
-      { id: 'id-5', name: 'Five' } ],
-    ['id-5', 'id-4', 'id-2', 'id-3', 'id-1'],
-    'id'
-  ))
-  res.end('<h1>Hello World!</h1><hr>')
-})
+  // Use APIS V1
+  app.use('/v1', API_V1)
 
-app.listen(port, hostname, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Hello Trung Quan Dev, I am running at ${ hostname }:${ port }/`)
-})
+  //Middleware xử lý lỗi tập trung
+  app.use(errorHandlingMiddleware)
+
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
+    // eslint-disable-next-line no-console
+    console.log(`3.Hello ${env.AUTHOR}, Back-end Server đang chạy thành công tại Host: http://${env.APP_HOST}:${env.APP_PORT}/`)
+  })
+
+  //thực hiện các tác vụ clean up trước khi dừng server
+  exitHook(() => {
+    console.log('4.Đang ngắt kết nối....')
+    CLOSE_DB()
+    console.log('4.Đã ngắt kết nối')
+  })
+}
+console.log('1.Đang kết.....')
+// Chỉ khi kết nối database thành công mới start server
+CONNECT_DB()
+  .then(() => console.log('2.Kết nối cloud thành công'))
+  .then(() => START_SERVER())
+  .catch(error => {
+    // eslint-disable-next-line no-console
+    console.error(error)
+    process.exit(0)
+  })
