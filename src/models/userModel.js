@@ -7,8 +7,8 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   name: Joi.string().min(3).max(30).required(),
   slug: Joi.string().min(3).required(),
   avatar: Joi.string().default(null),
-  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-  password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
   phone: Joi.number(),
   userName: Joi.string().alphanum().min(3).max(30).default(null),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
@@ -33,9 +33,18 @@ const signIn = async (data) => {
   }
 }
 
+const getUser = async (data) => {
+  try {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ name: data.name })
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const getInfo = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({_id: new ObjectId(data)})
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) })
     return result
   } catch (error) {
     throw new Error(error)
@@ -46,5 +55,6 @@ export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   signIn,
+  getUser,
   getInfo
 }

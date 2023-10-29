@@ -1,16 +1,19 @@
 /* eslint-disable no-console */
 import { StatusCodes } from 'http-status-codes'
 import { userService } from '~/services/userService'
+
+//register
+// /user/signup
 const signIn = async (req, res, next) => {
   try {
 
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
-    const signInUser = await userService.signIn(req.body)
+    const user = await userService.signIn(req.body)
 
     // Có kết quả thì trả về Client
     res.status(StatusCodes.CREATED).json(
       //dữ liệu từ service
-      signInUser
+      user
     )
   } catch (error) {
     // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
@@ -18,18 +21,33 @@ const signIn = async (req, res, next) => {
   }
 }
 
-const getInfo = async (req, res, next) => {
+//login user
+// /user/login
+const login = async (req, res, next) => {
   try {
-    const signInUser = await userService.getInfo(req.params.id)
-
+    const user = await userService.login(req.body)
     res.status(StatusCodes.CREATED).json(
-      signInUser
+      user
     )
   } catch (error) {
     next(error)
   }
 }
+// /user/info
+const getInfo = async (req, res, next) => {
+  try {
+    const signInUser = await userService.getInfo(req.user.id)
+
+    res.status(StatusCodes.CREATED).json(
+      signInUser
+    )
+  } catch (error) {
+    next()
+  }
+}
+
 export const userController = {
   signIn,
+  login,
   getInfo
 }
