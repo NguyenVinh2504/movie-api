@@ -10,7 +10,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   phone: Joi.number(),
-  userName: Joi.string().alphanum().min(3).max(30).default(null),
+  userName: Joi.string().min(3).max(30).default(null),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   _destroy: Joi.boolean().default(false),
   access_token: [
@@ -33,7 +33,7 @@ const signIn = async (data) => {
   }
 }
 
-const getUser = async (data) => {
+const getUserName = async (data) => {
   try {
     const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ name: data.name })
     return result
@@ -44,7 +44,9 @@ const getUser = async (data) => {
 
 const getInfo = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) })
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) }, {
+      projection: { _id: 0, password: 0 }
+    })
     return result
   } catch (error) {
     throw new Error(error)
@@ -55,6 +57,6 @@ export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   signIn,
-  getUser,
+  getUserName,
   getInfo
 }

@@ -10,7 +10,7 @@ const signIn = async (reqBody) => {
   try {
     const salt = await bcryct.genSalt(10)
     const hashed = await bcryct.hash(reqBody.password, salt)
-    const existingUser = await userModel.getUser(reqBody)
+    const existingUser = await userModel.getUserName(reqBody)
     if (existingUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Đã có người dùng này')
     }
@@ -19,7 +19,8 @@ const signIn = async (reqBody) => {
     const newUser = {
       ...reqBody,
       password: hashed,
-      slug: slugify(reqBody.name)
+      slug: slugify(reqBody.name),
+      userName: slugify(reqBody.name).replace('-', '')
     }
     //lấy dữ liệu từ model trả kết quả về cho controller, luôn phải có return
     return await userModel.signIn(newUser)
@@ -30,7 +31,7 @@ const signIn = async (reqBody) => {
 
 const login = async (data) => {
   try {
-    const user = await userModel.getUser(data)
+    const user = await userModel.getUserName(data)
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai người dùng')
     }
@@ -61,8 +62,6 @@ const login = async (data) => {
 const getInfo = async (id) => {
   try {
     const user = await userModel.getInfo(id)
-    user.password = undefined
-    user._id = undefined
     return {
       ...user,
       id: id

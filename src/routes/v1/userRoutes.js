@@ -9,6 +9,7 @@ Router.route('/signup')
 
 Router.route('/login')
   .post(userController.login)
+
 Router.route('/info')
   .get(tokenMiddleware.auth, userController.getInfo)
 export const userRoutes = Router

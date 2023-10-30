@@ -14,7 +14,7 @@ const START_SERVER = () => {
   app.use(express.json())
 
   // Use APIS V1
-  app.use('/v1', API_V1)
+  app.use('/api/v1', API_V1)
 
   //Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
