@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-catch */
 import { userModel } from '~/models/userModel'
 import { slugify } from '~/utils/formatters'
@@ -6,24 +7,28 @@ import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import jwt from 'jsonwebtoken'
 import { env } from '~/config/environment'
-const signIn = async (reqBody) => {
+const signUp = async (reqBody) => {
   try {
     const salt = await bcryct.genSalt(10)
     const hashed = await bcryct.hash(reqBody.password, salt)
     const existingUser = await userModel.getUserName(reqBody)
+    // Xử lý logic dữ liệu
     if (existingUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Đã có người dùng này')
     }
-
-    // Xử lý logic dữ liệu
+    const { confirmPassword, ...option } = reqBody
     const newUser = {
-      ...reqBody,
+      ...option,
       password: hashed,
       slug: slugify(reqBody.name),
       userName: slugify(reqBody.name).replace('-', '')
     }
-    //lấy dữ liệu từ model trả kết quả về cho controller, luôn phải có return
-    return await userModel.signIn(newUser)
+    const user = await userModel.signUp(newUser)
+    const token = jwt.sign({ id: user._id, admin: user.admin }, env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
+    return {
+      token,
+      ...user
+    }
   } catch (error) {
     throw error
   }
@@ -44,8 +49,8 @@ const login = async (data) => {
     }
     user.password = undefined
 
-    const token = jwt.sign({ data: user._id }, env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
     if (user && validations) {
+      const token = jwt.sign({ id: user._id, admin: user.admin }, env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
       return {
         token,
         ...user,
@@ -59,12 +64,28 @@ const login = async (data) => {
   }
 }
 
+const deleteUser = async (req) => {
+  try {
+    // token mang id nào thì tìm user mang id của token tương ứng đó
+    if (!req.user.admin) {
+      return await userModel.deleteUser(req.user.id)
+    }
+    if (req.user.admin) {
+      return await userModel.deleteUser(req.body.idUser)
+    }
+
+  } catch (error) {
+    throw error
+  }
+}
+
 const getInfo = async (id) => {
   try {
+    // token mang id nào thì tìm user mang id của token tương ứng đó
     const user = await userModel.getInfo(id)
     return {
       ...user,
-      id: id
+      id
     }
   } catch (error) {
     throw error
@@ -72,7 +93,8 @@ const getInfo = async (id) => {
 }
 
 export const userService = {
-  signIn,
+  signUp,
   login,
+  deleteUser,
   getInfo
 }

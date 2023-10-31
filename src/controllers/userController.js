@@ -4,11 +4,11 @@ import { userService } from '~/services/userService'
 
 //register
 // /user/signup
-const signIn = async (req, res, next) => {
+const signUp = async (req, res, next) => {
   try {
 
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
-    const user = await userService.signIn(req.body)
+    const user = await userService.signUp(req.body)
 
     // Có kết quả thì trả về Client
     res.status(StatusCodes.CREATED).json(
@@ -33,6 +33,18 @@ const login = async (req, res, next) => {
     next(error)
   }
 }
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await userService.deleteUser(req)
+    res.status(StatusCodes.CREATED).json(
+      user
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
 // /user/info
 const getInfo = async (req, res, next) => {
   try {
@@ -47,7 +59,8 @@ const getInfo = async (req, res, next) => {
 }
 
 export const userController = {
-  signIn,
+  signUp,
   login,
+  deleteUser,
   getInfo
 }

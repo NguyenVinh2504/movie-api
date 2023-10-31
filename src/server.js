@@ -6,6 +6,7 @@ import { CONNECT_DB, CLOSE_DB } from './config/mongodb.js'
 import { API_V1 } from './routes/v1/index.js'
 import { env } from './config/environment.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
+import { StatusCodes } from 'http-status-codes'
 
 const START_SERVER = () => {
   const app = express()
@@ -15,6 +16,13 @@ const START_SERVER = () => {
 
   // Use APIS V1
   app.use('/api/v1', API_V1)
+
+  app.use(express.urlencoded({ extended: false }))
+
+  // Not found API
+  app.use('*', (req, res) => {
+    res.status(StatusCodes.NOT_FOUND).json({ status: StatusCodes.NOT_FOUND, message: 'Not Found' })
+  })
 
   //Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)

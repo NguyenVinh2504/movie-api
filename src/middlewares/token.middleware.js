@@ -23,17 +23,19 @@ const tokenDecode = (req) => {
 }
 
 const auth = async (req, res, next) => {
-  try { const tokenDecoded = tokenDecode(req)
+  try {
+    const tokenDecoded = tokenDecode(req)
     if (!tokenDecoded) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
     }
 
-    const user = await userService.getInfo(tokenDecoded.data)
+    const user = await userService.getInfo(tokenDecoded.id)
 
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy user')
     }
-    req.user = user
+    const { id, admin } = tokenDecoded
+    req.user = { id, admin }
     next()
   } catch (error) {
     next(error)
