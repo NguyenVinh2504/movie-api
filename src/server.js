@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 
 import express from 'express'
+import cors from 'cors'
+import { corsOptions } from './config/cors.js'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb.js'
 import { API_V1 } from './routes/v1/index.js'
@@ -10,6 +12,9 @@ import { StatusCodes } from 'http-status-codes'
 
 const START_SERVER = () => {
   const app = express()
+
+  // Xử lý cors
+  app.use(cors(corsOptions))
 
   // Bật req.body json data
   app.use(express.json())

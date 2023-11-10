@@ -11,7 +11,13 @@ Router.route('/login')
   .post(userValidation.login, userController.login)
 
 Router.route('/delete')
-  .delete(tokenMiddleware.auth, userController.deleteUser)
+  .delete(tokenMiddleware.auth, userValidation.deleteUser, userController.deleteUser)
+
+Router.route('/update-password')
+  .put(tokenMiddleware.auth, userValidation.updatePassword, userController.updatePassword)
+
+Router.route('/update-profile')
+  .put(tokenMiddleware.auth, userValidation.updateProfile, userController.updateProfile)
 
 Router.route('/info')
   .get(tokenMiddleware.auth, userController.getInfo)

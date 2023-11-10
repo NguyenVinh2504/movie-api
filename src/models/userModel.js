@@ -10,6 +10,9 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     .messages({
       'string.min': '{#label} Tối thiếu 8 kí tự',
       'any.required': '{#label} Chưa nhập tên đăng nhập'
+    }).external(async (value, help) => {
+      const user = await userModel.getUserName(value )
+      if (user) return help.message('{#label} Đã có người dùng này')
     }),
   slug: Joi.string().min(3).required(),
   avatar: Joi.string().default(null),
@@ -40,15 +43,11 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       'password.noWhiteSpaces': '{#label} không nên có khoảng trắng',
       'password.onlyLatinCharacters': '{#label} chỉ nên chứa các kí tự Latin'
     }),
-  phone: Joi.number(),
+  phone: Joi.number().default(null),
   userName: Joi.string(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   admin: Joi.boolean().default(false),
-  _destroy: Joi.boolean().default(false),
-  refresh_token: [
-    Joi.string(),
-    Joi.number()
-  ]
+  _destroy: Joi.boolean().default(false)
 })
 
 const signUp = async (data) => {
@@ -64,7 +63,16 @@ const signUp = async (data) => {
 
 const getUserName = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ name: data.name })
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ name: data })
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const getIdUser = async (data) => {
+  try {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) })
     return result
   } catch (error) {
     throw new Error(error)
@@ -84,7 +92,22 @@ const getInfo = async (data) => {
 
 const deleteUser = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndDelete({ _id: new ObjectId(data) }, {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) }, {
+      projection: { _id: 0, password: 0 }
+    })
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const updateProfile = async (data) => {
+  const { id, body } = data
+  try {
+    await GET_DB().collection(USER_COLLECTION_NAME).updateOne({ _id: new ObjectId(id) }, {
+      $set: { ...body }
+    })
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(id) }, {
       projection: { _id: 0, password: 0 }
     })
     return result
@@ -98,6 +121,8 @@ export const userModel = {
   USER_COLLECTION_SCHEMA,
   signUp,
   getUserName,
+  getIdUser,
   deleteUser,
+  updateProfile,
   getInfo
 }

@@ -45,6 +45,28 @@ const deleteUser = async (req, res, next) => {
   }
 }
 
+const updatePassword = async (req, res, next) => {
+  try {
+    const user = await userService.updatePassword(req)
+    res.status(StatusCodes.OK).json(
+      user
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateProfile = async (req, res, next) => {
+  try {
+    const user = await userService.updateProfile(req)
+    res.status(StatusCodes.OK).json(
+      user
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
 // /user/info
 const getInfo = async (req, res, next) => {
   try {
@@ -62,5 +84,7 @@ export const userController = {
   signUp,
   login,
   deleteUser,
+  updatePassword,
+  updateProfile,
   getInfo
 }
