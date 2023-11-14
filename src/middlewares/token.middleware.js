@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
-import jsonwebtoken from 'jsonwebtoken'
 import { env } from '~/config/environment'
+import { jwtHelper } from '~/helpers/jwt.helper'
 import { userService } from '~/services/userService'
 import ApiError from '~/utils/ApiError'
 
@@ -11,10 +11,7 @@ const tokenDecode = (req) => {
     if (bearerHeader) {
       const token = bearerHeader.split(' ')[1]
 
-      return jsonwebtoken.verify(
-        token,
-        env.ACCESS_TOKEN_SECRET
-      )
+      return jwtHelper.verifyToken(token, env.ACCESS_TOKEN_SECRET)
     }
     return false
   } catch {
@@ -29,13 +26,13 @@ const auth = async (req, res, next) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
     }
 
-    const user = await userService.getInfo(tokenDecoded.id)
+    const user = await userService.getInfo(tokenDecoded._id)
 
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy user')
     }
-    const { id, admin } = tokenDecoded
-    req.user = { id, admin }
+    const { _id, admin } = tokenDecoded
+    req.user = { _id, admin }
     next()
   } catch (error) {
     next(error)

@@ -8,66 +8,7 @@ import jwt from 'jsonwebtoken'
 import { env } from '~/config/environment'
 import hashPassword from '~/utils/hashPassword'
 import validationsPassword from '~/utils/validationsPassword'
-
-const signUp = async (reqBody) => {
-  try {
-    // Mã hóa mật khẩu từ phía người dùng nhập vào
-    const hashed = await hashPassword(reqBody.password)
-    // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-    const { confirmPassword, ...option } = reqBody
-
-    // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-    const newUser = {
-      ...option,
-      password: hashed,
-      slug: slugify(reqBody.name),
-      userName: slugify(reqBody.name).replace('-', '')
-    }
-
-    // Truyền dữ liệu đã xử lí vào model
-    const user = await userModel.signUp(newUser)
-
-    // Tạo tooken
-    const token = jwt.sign({ id: user._id, admin: user.admin }, env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
-    return {
-      token,
-      ...user
-    }
-  } catch (error) {
-    throw error
-  }
-}
-
-const login = async (data) => {
-  try {
-    const user = await userModel.getUserName(data.name)
-    if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai người dùng')
-    }
-    const validations = await validationsPassword({
-      id: user._id,
-      password: data.password
-    })
-
-    if (!validations) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai mật khẩu')
-    }
-    user.password = undefined
-
-    if (user && validations) {
-      const token = jwt.sign({ id: user._id, admin: user.admin }, env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' })
-      return {
-        token,
-        ...user,
-        id: user._id
-      }
-    }
-
-
-  } catch (error) {
-    throw error
-  }
-}
+import { jwtHelper } from '~/helpers/jwt.helper'
 
 const deleteUser = async (req) => {
   try {
@@ -147,8 +88,6 @@ const getInfo = async (id) => {
 }
 
 export const userService = {
-  signUp,
-  login,
   deleteUser,
   updatePassword,
   updateProfile,
