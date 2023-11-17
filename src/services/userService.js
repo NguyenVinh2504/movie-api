@@ -12,7 +12,7 @@ import { jwtHelper } from '~/helpers/jwt.helper'
 
 const deleteUser = async (req) => {
   try {
-    const user = await userModel.getIdUser(req.user.id)
+    const user = await userModel.getIdUser(req.user._id)
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }
@@ -37,7 +37,7 @@ const deleteUser = async (req) => {
 
 const updatePassword = async (req) => {
   try {
-    const user = await userModel.getIdUser(req.user.id)
+    const user = await userModel.getIdUser(req.user._id)
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }
@@ -58,7 +58,7 @@ const updatePassword = async (req) => {
 
 const updateProfile = async (req) => {
   try {
-    const user = await userModel.getIdUser(req.user.id)
+    const user = await userModel.getIdUser(req.user._id)
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }

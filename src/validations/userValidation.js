@@ -78,10 +78,6 @@ const updatePassword = async (req, res, next) => {
 const updateProfile = async (req, res, next) => {
   const correctCondition = Joi.object({
     name: Joi.string().min(8).label('name')
-      .external(async (value, help) => {
-        const user = await userModel.getUserName(value )
-        if (user) return help.message('Đã có người dùng này')
-      })
       .messages({
         'string.min': '{#label} Tối thiếu 8 kí tự',
         'any.required': '{#label} Chưa nhập tên đăng nhập'
@@ -90,8 +86,13 @@ const updateProfile = async (req, res, next) => {
       .label('email')
       .messages({
         'string.email': '{#label} Sai định dạng email'
+      }).external(async (value, help) => {
+        const email = await userModel.getEmail(value )
+        if (email) return help.message('Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
       }),
-    phone: Joi.number().default(null),
+    phone: Joi.number().allow('').default(null).messages({
+      'number.base': 'Vui lòng nhập chữ số'
+    }),
     avatar: Joi.string().default(null)
   })
   try {

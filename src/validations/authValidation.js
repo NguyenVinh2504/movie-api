@@ -58,9 +58,9 @@ const signUp = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   const correctCondition = Joi.object({
-    name: Joi.string().required().label('name')
+    email: Joi.string().required().label('email')
       .messages({
-        'any.required': '{#label} Chưa nhập tên đăng nhập'
+        'any.required': '{#label} Chưa nhập email đăng nhập'
       }),
     password: joiPassword.string()
       .required()

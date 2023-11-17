@@ -12,6 +12,17 @@ const getUserName = async (data) => {
   }
 }
 
+const getEmail = async (data) => {
+  try {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email: data }, {
+      projection: { password: 0 }
+    })
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const getIdUser = async (data) => {
   try {
     const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) })
@@ -50,7 +61,7 @@ const updateProfile = async (data) => {
       $set: { ...body }
     })
     const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(id) }, {
-      projection: { _id: 0, password: 0 }
+      projection: { password: 0 }
     })
     return result
   } catch (error) {
@@ -61,6 +72,7 @@ const updateProfile = async (data) => {
 export const userModel = {
   USER_COLLECTION_NAME,
   getUserName,
+  getEmail,
   getIdUser,
   deleteUser,
   updateProfile,

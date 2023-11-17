@@ -12,9 +12,6 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     .messages({
       'string.min': '{#label} Tối thiếu 8 kí tự',
       'any.required': '{#label} Chưa nhập tên đăng nhập'
-    }).external(async (value, help) => {
-      const user = await userModel.getUserName(value)
-      if (user) return help.message('Đã có người dùng này')
     }),
   slug: Joi.string().min(3).required(),
   avatar: Joi.string().default(null),
@@ -23,6 +20,9 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     .messages({
       'string.email': '{#label} Sai định dạng email',
       'any.required': '{#label} Email chưa nhập'
+    }).external(async (value, help) => {
+      const user = await userModel.getEmail(value)
+      if (user) return help.message('Email đã được sử dụng. Hãy thử email khác')
     }),
   password: joiPassword.string()
     .min(8)

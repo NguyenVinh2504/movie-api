@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-catch */
 import { userModel } from '~/models/userModel'
-import { slugify } from '~/utils/formatters'
+import { formatUserName, slugify } from '~/utils/formatters'
 import ApiError from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/environment'
@@ -12,8 +12,8 @@ import { authModel } from '~/models/authModel'
 
 const signUp = async (req, res) => {
   try {
-    const checkUser = await userModel.getUserName(req.body.name)
-    if (checkUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Đã có người dùng này')
+    const checkEmail = await userModel.getEmail(req.body.name)
+    if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Hãy thử email khác')
     // Mã hóa mật khẩu từ phía người dùng nhập vào
     const hashed = await hashPassword(req.body.password)
     // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
@@ -24,7 +24,7 @@ const signUp = async (req, res) => {
       ...option,
       password: hashed,
       slug: slugify(req.body.name),
-      userName: slugify(req.body.name).replace('-', '')
+      userName: `@${formatUserName(req.body.name)}`
     }
 
     // Truyền dữ liệu đã xử lí vào model
@@ -53,44 +53,39 @@ const signUp = async (req, res) => {
 
 const loginGoogle = async (req, res) => {
   try {
-    const checkUser = await userModel.getUserName(req.body.name)
-    if (checkUser) {
-      const token = jwtHelper.generateToken(checkUser, env.ACCESS_TOKEN_SECRET, '1h')
-      const refreshToken = jwtHelper.generateToken(checkUser, env.REFRESH_TOKEN_SECRET, '365d')
+    const checkEmail = await userModel.getEmail(req.body.email)
+    // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
+    if (checkEmail) {
+      const token = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '1h')
+      const refreshToken = jwtHelper.generateToken(checkEmail, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ refreshToken })
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
         path: '/',
-        // maxAge: 31557600000,
         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
         sameSite: 'Lax'
       })
-      const { name, ...rest } = checkUser
-      const [splitName] = name.split('_')
       return {
         token,
-        name: splitName,
-        ...rest
+        ...checkEmail
       }
     } else {
       // Mã hóa mật khẩu từ phía người dùng nhập vào
       const hashed = await hashPassword(req.body.password)
       // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-      const { confirmPassword, ...option } = req.body
-
+      const { name, confirmPassword, ...option } = req.body
       // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-      const [splitName] = req.body.name.split('_')
       const newUser = {
+        name,
         ...option,
         password: hashed,
-        slug: slugify(splitName),
-        userName: slugify(splitName).replace('-', '')
+        slug: slugify(name),
+        userName: `@${formatUserName(name)}`
       }
 
       // Truyền dữ liệu đã xử lí vào model
       const user = await authModel.signUp(newUser)
-      const { name, ...rest } = user
       // Tạo token
       const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '1h')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
@@ -105,8 +100,7 @@ const loginGoogle = async (req, res) => {
       })
       return {
         token,
-        name: splitName,
-        ...rest
+        ...user
       }
     }
   } catch (error) {
@@ -116,9 +110,9 @@ const loginGoogle = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const user = await userModel.getUserName(req.body.name)
+    const user = await userModel.getEmail(req.body.email)
     if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai người dùng')
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai email người dùng')
     }
     const validations = await validationsPassword({
       id: user._id,
