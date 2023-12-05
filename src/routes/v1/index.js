@@ -2,7 +2,8 @@ import express from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { userRoutes } from './userRoutes.js'
 import { authRoutes } from './authRoutes.js'
-const Router = express.Router()
+import { mediaRoute } from './media.route.js'
+const Router = express.Router({ mergeParams: true })
 
 // Check api v1
 Router.get('/status', (req, res) => {
@@ -12,5 +13,7 @@ Router.get('/status', (req, res) => {
 // User APIs
 Router.use('/user', userRoutes)
 Router.use('/auth', authRoutes)
+
+Router.use('/:mediaType', mediaRoute)
 
 export const API_V1 = Router

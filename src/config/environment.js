@@ -9,5 +9,8 @@ export const env = {
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
   BUILD_MODE: process.env.BUILD_MODE,
 
-  AUTHOR: process.env.AUTHOR
+  AUTHOR: process.env.AUTHOR,
+
+  TMDB_KEY: process.env.TMDB_KEY,
+  TMDB_BASE_URL: process.env.TMDB_BASE_URL
 }

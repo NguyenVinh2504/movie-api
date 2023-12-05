@@ -10,7 +10,6 @@ import { env } from './config/environment.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 import { StatusCodes } from 'http-status-codes'
 import cookieParser from 'cookie-parser'
-
 const START_SERVER = () => {
   const app = express()
 
@@ -25,16 +24,6 @@ const START_SERVER = () => {
 
   // Use APIS V1
   app.use('/api/v1', API_V1)
-  app.get('/get/cookie', (req, res)=> {
-    res.cookie('usename', 'hahaahaha', {
-      httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'strict'
-      // sameSite: 'none'
-    })
-    res.json('"đa set"')
-  })
 
   app.use(express.urlencoded({ extended: false }))
 

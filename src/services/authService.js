@@ -13,7 +13,7 @@ import { authModel } from '~/models/authModel'
 const signUp = async (req, res) => {
   try {
     const checkEmail = await userModel.getEmail(req.body.name)
-    if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Hãy thử email khác')
+    if (checkEmail) throw new ApiError(StatusCodes.BAD_REQUEST, 'Email đã được sử dụng. Hãy thử email khác')
     // Mã hóa mật khẩu từ phía người dùng nhập vào
     const hashed = await hashPassword(req.body.password)
     // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
@@ -24,7 +24,8 @@ const signUp = async (req, res) => {
       ...option,
       password: hashed,
       slug: slugify(req.body.name),
-      userName: `@${formatUserName(req.body.name)}`
+      userName: `@${formatUserName(req.body.name)}`,
+      temporaryAvatar: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${formatUserName(req.body.name)}`
     }
 
     // Truyền dữ liệu đã xử lí vào model
@@ -74,10 +75,11 @@ const loginGoogle = async (req, res) => {
       // Mã hóa mật khẩu từ phía người dùng nhập vào
       const hashed = await hashPassword(req.body.password)
       // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-      const { name, confirmPassword, ...option } = req.body
+      const { name, confirmPassword, avatar, ...option } = req.body
       // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
       const newUser = {
         name,
+        temporaryAvatar: avatar,
         ...option,
         password: hashed,
         slug: slugify(name),
@@ -120,7 +122,7 @@ const login = async (req, res) => {
     })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai mật khẩu')
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu')
     }
     user.password = undefined
     if (user && validations) {

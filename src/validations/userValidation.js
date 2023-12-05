@@ -15,10 +15,6 @@ const deleteUser = async (req, res, next) => {
       .messages({
         'any.required': 'Chưa nhập {#label}'
       }),
-    confirmPassword: Joi.any().valid(Joi.ref('password')).required()
-      .label('Confirm password')
-      .messages({ 'any.only': '{{#label}} nhập lại mật khẩu chưa chính xác',
-        'any.required': '{{#label}} Chưa nhập lại mật khẩu' }),
     userId: Joi.string()
   })
   try {
@@ -54,16 +50,18 @@ const updatePassword = async (req, res, next) => {
         'string.min': '{#label} chứa ít nhất 8 kí tự',
         'password.minOfUppercase': '{#label} nên chứa chữ viết hoa',
         'password.minOfSpecialCharacters':
-              '{#label} nên chứa kí tự đặc biệt',
+          '{#label} nên chứa kí tự đặc biệt',
         'password.minOfLowercase': '{#label} nên chứa chữ viết thường',
         'password.minOfNumeric': '{#label} nên chứa chữ số',
         'password.noWhiteSpaces': '{#label} không nên có khoảng trắng',
         'password.onlyLatinCharacters': '{#label} chỉ nên chứa các kí tự Latin'
       }),
-    confirmPassword: Joi.any().valid(Joi.ref('newPassword')).required()
+    confirmNewPassword: Joi.any().valid(Joi.ref('newPassword')).required()
       .label('Confirm password')
-      .messages({ 'any.only': '{{#label}} nhập lại mật khẩu chưa chính xác',
-        'any.required': '{{#label}} Chưa nhập lại mật khẩu' })
+      .messages({
+        'any.only': '{{#label}} nhập lại mật khẩu chưa chính xác',
+        'any.required': '{{#label}} Chưa nhập lại mật khẩu'
+      })
   })
   try {
     await correctCondition.validateAsync(req.body, { abortEarly: false })
@@ -87,13 +85,13 @@ const updateProfile = async (req, res, next) => {
       .messages({
         'string.email': '{#label} Sai định dạng email'
       }).external(async (value, help) => {
-        const email = await userModel.getEmail(value )
+        const email = await userModel.getEmail(value)
         if (email) return help.message('Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
       }),
     phone: Joi.number().allow('').default(null).messages({
       'number.base': 'Vui lòng nhập chữ số'
     }),
-    avatar: Joi.string().default(null)
+    avatar: Joi.string().allow(null).default(null)
   })
   try {
     await correctCondition.validateAsync(req.body, { abortEarly: false })

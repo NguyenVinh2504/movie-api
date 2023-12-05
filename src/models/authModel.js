@@ -14,6 +14,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       'any.required': '{#label} Chưa nhập tên đăng nhập'
     }),
   slug: Joi.string().min(3).required(),
+  temporaryAvatar: Joi.string().default(null),
   avatar: Joi.string().default(null),
   email: Joi.string().email().required('This is required')
     .label('Email')
