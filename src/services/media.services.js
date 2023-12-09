@@ -73,12 +73,12 @@ const getDetailSeason = async (req) => {
 }
 const search = async (req) => {
   try {
-    const { mediaType } = req.params
     const { query, page } = req.query
+    const { mediaType } = req.params
     const response = await tmdbApi.mediaSearch({
       query,
       page,
-      mediaType: mediaType === 'people' ? 'person' : mediaType
+      mediaType
     })
 
     return response
