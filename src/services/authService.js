@@ -57,7 +57,7 @@ const loginGoogle = async (req, res) => {
     const checkEmail = await userModel.getEmail(req.body.email)
     // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
     if (checkEmail) {
-      const token = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '5s')
+      const token = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '1h')
       const refreshToken = jwtHelper.generateToken(checkEmail, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ refreshToken })
       res.cookie('refreshToken', refreshToken, {
@@ -150,7 +150,6 @@ const login = async (req, res) => {
 }
 
 const refreshToken = async (req, res) => {
-  console.log(req.cookies.refreshToken)
   try {
     const refreshToken = req.cookies.refreshToken
     if (!refreshToken) {
@@ -165,7 +164,7 @@ const refreshToken = async (req, res) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Refresh Token không hợp lệ')
     }
     await authModel.deleteRefreshToken(refreshToken)
-    const newAccessToken = jwtHelper.generateToken(tokenDecoded, env.ACCESS_TOKEN_SECRET, '5s')
+    const newAccessToken = jwtHelper.generateToken(tokenDecoded, env.ACCESS_TOKEN_SECRET, '1h')
     const newRefreshToken = jwtHelper.generateToken(tokenDecoded, env.REFRESH_TOKEN_SECRET, '365d')
     await authModel.addRefreshToken({ refreshToken: newRefreshToken })
     res.cookie('refreshToken', newRefreshToken, {
