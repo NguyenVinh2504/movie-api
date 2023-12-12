@@ -41,7 +41,7 @@ const signUp = async (req, res) => {
       path: '/',
       // maxAge: 31557600000,
       expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      sameSite: 'none'
+      sameSite: 'Lax'
     })
     return {
       token,
@@ -65,7 +65,7 @@ const loginGoogle = async (req, res) => {
         secure: true,
         path: '/',
         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'none'
+        sameSite: 'Lax'
       })
       return {
         token,
@@ -98,7 +98,7 @@ const loginGoogle = async (req, res) => {
         path: '/',
         // maxAge: 31557600000,
         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'none'
+        sameSite: 'Lax'
       })
       return {
         token,
@@ -135,7 +135,7 @@ const login = async (req, res) => {
         path: '/',
         // maxAge: 31557600000,
         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'none'
+        sameSite: 'Lax'
       })
       return {
         ...user,
@@ -172,7 +172,7 @@ const refreshToken = async (req, res) => {
       secure: true,
       path: '/',
       expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      sameSite: 'none'
+      sameSite: 'Lax'
     })
     return newAccessToken
   } catch (error) {
