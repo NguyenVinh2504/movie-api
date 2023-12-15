@@ -1,8 +1,3 @@
 {
-  "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "src/server.js"
-    }
-  ]
+    "rewrites": [{ "source": "/(.*)", "destination": "src/routes/v1" }]
 }
