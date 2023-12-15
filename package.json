@@ -14,7 +14,7 @@
     "build": "npm run clean && npm run build-babel",
     "production": "npm run build && cross-env BUILD_MODE=production node ./build/src/server.js",
     "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node ./src/server.js",
-    "start": "node ./build/src/server.js"
+    "start": "cross-env BUILD_MODE=production node ./build/src/server.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
