@@ -28,7 +28,7 @@ const START_SERVER = () => {
   app.use(express.urlencoded({ extended: false }))
 
   // Not found API
-  app.use('*', (req, res) => {
+  app.use('/', (req, res) => {
     res.status(StatusCodes.NOT_FOUND).json({ status: StatusCodes.NOT_FOUND, message: 'Not Found' })
   })
 
