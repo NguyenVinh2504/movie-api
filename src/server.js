@@ -5,7 +5,7 @@ import cors from 'cors'
 import { corsOptions } from './config/cors.js'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb.js'
-import { API_V1 } from './routes/v1/index.js'
+import routes from './routes/v1/index.js'
 import { env } from './config/environment.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 import { StatusCodes } from 'http-status-codes'
@@ -23,7 +23,7 @@ const START_SERVER = () => {
   app.use(express.json())
 
   // Use APIS V1
-  app.use('/api/v1', API_V1)
+  app.use('/api/v1', routes)
 
   app.use(express.urlencoded({ extended: false }))
 

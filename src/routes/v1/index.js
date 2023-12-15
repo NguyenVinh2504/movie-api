@@ -16,4 +16,4 @@ Router.use('/auth', authRoutes)
 
 Router.use('/:mediaType', mediaRoute)
 
-export const API_V1 = Router
+export default Router
