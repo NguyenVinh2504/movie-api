@@ -5,7 +5,7 @@ import cors from 'cors'
 import { corsOptions } from './config/cors.js'
 import exitHook from 'async-exit-hook'
 import { CONNECT_DB, CLOSE_DB } from './config/mongodb.js'
-import routes from './routes/v1/index.js'
+import Routes from './routes/v1/index.js'
 import { env } from './config/environment.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 import { StatusCodes } from 'http-status-codes'
@@ -23,7 +23,7 @@ const START_SERVER = () => {
   app.use(express.json())
 
   // Use APIS V1
-  app.use('/api/v1', routes)
+  app.use('/api/v1', Routes)
 
   app.use(express.urlencoded({ extended: false }))
 
@@ -46,9 +46,11 @@ const START_SERVER = () => {
   //     console.log(`3.Hello ${env.AUTHOR}, Back-end Server đang chạy thành công tại Host: http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`)
   //   })
   // }
-  app.listen(process.env.PORT || 5000, () => {
+  const port = process.env.PORT || 3001
+
+  app.listen(port, () => {
     // eslint-disable-next-line no-console
-    console.log(`3.Hello production ${env.AUTHOR}, Back-end Server đang chạy thành công tại Port: ${process.env.PORT || 5000}`)
+    console.log(`3.Hello production ${env.AUTHOR}, Back-end Server đang chạy thành công tại Port: ${port}`)
   })
 
   //thực hiện các tác vụ clean up trước khi dừng server
