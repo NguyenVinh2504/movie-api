@@ -153,7 +153,7 @@ const refreshToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken
     if (!refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không được phép')
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token')
     }
     const tokenDecoded = jwtHelper.verifyToken(refreshToken, env.REFRESH_TOKEN_SECRET)
     if (!tokenDecoded) {

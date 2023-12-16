@@ -14,10 +14,24 @@ const getUserName = async (data) => {
 
 const getEmail = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email: data, _destroy: false }, {
-      projection: { password: 0 }
-    })
-    return result
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).aggregate([
+      {
+        $match: {
+          email: data,
+          _destroy: false
+        }
+      },
+      {
+        $lookup: {
+          from: favoriteModel.FAVORITE_COLLECTION_NAME,
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'favorites'
+        }
+      }
+    ]).toArray()
+    return result[0] || null
+
   } catch (error) {
     throw new Error(error)
   }
@@ -34,9 +48,6 @@ const getIdUser = async (data) => {
 
 const getInfo = async (data) => {
   try {
-    // const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) }, {
-    //   projection: { _id: 0, password: 0 }
-    // })
     const result = await GET_DB().collection(USER_COLLECTION_NAME).aggregate([
       {
         $match: {
@@ -55,22 +66,22 @@ const getInfo = async (data) => {
         $project: { _id: 0, password: 0 }
       }
     ]).toArray()
-    return result[0] || {}
+    return result[0] || null
   } catch (error) {
     throw new Error(error)
   }
 }
 
-const pushFavorites = async (favorite) => {
-  try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate({ _id: new ObjectId(favorite.userId) }, {
-      $push: { favoriteIds: new ObjectId(favorite._id) }
-    }, { returnDocument: 'after' })
-    return result.value
-  } catch (error) {
-    throw new Error(error)
-  }
-}
+// const pushFavorites = async (favorite) => {
+//   try {
+//     const result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate({ _id: new ObjectId(favorite.userId) }, {
+//       $push: { favoriteIds: new ObjectId(favorite._id) }
+//     }, { returnDocument: 'after' })
+//     return result.value
+//   } catch (error) {
+//     throw new Error(error)
+//   }
+// }
 
 const deleteUser = async (data) => {
   try {
@@ -103,7 +114,7 @@ export const userModel = {
   getUserName,
   getEmail,
   getIdUser,
-  pushFavorites,
+  // pushFavorites,
   deleteUser,
   updateProfile,
   getInfo

@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/environment'
 import { jwtHelper } from '~/helpers/jwt.helper'
-import { userService } from '~/services/userService'
+import { userModel } from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
 
 
@@ -26,10 +26,10 @@ const auth = async (req, res, next) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
     }
 
-    const user = await userService.getInfo(tokenDecoded._id)
+    const user = await userModel.getInfo(tokenDecoded._id)
 
     if (!user) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy user')
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy user')
     }
     const { _id, admin } = tokenDecoded
     req.user = { _id, admin }

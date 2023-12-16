@@ -7,4 +7,7 @@ const Router = express.Router({ mergeParams: true })
 // /user/delete
 Router.route('/')
   .post(tokenMiddleware.auth, favoriteValidation.createFavorite, favoriteController.addFavorite)
+
+Router.route('/:id')
+  .delete(tokenMiddleware.auth, favoriteValidation.deleteFavorite, favoriteController.removeFavorite)
 export const favoriteRoutes = Router

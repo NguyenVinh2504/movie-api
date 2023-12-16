@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { joiPasswordExtendCore } from 'joi-password'
 import { userModel } from './userModel'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
+// import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 const USER_COLLECTION_NAME = 'users'
@@ -15,9 +15,9 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       'any.required': '{#label} Chưa nhập tên đăng nhập'
     }),
   slug: Joi.string().min(3).required(),
-  favoriteIds: Joi.array().items(
-    Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
-  ).default([]),
+  // favoriteIds: Joi.array().items(
+  //   Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+  // ).default([]),
   temporaryAvatar: Joi.string().default(null),
   avatar: Joi.string().default(null),
   email: Joi.string().email().required('This is required')

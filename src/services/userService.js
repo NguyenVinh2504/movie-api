@@ -97,8 +97,8 @@ const getInfo = async (id) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }
     return {
-      ...user,
-      id
+      id,
+      ...user
     }
   } catch (error) {
     throw error

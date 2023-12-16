@@ -13,19 +13,30 @@ const addFavorite = async (req) => {
       ...req.body
     }
     const addFavorite = await favoriteModel.addFavorite(newFavorite)
-
-    if (addFavorite) {
-      await userModel.pushFavorites(addFavorite)
-    }
+    const { userId } = addFavorite
+    const user = await userModel.getInfo(userId)
+    // if (addFavorite) {
+    //   await userModel.pushFavorites(addFavorite)
+    // }
 
     return {
-      ...addFavorite
+      ...user
     }
   } catch (error) {
     throw error
   }
 }
 
+const removeFavorite = async (favoriteId) => {
+  try {
+    await favoriteModel.deleteOneById(favoriteId)
+    return { removeFavorite: 'Đã xóa thành công' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const favoriteService = {
-  addFavorite
+  addFavorite,
+  removeFavorite
 }
