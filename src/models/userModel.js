@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
-
+import { favoriteModel } from './favoriteModel'
 const USER_COLLECTION_NAME = 'users'
 
 const getUserName = async (data) => {
@@ -34,10 +34,39 @@ const getIdUser = async (data) => {
 
 const getInfo = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) }, {
-      projection: { _id: 0, password: 0 }
-    })
-    return result
+    // const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data) }, {
+    //   projection: { _id: 0, password: 0 }
+    // })
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).aggregate([
+      {
+        $match: {
+          _id: new ObjectId(data),
+          _destroy: false
+        }
+      },
+      {
+        $lookup: {
+          from: favoriteModel.FAVORITE_COLLECTION_NAME,
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'favorites'
+        }
+      }, {
+        $project: { _id: 0, password: 0 }
+      }
+    ]).toArray()
+    return result[0] || {}
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const pushFavorites = async (favorite) => {
+  try {
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOneAndUpdate({ _id: new ObjectId(favorite.userId) }, {
+      $push: { favoriteIds: new ObjectId(favorite._id) }
+    }, { returnDocument: 'after' })
+    return result.value
   } catch (error) {
     throw new Error(error)
   }
@@ -74,6 +103,7 @@ export const userModel = {
   getUserName,
   getEmail,
   getIdUser,
+  pushFavorites,
   deleteUser,
   updateProfile,
   getInfo
