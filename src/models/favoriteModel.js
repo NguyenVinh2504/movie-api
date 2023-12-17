@@ -5,13 +5,13 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 const FAVORITE_COLLECTION_NAME = 'favorites'
 const FAVORITE_COLLECTION_SCHEMA = Joi.object({
-  userId: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
-  media_type: Joi.string().valid('tv', 'movie').required(),
-  mediaId: Joi.number().required(),
-  title: Joi.string().required(),
-  poster_path: Joi.string().required(),
-  vote_average: Joi.number().required(),
-  release_date: Joi.string().required()
+  userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+  media_type: Joi.string().allow('').valid('tv', 'movie').required(),
+  mediaId: Joi.number().allow('').required(),
+  title: Joi.string().allow('').required(),
+  poster_path: Joi.string().allow('').required(),
+  vote_average: Joi.number().allow('').required(),
+  release_date: Joi.string().allow('').required()
 })
 
 const addFavorite = async (data) => {

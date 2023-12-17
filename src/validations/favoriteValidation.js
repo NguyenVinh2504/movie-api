@@ -5,12 +5,12 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 const createFavorite = async (req, res, next) => {
   const correctCondition = Joi.object({
-    media_type: Joi.string().valid('tv', 'movie').required(),
-    mediaId: Joi.number().required(),
-    title: Joi.string().required(),
-    poster_path: Joi.string().required(),
-    vote_average: Joi.number().required(),
-    release_date: Joi.string().required()
+    media_type: Joi.string().allow('').valid('tv', 'movie').required(),
+    mediaId: Joi.number().allow('').required(),
+    title: Joi.string().allow('').required(),
+    poster_path: Joi.string().allow('').required(),
+    vote_average: Joi.number().allow('').required(),
+    release_date: Joi.string().allow('').required()
   })
   try {
     await correctCondition.validateAsync(req.body, { abortEarly: false })
