@@ -3,11 +3,12 @@ import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { joiPasswordExtendCore } from 'joi-password'
 import { userModel } from './userModel'
+import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 // import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 const USER_COLLECTION_NAME = 'users'
-const USER_COLLECTION_NAME_2 = 'refreshToken'
+const REFRESH_TOKEN_COLLECTION_NAME = 'refreshToken'
 const USER_COLLECTION_SCHEMA = Joi.object({
   name: Joi.string().min(8).required().label('name')
     .messages({
@@ -57,6 +58,11 @@ const USER_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false)
 })
 
+const REFRESH_TOKEN_COLLECTION_SCHEMA = Joi.object({
+  userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+  refreshToken: Joi.string().allow('').required()
+})
+
 const signUp = async (data) => {
   const validData = await USER_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
   try {
@@ -72,7 +78,8 @@ const signUp = async (data) => {
 
 const addRefreshToken = async (data) => {
   try {
-    const user = await GET_DB().collection(USER_COLLECTION_NAME_2).insertOne(data)
+    const validData = await REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne(validData)
     return user
   } catch (error) {
     throw new Error(error)
@@ -80,7 +87,7 @@ const addRefreshToken = async (data) => {
 }
 const getRefreshToken = async (data) => {
   try {
-    const user = await GET_DB().collection(USER_COLLECTION_NAME_2).findOne({ refreshToken: data })
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({ refreshToken: data })
     return user
   } catch (error) {
     throw new Error(error)
@@ -88,7 +95,7 @@ const getRefreshToken = async (data) => {
 }
 const deleteRefreshToken = async (data) => {
   try {
-    const user = await GET_DB().collection(USER_COLLECTION_NAME_2).deleteOne({ refreshToken: data })
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).deleteOne({ refreshToken: data })
     return user
   } catch (error) {
     throw new Error(error)

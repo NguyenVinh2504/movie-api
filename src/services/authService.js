@@ -34,7 +34,7 @@ const signUp = async (req, res) => {
     // Tạo token
     const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '0.5h')
     const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
-    await authModel.addRefreshToken({ refreshToken })
+    await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
@@ -59,7 +59,7 @@ const loginGoogle = async (req, res) => {
     if (checkEmail) {
       const token = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '0.5h')
       const refreshToken = jwtHelper.generateToken(checkEmail, env.REFRESH_TOKEN_SECRET, '365d')
-      await authModel.addRefreshToken({ refreshToken })
+      await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
@@ -91,7 +91,7 @@ const loginGoogle = async (req, res) => {
       // Tạo token
       const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '0.5h')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
-      await authModel.addRefreshToken({ refreshToken })
+      await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
@@ -128,7 +128,7 @@ const login = async (req, res) => {
     if (user && validations) {
       const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '0.5h')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
-      await authModel.addRefreshToken({ refreshToken })
+      await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: true,
@@ -142,8 +142,6 @@ const login = async (req, res) => {
         token
       }
     }
-
-
   } catch (error) {
     throw error
   }
@@ -167,7 +165,7 @@ const refreshToken = async (req, res) => {
     }
     const newAccessToken = jwtHelper.generateToken(tokenDecoded, env.ACCESS_TOKEN_SECRET, '0.5h')
     const newRefreshToken = jwtHelper.generateToken(tokenDecoded, env.REFRESH_TOKEN_SECRET, '365d')
-    await authModel.addRefreshToken({ refreshToken: newRefreshToken })
+    await authModel.addRefreshToken({ userId: tokenDecoded._id, refreshToken: newRefreshToken })
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: true,
