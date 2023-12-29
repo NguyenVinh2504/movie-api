@@ -32,7 +32,7 @@ const signUp = async (req, res) => {
     const user = await authModel.signUp(newUser)
 
     // Tạo token
-    const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
+    const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
     const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
     await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
     res.cookie('refreshToken', refreshToken, {
@@ -44,7 +44,8 @@ const signUp = async (req, res) => {
       sameSite: 'Lax'
     })
     return {
-      token,
+      accessToken,
+      refreshToken,
       ...user
     }
   } catch (error) {
@@ -57,7 +58,7 @@ const loginGoogle = async (req, res) => {
     const checkEmail = await userModel.getEmail(req.body.email)
     // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
     if (checkEmail) {
-      const token = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '5s')
+      const accessToken = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '5s')
       const refreshToken = jwtHelper.generateToken(checkEmail, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
@@ -68,7 +69,8 @@ const loginGoogle = async (req, res) => {
         sameSite: 'Lax'
       })
       return {
-        token,
+        accessToken,
+        refreshToken,
         ...checkEmail
       }
     } else {
@@ -88,8 +90,8 @@ const loginGoogle = async (req, res) => {
 
       // Truyền dữ liệu đã xử lí vào model
       const user = await authModel.signUp(newUser)
-      // Tạo token
-      const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
+      // Tạo accessToken
+      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
@@ -101,7 +103,8 @@ const loginGoogle = async (req, res) => {
         sameSite: 'Lax'
       })
       return {
-        token,
+        accessToken,
+        refreshToken,
         ...user
       }
     }
@@ -126,7 +129,7 @@ const login = async (req, res) => {
     }
     user.password = undefined
     if (user && validations) {
-      const token = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
+      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5s')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       res.cookie('refreshToken', refreshToken, {
@@ -139,7 +142,8 @@ const login = async (req, res) => {
       })
       return {
         ...user,
-        token
+        accessToken,
+        refreshToken
       }
     }
   } catch (error) {
@@ -173,7 +177,10 @@ const refreshToken = async (req, res) => {
       expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       sameSite: 'Lax'
     })
-    return newAccessToken
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    }
   } catch (error) {
     throw error
   }
@@ -182,6 +189,7 @@ const logout = async (req, res) => {
   try {
     res.clearCookie('refreshToken')
     await authModel.deleteRefreshToken(req.cookies.refreshToken)
+    // await authModel.deleteRefreshToken(req.body.refreshToken)
   }
   catch (error) {
     throw error

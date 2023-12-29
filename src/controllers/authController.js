@@ -55,9 +55,7 @@ const refreshToken = async (req, res, next) => {
   try {
     const newRefreshToken = await authService.refreshToken(req, res)
     res.status(StatusCodes.CREATED).json(
-      {
-        accessToken: newRefreshToken
-      }
+      newRefreshToken
     )
   } catch (error) {
     next(error)
