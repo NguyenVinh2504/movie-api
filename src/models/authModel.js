@@ -28,7 +28,7 @@ const USER_COLLECTION_SCHEMA = Joi.object({
       'any.required': '{#label} Email chưa nhập'
     }).external(async (value, help) => {
       const user = await userModel.getEmail(value)
-      if (user) return help.message('Email đã được sử dụng. Hãy thử email khác')
+      if (user) return help.message('ISEXISTS')
     }),
   password: joiPassword.string()
     .min(8)

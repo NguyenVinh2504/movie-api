@@ -12,8 +12,8 @@ import { authModel } from '~/models/authModel'
 
 const signUp = async (req, res) => {
   try {
-    const checkEmail = await userModel.getEmail(req.body.name)
-    if (checkEmail) throw new ApiError(StatusCodes.BAD_REQUEST, 'Email đã được sử dụng. Hãy thử email khác')
+    const checkEmail = await userModel.getEmail(req.body.email)
+    if (checkEmail) throw new ApiError(StatusCodes.BAD_REQUEST, 'ISEXISTS')
     // Mã hóa mật khẩu từ phía người dùng nhập vào
     const hashed = await hashPassword(req.body.password)
     // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
@@ -117,7 +117,7 @@ const login = async (req, res) => {
   try {
     const user = await userModel.getEmail(req.body.email)
     if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Nhập sai email người dùng')
+      throw new ApiError(StatusCodes.NOT_FOUND, 'INVALID_EMAIL')
     }
     const validations = await validationsPassword({
       id: user._id,
@@ -125,7 +125,7 @@ const login = async (req, res) => {
     })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu')
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'INVALID_PASSWORD')
     }
     user.password = undefined
     if (user && validations) {
