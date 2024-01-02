@@ -13,6 +13,13 @@ import { getDownloadURL, ref, uploadBytes, deleteObject } from 'firebase/storage
 
 import { v4 } from 'uuid'
 
+import nodemailer from 'nodemailer'
+import { env } from '~/config/environment'
+
+import otpGenerator from 'otp-generator'
+import { otpService } from './otpService'
+import { otpModel } from '~/models/otpModel'
+
 const deleteUser = async (req) => {
   try {
     const user = await userModel.getIdUser(req.user._id)
@@ -104,10 +111,87 @@ const getInfo = async (id) => {
     throw error
   }
 }
+const checkEmail = async (req) => {
+  try {
+    const { email } = req.body
+    const user = await userModel.getEmail(email)
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Không có email này')
+    }
+    return {
+      message: 'Valid Email'
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
+const sendEmail = async (req) => {
+  try {
+    const { email } = req.body
+    const otpHolder = await otpModel.findOtp(email)
+    if (otpHolder) {
+      await otpModel.deleteOtp(email)
+    }
+    const OTP = otpGenerator.generate(6, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false })
+
+    await otpService.otpCreate({ email, otp: OTP })
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // `true` for port 465, `false` for all other ports
+      auth: {
+        user: env.EMAIL_NAME,
+        pass: env.EMAIL_PASS
+      }
+    })
+
+    // send mail with defined transport object
+    await transporter.sendMail({
+      from: 'Viejoy <viejoy2023@gmail.com>', // sender address
+      to: email, // list of receivers
+      subject: 'Khôi phục mật khẩu', // Subject line
+      text: `OTP: ${OTP}` // plain text body
+    })
+  } catch (error) {
+    throw error
+  }
+}
+
+const forgotPassword = async (req) => {
+  try {
+    const { email, otp, newPassword } = req.body
+    otp.toString()
+    const otpHolder = await otpModel.findOtp(email)
+    if (!otpHolder.length) throw new ApiError(StatusCodes.NOT_FOUND, 'Expired Otp')
+    const lastOtp = otpHolder[otpHolder.length - 1]
+    const isValid = await otpService.otpVerify({ otp, hashOtp: lastOtp.otp })
+    if (!isValid) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid Otp')
+
+    const user = await userModel.getEmail(email)
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
+    }
+
+    if (isValid && user) {
+      const hashed = await hashPassword(newPassword)
+      await userModel.updateProfile({ id: user._id, body: { password: hashed } })
+      await otpModel.deleteOtp(email)
+      return {
+        message: 'thay doi mat khau thanh cong'
+      }
+    }
+  } catch (error) {
+    throw error
+  }
+}
 
 export const userService = {
   deleteUser,
   updatePassword,
   updateProfile,
-  getInfo
+  getInfo,
+  checkEmail,
+  sendEmail,
+  forgotPassword
 }

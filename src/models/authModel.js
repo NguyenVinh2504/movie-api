@@ -79,7 +79,11 @@ const signUp = async (data) => {
 const addRefreshToken = async (data) => {
   try {
     const validData = await REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne(validData)
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne({
+      ...validData
+      , createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+    })
+    GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return user
   } catch (error) {
     throw new Error(error)

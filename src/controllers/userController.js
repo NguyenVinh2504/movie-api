@@ -46,10 +46,44 @@ const getInfo = async (req, res, next) => {
     next(error)
   }
 }
+const checkEmail = async (req, res, next) => {
+  try {
+    const result = await userService.checkEmail(req)
+    res.status(StatusCodes.CREATED).json(
+      result
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+const sendEmail = async (req, res, next) => {
+  try {
+    await userService.sendEmail(req)
+    res.status(StatusCodes.CREATED).json(
+      'Send successfully'
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
+const forgotPassword = async (req, res, next) => {
+  try {
+    const result = await userService.forgotPassword(req)
+    res.status(StatusCodes.CREATED).json(
+      result
+    )
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const userController = {
   deleteUser,
   updatePassword,
   updateProfile,
-  getInfo
+  getInfo,
+  sendEmail,
+  checkEmail,
+  forgotPassword
 }

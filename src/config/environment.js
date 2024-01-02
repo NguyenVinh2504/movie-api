@@ -12,5 +12,8 @@ export const env = {
   AUTHOR: process.env.AUTHOR,
 
   TMDB_KEY: process.env.TMDB_KEY,
-  TMDB_BASE_URL: process.env.TMDB_BASE_URL
+  TMDB_BASE_URL: process.env.TMDB_BASE_URL,
+
+  EMAIL_PASS: process.env.EMAIL_PASS,
+  EMAIL_NAME: process.env.EMAIL_NAME
 }

@@ -19,4 +19,10 @@ Router.route('/update-profile')
 // /user/info
 Router.route('/info')
   .get(tokenMiddleware.auth, userController.getInfo)
+Router.route('/check-email')
+  .post(userValidation.sendGmail, userController.checkEmail)
+Router.route('/send-email')
+  .post(userValidation.sendGmail, userController.sendEmail)
+Router.route('/forgot-password')
+  .post(userValidation.forgotPassword, userController.forgotPassword)
 export const userRoutes = Router

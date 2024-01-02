@@ -103,8 +103,75 @@ const updateProfile = async (req, res, next) => {
   }
 }
 
+const sendGmail = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    email: Joi.string().email().required()
+      .label('email')
+      .messages({
+        'string.email': '{#label} Sai định dạng email',
+        'any.required': '{#label} Email chưa nhập'
+      })
+  })
+  try {
+    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    // Kiểm tra dữ liệu xong xuôi cho giá trị client đi tiếp controller
+    next()
+  } catch (error) {
+    // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+  }
+}
+
+const forgotPassword = async (req, res, next) => {
+  const correctCondition = Joi.object({
+    email: Joi.string().email().required()
+      .label('email')
+      .messages({
+        'string.email': '{#label} Sai định dạng email',
+        'any.required': '{#label} Email chưa nhập'
+      }),
+    otp: Joi.number().required()
+      .label('otp')
+      .messages({
+        'number.base': 'Vui lòng nhập chữ số',
+        'any.required': '{#label} Otp chưa nhập'
+      }),
+    newPassword: joiPassword.string()
+      .min(8)
+      .minOfSpecialCharacters(1)
+      .minOfLowercase(1)
+      .minOfUppercase(1)
+      .minOfNumeric(1)
+      .noWhiteSpaces()
+      .onlyLatinCharacters()
+      .required()
+      .label('Mật khẩu')
+      .messages({
+        'any.required': 'Chưa nhập {#label}',
+        'string.min': '{#label} chứa ít nhất 8 kí tự',
+        'password.minOfUppercase': '{#label} nên chứa chữ viết hoa',
+        'password.minOfSpecialCharacters':
+          '{#label} nên chứa kí tự đặc biệt',
+        'password.minOfLowercase': '{#label} nên chứa chữ viết thường',
+        'password.minOfNumeric': '{#label} nên chứa chữ số',
+        'password.noWhiteSpaces': '{#label} không nên có khoảng trắng',
+        'password.onlyLatinCharacters': '{#label} chỉ nên chứa các kí tự Latin'
+      })
+  })
+  try {
+    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    // Kiểm tra dữ liệu xong xuôi cho giá trị client đi tiếp controller
+    next()
+  } catch (error) {
+    // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
+    next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, new Error(error).message))
+  }
+}
+
 export const userValidation = {
   deleteUser,
   updatePassword,
-  updateProfile
+  updateProfile,
+  sendGmail,
+  forgotPassword
 }
