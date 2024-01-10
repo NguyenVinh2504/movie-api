@@ -39,8 +39,23 @@ const getEmail = async (data) => {
 
 const getIdUser = async (data) => {
   try {
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(data), _destroy: false })
-    return result
+    const result = await GET_DB().collection(USER_COLLECTION_NAME).aggregate([
+      {
+        $match: {
+          _id: new ObjectId(data),
+          _destroy: false
+        }
+      },
+      {
+        $lookup: {
+          from: favoriteModel.FAVORITE_COLLECTION_NAME,
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'favorites'
+        }
+      }
+    ]).toArray()
+    return result[0] || null
   } catch (error) {
     throw new Error(error)
   }

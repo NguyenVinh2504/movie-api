@@ -43,6 +43,7 @@ const signUp = async (req, res) => {
       expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       sameSite: 'Lax'
     })
+    user.password = undefined
     return {
       accessToken,
       refreshToken,
@@ -102,6 +103,7 @@ const loginGoogle = async (req, res) => {
         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
         sameSite: 'Lax'
       })
+      user.password = undefined
       return {
         accessToken,
         refreshToken,

@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { ObjectId } from 'mongodb'
+// import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { joiPasswordExtendCore } from 'joi-password'
 import { userModel } from './userModel'
@@ -67,9 +67,7 @@ const signUp = async (data) => {
   const validData = await USER_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
   try {
     const user = await GET_DB().collection(USER_COLLECTION_NAME).insertOne(validData)
-    const result = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ _id: new ObjectId(user.insertedId) }, {
-      projection: { password: 0 }
-    })
+    const result = await userModel.getIdUser(user.insertedId)
     return result
   } catch (error) {
     throw new Error(error)
