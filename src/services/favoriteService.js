@@ -8,11 +8,13 @@ import { userModel } from '~/models/userModel'
 
 const addFavorite = async (req) => {
   try {
-    const newFavorite = {
+    const dataReq = {
       userId: req.user._id,
       ...req.body
     }
-    const addFavorite = await favoriteModel.addFavorite(newFavorite)
+    const newFavorite = await favoriteModel.addFavorite(dataReq)
+
+    // console.log(addFavorite);
     const { userId } = addFavorite
     const user = await userModel.getInfo(userId)
     // if (addFavorite) {
@@ -20,17 +22,22 @@ const addFavorite = async (req) => {
     // }
 
     return {
-      ...user
+      favorites: [
+        newFavorite
+      ]
     }
   } catch (error) {
     throw error
   }
 }
 
-const removeFavorite = async (favoriteId) => {
+const removeFavorite = async ({ req, favoriteId }) => {
   try {
-    await favoriteModel.deleteOneById(favoriteId)
-    return { removeFavorite: 'Đã xóa thành công' }
+    const idUser = req.user._id
+    const retult = await favoriteModel.deleteOneById({ idUser, favoriteId })
+
+
+    return retult
   } catch (error) {
     throw error
   }

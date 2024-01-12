@@ -16,9 +16,11 @@ const addFavorite = async (req, res, next) => {
 const removeFavorite = async (req, res, next) => {
   try {
     const favoriteId = req.params.id
-    const result = await favoriteService.removeFavorite(favoriteId)
+    const result = await favoriteService.removeFavorite({ req, favoriteId })
     res.status(StatusCodes.CREATED).json(
-      result
+      {
+        favorites: result
+      }
     )
   } catch (error) {
     next(error)
