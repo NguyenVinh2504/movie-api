@@ -74,19 +74,20 @@ var signUp = /*#__PURE__*/function () {
             expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
             sameSite: 'Lax'
           });
+          user.password = undefined;
           return _context.abrupt("return", _objectSpread({
             accessToken: accessToken,
             refreshToken: _refreshToken
           }, user));
-        case 22:
-          _context.prev = 22;
+        case 23:
+          _context.prev = 23;
           _context.t0 = _context["catch"](0);
           throw _context.t0;
-        case 25:
+        case 26:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 22]]);
+    }, _callee, null, [[0, 23]]);
   }));
   return function signUp(_x, _x2) {
     return _ref.apply(this, arguments);
@@ -162,22 +163,23 @@ var loginGoogle = /*#__PURE__*/function () {
             expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
             sameSite: 'Lax'
           });
+          user.password = undefined;
           return _context2.abrupt("return", _objectSpread({
             accessToken: _accessToken,
             refreshToken: _refreshToken3
           }, user));
-        case 27:
-          _context2.next = 32;
+        case 28:
+          _context2.next = 33;
           break;
-        case 29:
-          _context2.prev = 29;
+        case 30:
+          _context2.prev = 30;
           _context2.t0 = _context2["catch"](0);
           throw _context2.t0;
-        case 32:
+        case 33:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 29]]);
+    }, _callee2, null, [[0, 30]]);
   }));
   return function loginGoogle(_x3, _x4) {
     return _ref2.apply(this, arguments);

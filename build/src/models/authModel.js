@@ -9,13 +9,12 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _joi = _interopRequireDefault(require("joi"));
-var _mongodb = require("mongodb");
-var _mongodb2 = require("../config/mongodb");
+var _mongodb = require("../config/mongodb");
 var _joiPassword = require("joi-password");
 var _userModel = require("./userModel");
 var _validators = require("../utils/validators");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; } // import { ObjectId } from 'mongodb'
 // import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 var joiPassword = _joi["default"].extend(_joiPassword.joiPasswordExtendCore);
@@ -94,17 +93,11 @@ var signUp = /*#__PURE__*/function () {
           validData = _context2.sent;
           _context2.prev = 3;
           _context2.next = 6;
-          return (0, _mongodb2.GET_DB)().collection(USER_COLLECTION_NAME).insertOne(validData);
+          return (0, _mongodb.GET_DB)().collection(USER_COLLECTION_NAME).insertOne(validData);
         case 6:
           user = _context2.sent;
           _context2.next = 9;
-          return (0, _mongodb2.GET_DB)().collection(USER_COLLECTION_NAME).findOne({
-            _id: new _mongodb.ObjectId(user.insertedId)
-          }, {
-            projection: {
-              password: 0
-            }
-          });
+          return _userModel.userModel.getIdUser(user.insertedId);
         case 9:
           result = _context2.sent;
           return _context2.abrupt("return", result);
@@ -136,12 +129,12 @@ var addRefreshToken = /*#__PURE__*/function () {
         case 3:
           validData = _context3.sent;
           _context3.next = 6;
-          return (0, _mongodb2.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne(_objectSpread(_objectSpread({}, validData), {}, {
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne(_objectSpread(_objectSpread({}, validData), {}, {
             createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
           }));
         case 6:
           user = _context3.sent;
-          (0, _mongodb2.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({
+          (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({
             createdAt: 1
           }, {
             expireAfterSeconds: 10
@@ -169,7 +162,7 @@ var getRefreshToken = /*#__PURE__*/function () {
         case 0:
           _context4.prev = 0;
           _context4.next = 3;
-          return (0, _mongodb2.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({
             refreshToken: data
           });
         case 3:
@@ -197,7 +190,7 @@ var deleteRefreshToken = /*#__PURE__*/function () {
         case 0:
           _context5.prev = 0;
           _context5.next = 3;
-          return (0, _mongodb2.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).deleteOne({
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).deleteOne({
             refreshToken: data
           });
         case 3:

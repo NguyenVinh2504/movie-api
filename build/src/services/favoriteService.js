@@ -16,24 +16,27 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; } /* eslint-disable no-unused-vars */ /* eslint-disable no-useless-catch */
 var addFavorite = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req) {
-    var newFavorite, _addFavorite, userId, user;
+    var dataReq, newFavorite, userId, user;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          newFavorite = _objectSpread({
+          dataReq = _objectSpread({
             userId: req.user._id
           }, req.body);
           _context.next = 4;
-          return _favoriteModel.favoriteModel.addFavorite(newFavorite);
+          return _favoriteModel.favoriteModel.addFavorite(dataReq);
         case 4:
-          _addFavorite = _context.sent;
-          userId = _addFavorite.userId;
+          newFavorite = _context.sent;
+          // console.log(addFavorite);
+          userId = addFavorite.userId;
           _context.next = 8;
           return _userModel.userModel.getInfo(userId);
         case 8:
           user = _context.sent;
-          return _context.abrupt("return", _objectSpread({}, user));
+          return _context.abrupt("return", {
+            favorites: [newFavorite]
+          });
         case 12:
           _context.prev = 12;
           _context.t0 = _context["catch"](0);
@@ -49,29 +52,34 @@ var addFavorite = /*#__PURE__*/function () {
   };
 }();
 var removeFavorite = /*#__PURE__*/function () {
-  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(favoriteId) {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref2) {
+    var req, favoriteId, idUser, retult;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          _context2.prev = 0;
-          _context2.next = 3;
-          return _favoriteModel.favoriteModel.deleteOneById(favoriteId);
-        case 3:
-          return _context2.abrupt("return", {
-            removeFavorite: 'Đã xóa thành công'
+          req = _ref2.req, favoriteId = _ref2.favoriteId;
+          _context2.prev = 1;
+          idUser = req.user._id;
+          _context2.next = 5;
+          return _favoriteModel.favoriteModel.deleteOneById({
+            idUser: idUser,
+            favoriteId: favoriteId
           });
-        case 6:
-          _context2.prev = 6;
-          _context2.t0 = _context2["catch"](0);
-          throw _context2.t0;
+        case 5:
+          retult = _context2.sent;
+          return _context2.abrupt("return", retult);
         case 9:
+          _context2.prev = 9;
+          _context2.t0 = _context2["catch"](1);
+          throw _context2.t0;
+        case 12:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 6]]);
+    }, _callee2, null, [[1, 9]]);
   }));
   return function removeFavorite(_x2) {
-    return _ref2.apply(this, arguments);
+    return _ref3.apply(this, arguments);
   };
 }();
 var favoriteService = {

@@ -48,10 +48,15 @@ var removeFavorite = /*#__PURE__*/function () {
           _context2.prev = 0;
           favoriteId = req.params.id;
           _context2.next = 4;
-          return _favoriteService.favoriteService.removeFavorite(favoriteId);
+          return _favoriteService.favoriteService.removeFavorite({
+            req: req,
+            favoriteId: favoriteId
+          });
         case 4:
           result = _context2.sent;
-          res.status(_httpStatusCodes.StatusCodes.CREATED).json(result);
+          res.status(_httpStatusCodes.StatusCodes.CREATED).json({
+            favorites: result
+          });
           _context2.next = 11;
           break;
         case 8:

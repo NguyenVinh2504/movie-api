@@ -88,13 +88,22 @@ var getIdUser = /*#__PURE__*/function () {
         case 0:
           _context3.prev = 0;
           _context3.next = 3;
-          return (0, _mongodb2.GET_DB)().collection(USER_COLLECTION_NAME).findOne({
-            _id: new _mongodb.ObjectId(data),
-            _destroy: false
-          });
+          return (0, _mongodb2.GET_DB)().collection(USER_COLLECTION_NAME).aggregate([{
+            $match: {
+              _id: new _mongodb.ObjectId(data),
+              _destroy: false
+            }
+          }, {
+            $lookup: {
+              from: _favoriteModel.favoriteModel.FAVORITE_COLLECTION_NAME,
+              localField: '_id',
+              foreignField: 'userId',
+              as: 'favorites'
+            }
+          }]).toArray();
         case 3:
           result = _context3.sent;
-          return _context3.abrupt("return", result);
+          return _context3.abrupt("return", result[0] || null);
         case 7:
           _context3.prev = 7;
           _context3.t0 = _context3["catch"](0);
