@@ -10,9 +10,8 @@ const joiPassword = Joi.extend(joiPasswordExtendCore)
 const USER_COLLECTION_NAME = 'users'
 const REFRESH_TOKEN_COLLECTION_NAME = 'refreshToken'
 const USER_COLLECTION_SCHEMA = Joi.object({
-  name: Joi.string().min(8).required().label('name')
+  name: Joi.string().required().label('name')
     .messages({
-      'string.min': '{#label} Tối thiếu 8 kí tự',
       'any.required': '{#label} Chưa nhập tên đăng nhập'
     }),
   slug: Joi.string().min(3).required(),

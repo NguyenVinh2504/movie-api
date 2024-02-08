@@ -75,9 +75,8 @@ const updatePassword = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
   const correctCondition = Joi.object({
-    name: Joi.string().min(8).label('name')
+    name: Joi.string().label('name')
       .messages({
-        'string.min': '{#label} Tối thiếu 8 kí tự',
         'any.required': '{#label} Chưa nhập tên đăng nhập'
       }),
     email: Joi.string().email()

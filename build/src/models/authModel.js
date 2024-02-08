@@ -21,8 +21,7 @@ var joiPassword = _joi["default"].extend(_joiPassword.joiPasswordExtendCore);
 var USER_COLLECTION_NAME = 'users';
 var REFRESH_TOKEN_COLLECTION_NAME = 'refreshToken';
 var USER_COLLECTION_SCHEMA = _joi["default"].object({
-  name: _joi["default"].string().min(8).required().label('name').messages({
-    'string.min': '{#label} Tối thiếu 8 kí tự',
+  name: _joi["default"].string().required().label('name').messages({
     'any.required': '{#label} Chưa nhập tên đăng nhập'
   }),
   slug: _joi["default"].string().min(3).required(),

@@ -21,8 +21,7 @@ var signUp = /*#__PURE__*/function () {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           correctCondition = _joi["default"].object({
-            name: _joi["default"].string().min(8).required().label('name').messages({
-              'string.min': '{#label} Tối thiếu 8 kí tự',
+            name: _joi["default"].string().required().label('name').messages({
               'any.required': '{#label} Chưa nhập tên đăng nhập'
             }),
             email: _joi["default"].string().email().required('This is required').label('email').messages({

@@ -8,9 +8,8 @@ const joiPassword = Joi.extend(joiPasswordExtendCore)
 
 const signUp = async (req, res, next) => {
   const correctCondition = Joi.object({
-    name: Joi.string().min(8).required().label('name')
+    name: Joi.string().required().label('name')
       .messages({
-        'string.min': '{#label} Tối thiếu 8 kí tự',
         'any.required': '{#label} Chưa nhập tên đăng nhập'
       }),
     email: Joi.string().email().required('This is required')
@@ -35,7 +34,7 @@ const signUp = async (req, res, next) => {
         'string.min': '{#label} chứa ít nhất 8 kí tự',
         'password.minOfUppercase': '{#label} nên chứa chữ viết hoa',
         'password.minOfSpecialCharacters':
-              '{#label} nên chứa kí tự đặc biệt',
+          '{#label} nên chứa kí tự đặc biệt',
         'password.minOfLowercase': '{#label} nên chứa chữ viết thường',
         'password.minOfNumeric': '{#label} nên chứa chữ số',
         'password.noWhiteSpaces': '{#label} không nên có khoảng trắng',
@@ -43,8 +42,10 @@ const signUp = async (req, res, next) => {
       }),
     confirmPassword: Joi.any().valid(Joi.ref('password')).required()
       .label('Confirm password')
-      .messages({ 'any.only': '{{#label}} nhập lại mật khẩu chưa chính xác',
-        'any.required': '{{#label}} Chưa nhập lại mật khẩu' })
+      .messages({
+        'any.only': '{{#label}} nhập lại mật khẩu chưa chính xác',
+        'any.required': '{{#label}} Chưa nhập lại mật khẩu'
+      })
   })
   try {
     await correctCondition.validateAsync(req.body, { abortEarly: false })
