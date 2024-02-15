@@ -73,7 +73,10 @@ const updateProfile = async (req) => {
     }
     if (req.body.avatar) {
       const imageDel = ref(storage, req.body.avatar)
-      const err = await deleteObject(imageDel)
+      // const err = await deleteObject(imageDel)
+      deleteObject(imageDel).then((data) => {
+      }).catch((error) => {
+      })
       req.body.avatar = null
       req.body.temporaryAvatar = null
     }
