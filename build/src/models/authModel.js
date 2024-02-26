@@ -173,7 +173,8 @@ var addAccessToken = /*#__PURE__*/function () {
           validData = _context4.sent;
           _context4.next = 6;
           return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne(_objectSpread(_objectSpread({}, validData), {}, {
-            createdAt: new Date(new Date().setHours(new Date().getHours() + 1))
+            createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 30))
+            // , createdAt: new Date(new Date().setSeconds(new Date().getSeconds()))
           }));
         case 6:
           user = _context4.sent;

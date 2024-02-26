@@ -167,6 +167,12 @@ var loginGoogle = /*#__PURE__*/function () {
             refreshToken: _refreshToken3
           });
         case 27:
+          _context2.next = 29;
+          return _authModel.authModel.addAccessToken({
+            userId: checkEmail._id.toString(),
+            accessToken: _accessToken
+          });
+        case 29:
           res.cookie('refreshToken', _refreshToken3, {
             httpOnly: true,
             secure: true,
@@ -180,18 +186,18 @@ var loginGoogle = /*#__PURE__*/function () {
             accessToken: _accessToken,
             refreshToken: _refreshToken3
           }, user));
-        case 30:
-          _context2.next = 35;
-          break;
         case 32:
-          _context2.prev = 32;
+          _context2.next = 37;
+          break;
+        case 34:
+          _context2.prev = 34;
           _context2.t0 = _context2["catch"](0);
           throw _context2.t0;
-        case 35:
+        case 37:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 32]]);
+    }, _callee2, null, [[0, 34]]);
   }));
   return function loginGoogle(_x3, _x4) {
     return _ref2.apply(this, arguments);
