@@ -8,8 +8,6 @@ exports.otpService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _otpModel = require("../models/otpModel");
-var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
-var _httpStatusCodes = require("http-status-codes");
 var _hashPassword = _interopRequireDefault(require("../utils/hashPassword"));
 var _bcrypt = _interopRequireDefault(require("bcrypt"));
 /* eslint-disable no-unused-vars */

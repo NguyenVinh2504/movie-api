@@ -58,7 +58,7 @@ var signUp = /*#__PURE__*/function () {
         case 13:
           user = _context.sent;
           // Tạo token
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '1h');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
           _refreshToken = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context.next = 18;
           return _authModel.authModel.addRefreshToken({
@@ -66,6 +66,12 @@ var signUp = /*#__PURE__*/function () {
             refreshToken: _refreshToken
           });
         case 18:
+          _context.next = 20;
+          return _authModel.authModel.addAccessToken({
+            userId: user._id.toString(),
+            accessToken: accessToken
+          });
+        case 20:
           res.cookie('refreshToken', _refreshToken, {
             httpOnly: true,
             secure: true,
@@ -79,15 +85,15 @@ var signUp = /*#__PURE__*/function () {
             accessToken: accessToken,
             refreshToken: _refreshToken
           }, user));
-        case 23:
-          _context.prev = 23;
+        case 25:
+          _context.prev = 25;
           _context.t0 = _context["catch"](0);
           throw _context.t0;
-        case 26:
+        case 28:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 23]]);
+    }, _callee, null, [[0, 25]]);
   }));
   return function signUp(_x, _x2) {
     return _ref.apply(this, arguments);
@@ -105,10 +111,10 @@ var loginGoogle = /*#__PURE__*/function () {
         case 3:
           checkEmail = _context2.sent;
           if (!checkEmail) {
-            _context2.next = 13;
+            _context2.next = 15;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '1h');
+          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
           _refreshToken2 = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context2.next = 9;
           return _authModel.authModel.addRefreshToken({
@@ -116,6 +122,12 @@ var loginGoogle = /*#__PURE__*/function () {
             refreshToken: _refreshToken2
           });
         case 9:
+          _context2.next = 11;
+          return _authModel.authModel.addAccessToken({
+            userId: checkEmail._id.toString(),
+            accessToken: accessToken
+          });
+        case 11:
           res.cookie('refreshToken', _refreshToken2, {
             httpOnly: true,
             secure: true,
@@ -127,10 +139,10 @@ var loginGoogle = /*#__PURE__*/function () {
             accessToken: accessToken,
             refreshToken: _refreshToken2
           }, checkEmail));
-        case 13:
-          _context2.next = 15;
-          return (0, _hashPassword["default"])(req.body.password);
         case 15:
+          _context2.next = 17;
+          return (0, _hashPassword["default"])(req.body.password);
+        case 17:
           hashed = _context2.sent;
           // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
           _req$body2 = req.body, name = _req$body2.name, confirmPassword = _req$body2.confirmPassword, avatar = _req$body2.avatar, option = (0, _objectWithoutProperties2["default"])(_req$body2, _excluded2); // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
@@ -142,19 +154,19 @@ var loginGoogle = /*#__PURE__*/function () {
             slug: (0, _formatters.slugify)(name),
             userName: "@".concat((0, _formatters.formatUserName)(name))
           }); // Truyền dữ liệu đã xử lí vào model
-          _context2.next = 20;
+          _context2.next = 22;
           return _authModel.authModel.signUp(newUser);
-        case 20:
+        case 22:
           user = _context2.sent;
           // Tạo accessToken
-          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '1h');
+          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
           _refreshToken3 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
-          _context2.next = 25;
+          _context2.next = 27;
           return _authModel.authModel.addRefreshToken({
             userId: user._id.toString(),
             refreshToken: _refreshToken3
           });
-        case 25:
+        case 27:
           res.cookie('refreshToken', _refreshToken3, {
             httpOnly: true,
             secure: true,
@@ -168,18 +180,18 @@ var loginGoogle = /*#__PURE__*/function () {
             accessToken: _accessToken,
             refreshToken: _refreshToken3
           }, user));
-        case 28:
-          _context2.next = 33;
-          break;
         case 30:
-          _context2.prev = 30;
+          _context2.next = 35;
+          break;
+        case 32:
+          _context2.prev = 32;
           _context2.t0 = _context2["catch"](0);
           throw _context2.t0;
-        case 33:
+        case 35:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 30]]);
+    }, _callee2, null, [[0, 32]]);
   }));
   return function loginGoogle(_x3, _x4) {
     return _ref2.apply(this, arguments);
@@ -217,10 +229,10 @@ var login = /*#__PURE__*/function () {
         case 11:
           user.password = undefined;
           if (!(user && validations)) {
-            _context3.next = 19;
+            _context3.next = 21;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '1h');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
           _refreshToken4 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context3.next = 17;
           return _authModel.authModel.addRefreshToken({
@@ -228,6 +240,12 @@ var login = /*#__PURE__*/function () {
             refreshToken: _refreshToken4
           });
         case 17:
+          _context3.next = 19;
+          return _authModel.authModel.addAccessToken({
+            userId: user._id.toString(),
+            accessToken: accessToken
+          });
+        case 19:
           res.cookie('refreshToken', _refreshToken4, {
             httpOnly: true,
             secure: true,
@@ -240,18 +258,18 @@ var login = /*#__PURE__*/function () {
             accessToken: accessToken,
             refreshToken: _refreshToken4
           }));
-        case 19:
-          _context3.next = 24;
-          break;
         case 21:
-          _context3.prev = 21;
+          _context3.next = 26;
+          break;
+        case 23:
+          _context3.prev = 23;
           _context3.t0 = _context3["catch"](0);
           throw _context3.t0;
-        case 24:
+        case 26:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[0, 21]]);
+    }, _callee3, null, [[0, 23]]);
   }));
   return function login(_x5, _x6) {
     return _ref3.apply(this, arguments);
@@ -259,47 +277,57 @@ var login = /*#__PURE__*/function () {
 }();
 var refreshToken = /*#__PURE__*/function () {
   var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
-    var _refreshToken5, checkToken, tokenDecoded, newAccessToken, newRefreshToken;
+    var _req$headers$authoriz, _refreshToken5, access_token, tokenDecoded, checkToken, newAccessToken, newRefreshToken;
     return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
           // const refreshToken = req.cookies.refreshToken
           _refreshToken5 = req.body.refreshToken;
+          access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (_refreshToken5) {
-            _context4.next = 4;
+            _context4.next = 5;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token');
-        case 4:
-          _context4.next = 6;
-          return _authModel.authModel.getRefreshToken(_refreshToken5);
-        case 6:
-          checkToken = _context4.sent;
-          if (checkToken) {
-            _context4.next = 9;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Refresh Token không hợp lệ');
-        case 9:
-          _context4.next = 11;
-          return _authModel.authModel.deleteRefreshToken(_refreshToken5);
-        case 11:
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Refresh Token không được gửi');
+        case 5:
           tokenDecoded = _jwt.jwtHelper.verifyToken(_refreshToken5, _environment.env.REFRESH_TOKEN_SECRET);
           if (tokenDecoded) {
-            _context4.next = 14;
+            _context4.next = 8;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập');
-        case 14:
-          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '1h');
+        case 8:
+          _context4.next = 10;
+          return _authModel.authModel.getRefreshToken(_refreshToken5);
+        case 10:
+          checkToken = _context4.sent;
+          if (checkToken) {
+            _context4.next = 13;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token');
+        case 13:
+          _context4.next = 15;
+          return _authModel.authModel.deleteRefreshToken(_refreshToken5);
+        case 15:
+          _context4.next = 17;
+          return _authModel.authModel.deleteAccessToken(access_token);
+        case 17:
+          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
           newRefreshToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.REFRESH_TOKEN_SECRET, '365d');
-          _context4.next = 18;
+          _context4.next = 21;
           return _authModel.authModel.addRefreshToken({
             userId: tokenDecoded._id,
             refreshToken: newRefreshToken
           });
-        case 18:
+        case 21:
+          _context4.next = 23;
+          return _authModel.authModel.addAccessToken({
+            userId: tokenDecoded._id,
+            accessToken: newAccessToken
+          });
+        case 23:
           res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: true,
@@ -311,15 +339,15 @@ var refreshToken = /*#__PURE__*/function () {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken
           });
-        case 22:
-          _context4.prev = 22;
+        case 27:
+          _context4.prev = 27;
           _context4.t0 = _context4["catch"](0);
           throw _context4.t0;
-        case 25:
+        case 30:
         case "end":
           return _context4.stop();
       }
-    }, _callee4, null, [[0, 22]]);
+    }, _callee4, null, [[0, 27]]);
   }));
   return function refreshToken(_x7, _x8) {
     return _ref4.apply(this, arguments);
@@ -327,6 +355,7 @@ var refreshToken = /*#__PURE__*/function () {
 }();
 var logout = /*#__PURE__*/function () {
   var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req, res) {
+    var _req$headers$authoriz2, access_token;
     return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
@@ -335,17 +364,22 @@ var logout = /*#__PURE__*/function () {
           _context5.next = 4;
           return _authModel.authModel.deleteRefreshToken(req.cookies.refreshToken);
         case 4:
-          _context5.next = 9;
+          // await authModel.deleteRefreshToken(req.body.refreshToken)
+          access_token = (_req$headers$authoriz2 = req.headers['authorization']) === null || _req$headers$authoriz2 === void 0 ? void 0 : _req$headers$authoriz2.replace('Bearer ', '');
+          _context5.next = 7;
+          return _authModel.authModel.deleteAccessToken(access_token);
+        case 7:
+          _context5.next = 12;
           break;
-        case 6:
-          _context5.prev = 6;
+        case 9:
+          _context5.prev = 9;
           _context5.t0 = _context5["catch"](0);
           throw _context5.t0;
-        case 9:
+        case 12:
         case "end":
           return _context5.stop();
       }
-    }, _callee5, null, [[0, 6]]);
+    }, _callee5, null, [[0, 9]]);
   }));
   return function logout(_x9, _x10) {
     return _ref5.apply(this, arguments);

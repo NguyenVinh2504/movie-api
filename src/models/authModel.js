@@ -9,6 +9,7 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 const USER_COLLECTION_NAME = 'users'
 const REFRESH_TOKEN_COLLECTION_NAME = 'refreshToken'
+const ACCESS_TOKEN_COLLECTION_NAME = 'accessToken'
 const USER_COLLECTION_SCHEMA = Joi.object({
   name: Joi.string().required().label('name')
     .messages({
@@ -61,6 +62,10 @@ const REFRESH_TOKEN_COLLECTION_SCHEMA = Joi.object({
   userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   refreshToken: Joi.string().allow('').required()
 })
+const ACCESS_TOKEN_COLLECTION_SCHEMA = Joi.object({
+  userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+  accessToken: Joi.string().allow('').required()
+})
 
 const signUp = async (data) => {
   const validData = await USER_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
@@ -81,6 +86,38 @@ const addRefreshToken = async (data) => {
       , createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
     })
     GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const addAccessToken = async (data) => {
+  try {
+    const validData = await ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
+    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne({
+      ...validData
+      , createdAt: new Date(new Date().setHours(new Date().getHours() + 1))
+    })
+    GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const getAccessToken = async (data) => {
+  try {
+    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).findOne({ accessToken: data })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const deleteAccessToken = async (data) => {
+  try {
+    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).deleteOne({ accessToken: data })
     return user
   } catch (error) {
     throw new Error(error)
@@ -108,6 +145,9 @@ export const authModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   signUp,
+  addAccessToken,
+  getAccessToken,
+  deleteAccessToken,
   addRefreshToken,
   deleteRefreshToken,
   getRefreshToken

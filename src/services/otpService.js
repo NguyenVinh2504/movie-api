@@ -2,9 +2,6 @@
 /* eslint-disable no-useless-catch */
 import { otpModel } from '~/models/otpModel'
 
-import ApiError from '~/utils/ApiError'
-import { StatusCodes } from 'http-status-codes'
-
 import hashPassword from '~/utils/hashPassword'
 
 import bcryct from 'bcrypt'
