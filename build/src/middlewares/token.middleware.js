@@ -56,7 +56,12 @@ var auth = /*#__PURE__*/function () {
             _context2.next = 8;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
+            name: 'EXPIRED_TOKEN',
+            message: 'Token hết hạn'
+          }
+          // , massage: 'Bạn không được phép truy cập'
+          );
         case 8:
           _context2.next = 10;
           return _authModel.authModel.getAccessToken(access_token);
@@ -76,7 +81,7 @@ var auth = /*#__PURE__*/function () {
             _context2.next = 18;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không tìm thấy user');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user');
         case 18:
           _id = tokenDecoded._id, admin = tokenDecoded.admin;
           req.user = {
@@ -87,7 +92,7 @@ var auth = /*#__PURE__*/function () {
           _context2.next = 24;
           break;
         case 23:
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Token Không Được Gửi');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Token không được gửi');
         case 24:
           _context2.next = 29;
           break;

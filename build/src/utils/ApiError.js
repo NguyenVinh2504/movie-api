@@ -17,16 +17,15 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 var ApiError = /*#__PURE__*/function (_Error) {
   (0, _inherits2["default"])(ApiError, _Error);
   var _super = _createSuper(ApiError);
-  function ApiError(statusCode, message) {
+  function ApiError(statusCode, error) {
     var _this;
     (0, _classCallCheck2["default"])(this, ApiError);
     // Gọi tới hàm khởi tạo của class Error (class cha) để còn dùng this (kiến thức OOP lập trình hướng đối tượng căn bản)
     // Thằng cha (Error) có property message rồi nên gọi nó luôn trong super cho gọn
-    _this = _super.call(this, message);
-
+    _this = _super.call(this);
     // Tên của cái custom Error này, nếu không set thì mặc định nó sẽ kế thừa là "Error"
     _this.name = 'ApiError';
-
+    _this.error = error;
     // Gán thêm http status code của chúng ta ở đây
     _this.statusCode = statusCode;
 

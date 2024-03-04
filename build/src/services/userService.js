@@ -51,7 +51,10 @@ var deleteUser = /*#__PURE__*/function () {
             _context.next = 11;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'PASSWORD',
+            message: 'Mật khẩu không chính xác'
+          });
         case 11:
           if (req.user.admin) {
             _context.next = 15;
@@ -115,7 +118,10 @@ var updatePassword = /*#__PURE__*/function () {
             _context2.next = 11;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'PASSWORD',
+            message: 'Mật khẩu không chính xác'
+          });
         case 11:
           _context2.next = 13;
           return (0, _hashPassword["default"])(req.body.newPassword);
@@ -261,7 +267,10 @@ var checkEmail = /*#__PURE__*/function () {
             _context5.next = 7;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có email này');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'EMAIL',
+            message: 'Không có email này'
+          });
         case 7:
           return _context5.abrupt("return", {
             message: 'Valid Email'

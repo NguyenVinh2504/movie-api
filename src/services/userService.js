@@ -29,7 +29,10 @@ const deleteUser = async (req) => {
     const validations = await validationsPassword({ id: user._id, password: req.body.password })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu')
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+        name: 'PASSWORD',
+        message: 'Mật khẩu không chính xác'
+      })
     }
     // token mang id nào thì tìm user mang id của token tương ứng đó
     if (!req.user.admin) {
@@ -53,7 +56,10 @@ const updatePassword = async (req) => {
     const validations = await validationsPassword({ id: user._id, password: req.body.password })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Nhập sai mật khẩu')
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+        name: 'PASSWORD',
+        message: 'Mật khẩu không chính xác'
+      })
     }
 
     const hashed = await hashPassword(req.body.newPassword)
@@ -119,7 +125,10 @@ const checkEmail = async (req) => {
     const { email } = req.body
     const user = await userModel.getEmail(email)
     if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, 'Không có email này')
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+        name: 'EMAIL',
+        message: 'Không có email này'
+      })
     }
     return {
       message: 'Valid Email'

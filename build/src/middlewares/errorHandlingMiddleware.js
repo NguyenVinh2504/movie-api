@@ -1,9 +1,11 @@
 "use strict";
 
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.errorHandlingMiddleware = void 0;
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 var _httpStatusCodes = require("http-status-codes");
 var _environment = require("../config/environment");
 /* eslint-disable no-unused-vars */
@@ -12,11 +14,12 @@ var _environment = require("../config/environment");
 var errorHandlingMiddleware = function errorHandlingMiddleware(err, req, res, next) {
   // Nếu dev không cẩn thận thiếu statusCode thì mặc định sẽ để code 500 INTERNAL_SERVER_ERROR
   if (!err.statusCode) err.statusCode = _httpStatusCodes.StatusCodes.INTERNAL_SERVER_ERROR;
-
   // Tạo ra một biến responseError để kiểm soát những gì muốn trả về
   var responseError = {
     statusCode: err.statusCode,
-    message: err.message || _httpStatusCodes.StatusCodes[err.statusCode],
+    data: (0, _typeof2["default"])(err.error) === 'object' ? err.error : {
+      message: err.error
+    } || _httpStatusCodes.StatusCodes[err.statusCode],
     // Nếu lỗi mà không có message thì lấy ReasonPhrases chuẩn theo mã Status Code
     stack: err.stack
   };

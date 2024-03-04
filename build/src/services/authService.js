@@ -39,7 +39,10 @@ var signUp = /*#__PURE__*/function () {
             _context.next = 6;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'ISEXISTS');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'EMAIL',
+            message: 'Email đã được đăng ký'
+          });
         case 6:
           _context.next = 8;
           return (0, _hashPassword["default"])(req.body.password);
@@ -58,7 +61,7 @@ var signUp = /*#__PURE__*/function () {
         case 13:
           user = _context.sent;
           // Tạo token
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '3s');
           _refreshToken = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context.next = 18;
           return _authModel.authModel.addRefreshToken({
@@ -114,7 +117,7 @@ var loginGoogle = /*#__PURE__*/function () {
             _context2.next = 15;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
+          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '3s');
           _refreshToken2 = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context2.next = 9;
           return _authModel.authModel.addRefreshToken({
@@ -159,7 +162,7 @@ var loginGoogle = /*#__PURE__*/function () {
         case 22:
           user = _context2.sent;
           // Tạo accessToken
-          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
+          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '3s');
           _refreshToken3 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context2.next = 27;
           return _authModel.authModel.addRefreshToken({
@@ -218,7 +221,10 @@ var login = /*#__PURE__*/function () {
             _context3.next = 6;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'INVALID_EMAIL');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'EMAIL',
+            message: 'Không tìm thấy email'
+          });
         case 6:
           _context3.next = 8;
           return (0, _validationsPassword["default"])({
@@ -231,14 +237,17 @@ var login = /*#__PURE__*/function () {
             _context3.next = 11;
             break;
           }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'INVALID_PASSWORD');
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
+            name: 'PASSWORD',
+            message: 'Mật khẩu không chính xác'
+          });
         case 11:
           user.password = undefined;
           if (!(user && validations)) {
             _context3.next = 21;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '3s');
           _refreshToken4 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context3.next = 17;
           return _authModel.authModel.addRefreshToken({
@@ -320,7 +329,7 @@ var refreshToken = /*#__PURE__*/function () {
           _context4.next = 17;
           return _authModel.authModel.deleteAccessToken(access_token);
         case 17:
-          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '0.5h');
+          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '3s');
           newRefreshToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context4.next = 21;
           return _authModel.authModel.addRefreshToken({
