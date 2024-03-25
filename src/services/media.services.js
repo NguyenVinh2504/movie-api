@@ -1,4 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
+import { env } from '~/config/environment'
+import { jwtHelper } from '~/helpers/jwt.helper'
+import { favoriteModel } from '~/models/favoriteModel'
 import tmdbApi from '~/tmdb/tmdb.api'
 import ApiError from '~/utils/ApiError'
 
@@ -19,9 +22,24 @@ const getTrending = async (req) => {
     const { page } = req.query
     const { mediaType, timeWindow } = req.params
     const response = await tmdbApi.mediaTrending({ mediaType, timeWindow, page })
-
+    const access_token = req.headers['authorization']?.replace('Bearer ', '')
+    if (access_token) {
+      const tokenDecoded = jwtHelper.verifyToken(access_token, env.ACCESS_TOKEN_SECRET)
+      if (tokenDecoded) {
+        const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
+        for (let i = 0; i < favoriteList.length; i++) {
+          for (let j = 0; j < response.results.length; j++) {
+            if (response.results[j]?.id === favoriteList[i].mediaId) {
+              response.results[j].isFavorite = true
+              response.results[j].favoriteId = favoriteList[i]._id
+              break
+            }
+          }
+        }
+      }
+    }
     return response
-  } catch {
+  } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
   }
 }
