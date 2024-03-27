@@ -8,11 +8,10 @@ exports.mediaService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
-var _environment = require("../config/environment");
-var _jwt = require("../helpers/jwt.helper");
 var _favoriteModel = require("../models/favoriteModel");
 var _tmdb = _interopRequireDefault(require("../tmdb/tmdb.api"));
 var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
+var _token = _interopRequireDefault(require("../middlewares/token.middleware"));
 var getList = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req) {
     var page, _req$params, mediaType, mediaCategory, response;
@@ -65,60 +64,72 @@ var getTrending = /*#__PURE__*/function () {
           response = _context2.sent;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (!access_token) {
-            _context2.next = 28;
+            _context2.next = 32;
             break;
           }
-          tokenDecoded = _jwt.jwtHelper.verifyToken(access_token, _environment.env.ACCESS_TOKEN_SECRET);
+          _context2.next = 10;
+          return _token["default"].tokenDecode(access_token);
+        case 10:
+          tokenDecoded = _context2.sent;
+          if (tokenDecoded) {
+            _context2.next = 13;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
+            name: 'EXPIRED_TOKEN',
+            message: 'Token hết hạn'
+          });
+        case 13:
           if (!tokenDecoded) {
-            _context2.next = 28;
+            _context2.next = 32;
             break;
           }
-          _context2.next = 12;
+          _context2.next = 16;
           return _favoriteModel.favoriteModel.findFavorite(tokenDecoded._id);
-        case 12:
+        case 16:
           favoriteList = _context2.sent;
           if (!favoriteList) {
-            _context2.next = 28;
+            _context2.next = 32;
             break;
           }
           i = 0;
-        case 15:
+        case 19:
           if (!(i < favoriteList.length)) {
-            _context2.next = 28;
+            _context2.next = 32;
             break;
           }
           j = 0;
-        case 17:
+        case 21:
           if (!(j < response.results.length)) {
-            _context2.next = 25;
+            _context2.next = 29;
             break;
           }
           if (!(((_response$results$j = response.results[j]) === null || _response$results$j === void 0 ? void 0 : _response$results$j.id) === favoriteList[i].mediaId)) {
-            _context2.next = 22;
+            _context2.next = 26;
             break;
           }
           response.results[j].isFavorite = true;
           response.results[j].favoriteId = favoriteList[i]._id;
-          return _context2.abrupt("break", 25);
-        case 22:
+          return _context2.abrupt("break", 29);
+        case 26:
           j++;
-          _context2.next = 17;
+          _context2.next = 21;
           break;
-        case 25:
+        case 29:
           i++;
-          _context2.next = 15;
+          _context2.next = 19;
           break;
-        case 28:
+        case 32:
           return _context2.abrupt("return", response);
-        case 31:
-          _context2.prev = 31;
+        case 35:
+          _context2.prev = 35;
           _context2.t0 = _context2["catch"](0);
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!');
-        case 34:
+          throw _context2.t0;
+        case 38:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 31]]);
+    }, _callee2, null, [[0, 35]]);
   }));
   return function getTrending(_x2) {
     return _ref2.apply(this, arguments);

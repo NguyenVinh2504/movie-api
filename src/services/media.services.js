@@ -1,10 +1,8 @@
 import { StatusCodes } from 'http-status-codes'
-import { env } from '~/config/environment'
-import { jwtHelper } from '~/helpers/jwt.helper'
 import { favoriteModel } from '~/models/favoriteModel'
 import tmdbApi from '~/tmdb/tmdb.api'
 import ApiError from '~/utils/ApiError'
-
+import tokenMiddleware from '~/middlewares/token.middleware'
 const getList = async (req) => {
   try {
     const { page } = req.query
@@ -17,6 +15,7 @@ const getList = async (req) => {
   }
 }
 const getTrending = async (req) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     // console.log('trend');
     const { page } = req.query
@@ -24,7 +23,11 @@ const getTrending = async (req) => {
     const response = await tmdbApi.mediaTrending({ mediaType, timeWindow, page })
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
     if (access_token) {
-      const tokenDecoded = jwtHelper.verifyToken(access_token, env.ACCESS_TOKEN_SECRET)
+      const tokenDecoded = await tokenMiddleware.tokenDecode(access_token)
+      if (!tokenDecoded) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' }
+        )
+      }
       if (tokenDecoded) {
         const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
         if (favoriteList) {
@@ -42,7 +45,8 @@ const getTrending = async (req) => {
     }
     return response
   } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
+    // throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
+    throw error
   }
 }
 const getDiscoverGenres = async (req) => {
