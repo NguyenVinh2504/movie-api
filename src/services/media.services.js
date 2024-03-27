@@ -27,12 +27,14 @@ const getTrending = async (req) => {
       const tokenDecoded = jwtHelper.verifyToken(access_token, env.ACCESS_TOKEN_SECRET)
       if (tokenDecoded) {
         const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
-        for (let i = 0; i < favoriteList.length; i++) {
-          for (let j = 0; j < response.results.length; j++) {
-            if (response.results[j]?.id === favoriteList[i].mediaId) {
-              response.results[j].isFavorite = true
-              response.results[j].favoriteId = favoriteList[i]._id
-              break
+        if (favoriteList) {
+          for (let i = 0; i < favoriteList.length; i++) {
+            for (let j = 0; j < response.results.length; j++) {
+              if (response.results[j]?.id === favoriteList[i].mediaId) {
+                response.results[j].isFavorite = true
+                response.results[j].favoriteId = favoriteList[i]._id
+                break
+              }
             }
           }
         }

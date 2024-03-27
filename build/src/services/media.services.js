@@ -65,56 +65,60 @@ var getTrending = /*#__PURE__*/function () {
           response = _context2.sent;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (!access_token) {
-            _context2.next = 27;
+            _context2.next = 28;
             break;
           }
           tokenDecoded = _jwt.jwtHelper.verifyToken(access_token, _environment.env.ACCESS_TOKEN_SECRET);
           if (!tokenDecoded) {
-            _context2.next = 27;
+            _context2.next = 28;
             break;
           }
           _context2.next = 12;
           return _favoriteModel.favoriteModel.findFavorite(tokenDecoded._id);
         case 12:
           favoriteList = _context2.sent;
+          if (!favoriteList) {
+            _context2.next = 28;
+            break;
+          }
           i = 0;
-        case 14:
+        case 15:
           if (!(i < favoriteList.length)) {
-            _context2.next = 27;
+            _context2.next = 28;
             break;
           }
           j = 0;
-        case 16:
+        case 17:
           if (!(j < response.results.length)) {
-            _context2.next = 24;
+            _context2.next = 25;
             break;
           }
           if (!(((_response$results$j = response.results[j]) === null || _response$results$j === void 0 ? void 0 : _response$results$j.id) === favoriteList[i].mediaId)) {
-            _context2.next = 21;
+            _context2.next = 22;
             break;
           }
           response.results[j].isFavorite = true;
           response.results[j].favoriteId = favoriteList[i]._id;
-          return _context2.abrupt("break", 24);
-        case 21:
+          return _context2.abrupt("break", 25);
+        case 22:
           j++;
-          _context2.next = 16;
+          _context2.next = 17;
           break;
-        case 24:
+        case 25:
           i++;
-          _context2.next = 14;
+          _context2.next = 15;
           break;
-        case 27:
+        case 28:
           return _context2.abrupt("return", response);
-        case 30:
-          _context2.prev = 30;
+        case 31:
+          _context2.prev = 31;
           _context2.t0 = _context2["catch"](0);
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!');
-        case 33:
+        case 34:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 30]]);
+    }, _callee2, null, [[0, 31]]);
   }));
   return function getTrending(_x2) {
     return _ref2.apply(this, arguments);
