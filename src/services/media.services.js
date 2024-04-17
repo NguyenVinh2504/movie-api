@@ -24,22 +24,18 @@ const getTrending = async (req) => {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
     if (access_token) {
       const tokenDecoded = await tokenMiddleware.tokenDecode(access_token)
-      if (!tokenDecoded) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' }
-        )
-      }
       if (tokenDecoded) {
         const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
         if (favoriteList) {
-          for (let i = 0; i < favoriteList.length; i++) {
-            for (let j = 0; j < response.results.length; j++) {
-              if (response.results[j]?.id === favoriteList[i].mediaId) {
-                response.results[j].isFavorite = true
-                response.results[j].favoriteId = favoriteList[i]._id
-                break
-              }
+          response.results.forEach((item) => {
+            let isFavorite = favoriteList.find((element) => {
+              return element.mediaId === item.id
+            })
+            if (isFavorite) {
+              item.isFavorite = true
+              item.favoriteId = isFavorite._id
             }
-          }
+          })
         }
       }
     }

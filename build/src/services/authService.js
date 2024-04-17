@@ -18,6 +18,7 @@ var _hashPassword = _interopRequireDefault(require("../utils/hashPassword"));
 var _validationsPassword = _interopRequireDefault(require("../utils/validationsPassword"));
 var _jwt = require("../helpers/jwt.helper");
 var _authModel = require("../models/authModel");
+var _token = _interopRequireDefault(require("../middlewares/token.middleware"));
 var _excluded = ["confirmPassword"],
   _excluded2 = ["name", "confirmPassword", "avatar"];
 /* eslint-disable no-unused-vars */
@@ -306,43 +307,46 @@ var refreshToken = /*#__PURE__*/function () {
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Refresh Token không được gửi');
         case 5:
-          tokenDecoded = _jwt.jwtHelper.verifyToken(_refreshToken5, _environment.env.REFRESH_TOKEN_SECRET);
+          _context4.next = 7;
+          return _token["default"].refreshTokenDecode(_refreshToken5);
+        case 7:
+          tokenDecoded = _context4.sent;
           if (tokenDecoded) {
-            _context4.next = 8;
+            _context4.next = 10;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập');
-        case 8:
-          _context4.next = 10;
-          return _authModel.authModel.getRefreshToken(_refreshToken5);
         case 10:
+          _context4.next = 12;
+          return _authModel.authModel.getRefreshToken(_refreshToken5);
+        case 12:
           checkToken = _context4.sent;
           if (checkToken) {
-            _context4.next = 13;
+            _context4.next = 15;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token');
-        case 13:
-          _context4.next = 15;
-          return _authModel.authModel.deleteRefreshToken(_refreshToken5);
         case 15:
           _context4.next = 17;
-          return _authModel.authModel.deleteAccessToken(access_token);
+          return _authModel.authModel.deleteRefreshToken(_refreshToken5);
         case 17:
+          _context4.next = 19;
+          return _authModel.authModel.deleteAccessToken(access_token);
+        case 19:
           newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '10m');
           newRefreshToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.REFRESH_TOKEN_SECRET, '365d');
-          _context4.next = 21;
+          _context4.next = 23;
           return _authModel.authModel.addRefreshToken({
             userId: tokenDecoded._id,
             refreshToken: newRefreshToken
           });
-        case 21:
-          _context4.next = 23;
+        case 23:
+          _context4.next = 25;
           return _authModel.authModel.addAccessToken({
             userId: tokenDecoded._id,
             accessToken: newAccessToken
           });
-        case 23:
+        case 25:
           res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: true,
@@ -354,15 +358,15 @@ var refreshToken = /*#__PURE__*/function () {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken
           });
-        case 27:
-          _context4.prev = 27;
+        case 29:
+          _context4.prev = 29;
           _context4.t0 = _context4["catch"](0);
           throw _context4.t0;
-        case 30:
+        case 32:
         case "end":
           return _context4.stop();
       }
-    }, _callee4, null, [[0, 27]]);
+    }, _callee4, null, [[0, 29]]);
   }));
   return function refreshToken(_x7, _x8) {
     return _ref4.apply(this, arguments);

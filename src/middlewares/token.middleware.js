@@ -15,6 +15,15 @@ const tokenDecode = async (token) => {
   }
 }
 
+const refreshTokenDecode = async (token) => {
+  try {
+    const decoded = jwtHelper.verifyToken(token, env.REFRESH_TOKEN_SECRET)
+    return decoded
+  } catch {
+    return false
+  }
+}
+
 const auth = async (req, res, next) => {
   try {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
@@ -42,4 +51,4 @@ const auth = async (req, res, next) => {
   }
 }
 
-export default { auth, tokenDecode }
+export default { auth, tokenDecode, refreshTokenDecode }

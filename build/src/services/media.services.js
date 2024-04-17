@@ -46,7 +46,7 @@ var getList = /*#__PURE__*/function () {
 }();
 var getTrending = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req) {
-    var _req$headers$authoriz, page, _req$params2, mediaType, timeWindow, response, access_token, tokenDecoded, favoriteList, i, j, _response$results$j;
+    var _req$headers$authoriz, page, _req$params2, mediaType, timeWindow, response, access_token, tokenDecoded, favoriteList;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
@@ -64,72 +64,43 @@ var getTrending = /*#__PURE__*/function () {
           response = _context2.sent;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (!access_token) {
-            _context2.next = 32;
+            _context2.next = 16;
             break;
           }
           _context2.next = 10;
           return _token["default"].tokenDecode(access_token);
         case 10:
           tokenDecoded = _context2.sent;
-          if (tokenDecoded) {
-            _context2.next = 13;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
-            name: 'EXPIRED_TOKEN',
-            message: 'Token hết hạn'
-          });
-        case 13:
           if (!tokenDecoded) {
-            _context2.next = 32;
+            _context2.next = 16;
             break;
           }
-          _context2.next = 16;
+          _context2.next = 14;
           return _favoriteModel.favoriteModel.findFavorite(tokenDecoded._id);
-        case 16:
+        case 14:
           favoriteList = _context2.sent;
-          if (!favoriteList) {
-            _context2.next = 32;
-            break;
+          if (favoriteList) {
+            response.results.forEach(function (item) {
+              var isFavorite = favoriteList.find(function (element) {
+                return element.mediaId === item.id;
+              });
+              if (isFavorite) {
+                item.isFavorite = true;
+                item.favoriteId = isFavorite._id;
+              }
+            });
           }
-          i = 0;
-        case 19:
-          if (!(i < favoriteList.length)) {
-            _context2.next = 32;
-            break;
-          }
-          j = 0;
-        case 21:
-          if (!(j < response.results.length)) {
-            _context2.next = 29;
-            break;
-          }
-          if (!(((_response$results$j = response.results[j]) === null || _response$results$j === void 0 ? void 0 : _response$results$j.id) === favoriteList[i].mediaId)) {
-            _context2.next = 26;
-            break;
-          }
-          response.results[j].isFavorite = true;
-          response.results[j].favoriteId = favoriteList[i]._id;
-          return _context2.abrupt("break", 29);
-        case 26:
-          j++;
-          _context2.next = 21;
-          break;
-        case 29:
-          i++;
-          _context2.next = 19;
-          break;
-        case 32:
+        case 16:
           return _context2.abrupt("return", response);
-        case 35:
-          _context2.prev = 35;
+        case 19:
+          _context2.prev = 19;
           _context2.t0 = _context2["catch"](0);
           throw _context2.t0;
-        case 38:
+        case 22:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 35]]);
+    }, _callee2, null, [[0, 19]]);
   }));
   return function getTrending(_x2) {
     return _ref2.apply(this, arguments);

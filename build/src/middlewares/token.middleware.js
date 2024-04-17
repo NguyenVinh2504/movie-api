@@ -36,24 +36,47 @@ var tokenDecode = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
-var auth = /*#__PURE__*/function () {
-  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
-    var _req$headers$authoriz, access_token, tokenDecoded, getAccessToken, user, _id, admin;
+var refreshTokenDecode = /*#__PURE__*/function () {
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(token) {
+    var decoded;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
+          decoded = _jwt.jwtHelper.verifyToken(token, _environment.env.REFRESH_TOKEN_SECRET);
+          return _context2.abrupt("return", decoded);
+        case 5:
+          _context2.prev = 5;
+          _context2.t0 = _context2["catch"](0);
+          return _context2.abrupt("return", false);
+        case 8:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 5]]);
+  }));
+  return function refreshTokenDecode(_x2) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+var auth = /*#__PURE__*/function () {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req, res, next) {
+    var _req$headers$authoriz, access_token, tokenDecoded, getAccessToken, user, _id, admin;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (!access_token) {
-            _context2.next = 23;
+            _context3.next = 23;
             break;
           }
-          _context2.next = 5;
+          _context3.next = 5;
           return tokenDecode(access_token);
         case 5:
-          tokenDecoded = _context2.sent;
+          tokenDecoded = _context3.sent;
           if (tokenDecoded) {
-            _context2.next = 8;
+            _context3.next = 8;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
@@ -63,22 +86,22 @@ var auth = /*#__PURE__*/function () {
           // , massage: 'Bạn không được phép truy cập'
           );
         case 8:
-          _context2.next = 10;
+          _context3.next = 10;
           return _authModel.authModel.getAccessToken(access_token);
         case 10:
-          getAccessToken = _context2.sent;
+          getAccessToken = _context3.sent;
           if (getAccessToken) {
-            _context2.next = 13;
+            _context3.next = 13;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy token');
         case 13:
-          _context2.next = 15;
+          _context3.next = 15;
           return _userModel.userModel.getInfo(tokenDecoded._id);
         case 15:
-          user = _context2.sent;
+          user = _context3.sent;
           if (user) {
-            _context2.next = 18;
+            _context3.next = 18;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user');
@@ -89,29 +112,30 @@ var auth = /*#__PURE__*/function () {
             admin: admin
           };
           next();
-          _context2.next = 24;
+          _context3.next = 24;
           break;
         case 23:
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Token không được gửi');
         case 24:
-          _context2.next = 29;
+          _context3.next = 29;
           break;
         case 26:
-          _context2.prev = 26;
-          _context2.t0 = _context2["catch"](0);
-          next(_context2.t0);
+          _context3.prev = 26;
+          _context3.t0 = _context3["catch"](0);
+          next(_context3.t0);
         case 29:
         case "end":
-          return _context2.stop();
+          return _context3.stop();
       }
-    }, _callee2, null, [[0, 26]]);
+    }, _callee3, null, [[0, 26]]);
   }));
-  return function auth(_x2, _x3, _x4) {
-    return _ref2.apply(this, arguments);
+  return function auth(_x3, _x4, _x5) {
+    return _ref3.apply(this, arguments);
   };
 }();
 var _default = {
   auth: auth,
-  tokenDecode: tokenDecode
+  tokenDecode: tokenDecode,
+  refreshTokenDecode: refreshTokenDecode
 };
 exports["default"] = _default;

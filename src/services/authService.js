@@ -9,6 +9,7 @@ import hashPassword from '~/utils/hashPassword'
 import validationsPassword from '~/utils/validationsPassword'
 import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
+import tokenMiddleware from '~/middlewares/token.middleware'
 
 const signUp = async (req, res) => {
   try {
@@ -175,7 +176,7 @@ const refreshToken = async (req, res) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Refresh Token không được gửi')
     }
 
-    const tokenDecoded = jwtHelper.verifyToken(refreshToken, env.REFRESH_TOKEN_SECRET)
+    const tokenDecoded = await tokenMiddleware.refreshTokenDecode(refreshToken)
     if (!tokenDecoded) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
     }
