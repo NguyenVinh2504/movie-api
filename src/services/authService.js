@@ -36,7 +36,7 @@ const signUp = async (req, res) => {
     const user = await authModel.signUp(newUser)
 
     // Tạo token
-    const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '10m')
+    const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5m')
     const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
     await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
     await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
@@ -64,7 +64,7 @@ const loginGoogle = async (req, res) => {
     const checkEmail = await userModel.getEmail(req.body.email)
     // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
     if (checkEmail) {
-      const accessToken = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '10m')
+      const accessToken = jwtHelper.generateToken(checkEmail, env.ACCESS_TOKEN_SECRET, '5m')
       const refreshToken = jwtHelper.generateToken(checkEmail, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
@@ -98,7 +98,7 @@ const loginGoogle = async (req, res) => {
       // Truyền dữ liệu đã xử lí vào model
       const user = await authModel.signUp(newUser)
       // Tạo accessToken
-      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '10m')
+      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5m')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
@@ -144,7 +144,7 @@ const login = async (req, res) => {
     }
     user.password = undefined
     if (user && validations) {
-      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '10m')
+      const accessToken = jwtHelper.generateToken(user, env.ACCESS_TOKEN_SECRET, '5m')
       const refreshToken = jwtHelper.generateToken(user, env.REFRESH_TOKEN_SECRET, '365d')
       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
@@ -186,7 +186,7 @@ const refreshToken = async (req, res) => {
     }
     await authModel.deleteRefreshToken(refreshToken)
     await authModel.deleteAccessToken(access_token)
-    const newAccessToken = jwtHelper.generateToken(tokenDecoded, env.ACCESS_TOKEN_SECRET, '10m')
+    const newAccessToken = jwtHelper.generateToken(tokenDecoded, env.ACCESS_TOKEN_SECRET, '5m')
     const newRefreshToken = jwtHelper.generateToken(tokenDecoded, env.REFRESH_TOKEN_SECRET, '365d')
     await authModel.addRefreshToken({ userId: tokenDecoded._id, refreshToken: newRefreshToken })
     await authModel.addAccessToken({ userId: tokenDecoded._id, accessToken: newAccessToken })

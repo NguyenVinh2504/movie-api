@@ -62,7 +62,7 @@ var signUp = /*#__PURE__*/function () {
         case 13:
           user = _context.sent;
           // Tạo token
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '10m');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '5m');
           _refreshToken = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context.next = 18;
           return _authModel.authModel.addRefreshToken({
@@ -118,7 +118,7 @@ var loginGoogle = /*#__PURE__*/function () {
             _context2.next = 15;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '10m');
+          accessToken = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.ACCESS_TOKEN_SECRET, '5m');
           _refreshToken2 = _jwt.jwtHelper.generateToken(checkEmail, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context2.next = 9;
           return _authModel.authModel.addRefreshToken({
@@ -163,7 +163,7 @@ var loginGoogle = /*#__PURE__*/function () {
         case 22:
           user = _context2.sent;
           // Tạo accessToken
-          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '10m');
+          _accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '5m');
           _refreshToken3 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context2.next = 27;
           return _authModel.authModel.addRefreshToken({
@@ -248,7 +248,7 @@ var login = /*#__PURE__*/function () {
             _context3.next = 21;
             break;
           }
-          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '10m');
+          accessToken = _jwt.jwtHelper.generateToken(user, _environment.env.ACCESS_TOKEN_SECRET, '5m');
           _refreshToken4 = _jwt.jwtHelper.generateToken(user, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context3.next = 17;
           return _authModel.authModel.addRefreshToken({
@@ -333,7 +333,7 @@ var refreshToken = /*#__PURE__*/function () {
           _context4.next = 19;
           return _authModel.authModel.deleteAccessToken(access_token);
         case 19:
-          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '10m');
+          newAccessToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.ACCESS_TOKEN_SECRET, '5m');
           newRefreshToken = _jwt.jwtHelper.generateToken(tokenDecoded, _environment.env.REFRESH_TOKEN_SECRET, '365d');
           _context4.next = 23;
           return _authModel.authModel.addRefreshToken({
