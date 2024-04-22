@@ -1,12 +1,15 @@
 import jwt from 'jsonwebtoken'
 
-const generateToken = (user, tokenSecret, tokenLife) => {
+const generateToken = ({ user, tokenSecret, tokenLife, exp }) => {
   const data = {
     _id: user._id,
     admin: user.admin
   }
-  return jwt.sign(data, tokenSecret, { expiresIn: tokenLife })
-
+  if (exp) {
+    return jwt.sign({ exp, ...data }, tokenSecret)
+  } else {
+    return jwt.sign(data, tokenSecret, { expiresIn: tokenLife })
+  }
 }
 
 const verifyToken = (token, secretKey) => {
