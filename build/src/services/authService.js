@@ -65,7 +65,7 @@ var signUp = /*#__PURE__*/function () {
           accessToken = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: '10s'
+            tokenLife: '1m'
           });
           _refreshToken = _jwt.jwtHelper.generateToken({
             user: user,
@@ -129,7 +129,7 @@ var loginGoogle = /*#__PURE__*/function () {
           accessToken = _jwt.jwtHelper.generateToken({
             user: checkEmail,
             tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: '10s'
+            tokenLife: '1m'
           });
           _refreshToken2 = _jwt.jwtHelper.generateToken({
             user: checkEmail,
@@ -182,7 +182,7 @@ var loginGoogle = /*#__PURE__*/function () {
           _accessToken = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: '10s'
+            tokenLife: '1m'
           });
           _refreshToken3 = _jwt.jwtHelper.generateToken({
             user: user,
@@ -275,7 +275,7 @@ var login = /*#__PURE__*/function () {
           accessToken = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: '10s'
+            tokenLife: '1m'
           });
           _refreshToken4 = _jwt.jwtHelper.generateToken({
             user: user,
@@ -368,7 +368,7 @@ var refreshToken = /*#__PURE__*/function () {
           newAccessToken = _jwt.jwtHelper.generateToken({
             user: tokenDecoded,
             tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: '10s'
+            tokenLife: '1m'
           });
           newRefreshToken = _jwt.jwtHelper.generateToken({
             user: tokenDecoded,
