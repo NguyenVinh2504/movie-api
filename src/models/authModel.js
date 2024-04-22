@@ -97,7 +97,7 @@ const addAccessToken = async (data) => {
     const validData = await ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
     const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne({
       ...validData
-      , createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 32))
+      , createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
       // , createdAt: new Date(new Date().setSeconds(new Date().getSeconds()))
     })
     GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
