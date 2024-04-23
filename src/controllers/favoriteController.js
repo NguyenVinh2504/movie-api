@@ -27,7 +27,23 @@ const removeFavorite = async (req, res, next) => {
   }
 }
 
+
+const getFavorites = async (req, res, next) => {
+  try {
+    const result = await favoriteService.getFavorites({ req })
+    res.status(StatusCodes.CREATED).json(
+      {
+        message: 'Lấy danh sách phim yêu thích thành công',
+        favorites: result
+      }
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const favoriteController = {
   addFavorite,
-  removeFavorite
+  removeFavorite,
+  getFavorites
 }

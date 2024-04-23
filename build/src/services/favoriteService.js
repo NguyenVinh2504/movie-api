@@ -82,8 +82,37 @@ var removeFavorite = /*#__PURE__*/function () {
     return _ref3.apply(this, arguments);
   };
 }();
+var getFavorites = /*#__PURE__*/function () {
+  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(_ref4) {
+    var req, idUser, retult;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          req = _ref4.req;
+          _context3.prev = 1;
+          idUser = req.user._id;
+          _context3.next = 5;
+          return _favoriteModel.favoriteModel.findFavorite(idUser);
+        case 5:
+          retult = _context3.sent;
+          return _context3.abrupt("return", retult);
+        case 9:
+          _context3.prev = 9;
+          _context3.t0 = _context3["catch"](1);
+          throw _context3.t0;
+        case 12:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[1, 9]]);
+  }));
+  return function getFavorites(_x3) {
+    return _ref5.apply(this, arguments);
+  };
+}();
 var favoriteService = {
   addFavorite: addFavorite,
-  removeFavorite: removeFavorite
+  removeFavorite: removeFavorite,
+  getFavorites: getFavorites
 };
 exports.favoriteService = favoriteService;

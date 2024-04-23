@@ -15,7 +15,7 @@ var Router = _express["default"].Router({
   mergeParams: true
 });
 // /user/delete
-Router.route('/').post(_token["default"].auth, _favoriteValidation.favoriteValidation.createFavorite, _favoriteController.favoriteController.addFavorite);
+Router.route('/').post(_token["default"].auth, _favoriteValidation.favoriteValidation.createFavorite, _favoriteController.favoriteController.addFavorite).get(_token["default"].auth, _favoriteController.favoriteController.getFavorites);
 Router.route('/:id')["delete"](_token["default"].auth, _favoriteValidation.favoriteValidation.deleteFavorite, _favoriteController.favoriteController.removeFavorite);
 var favoriteRoutes = Router;
 exports.favoriteRoutes = favoriteRoutes;

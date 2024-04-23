@@ -73,8 +73,42 @@ var removeFavorite = /*#__PURE__*/function () {
     return _ref2.apply(this, arguments);
   };
 }();
+var getFavorites = /*#__PURE__*/function () {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req, res, next) {
+    var result;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          _context3.next = 3;
+          return _favoriteService.favoriteService.getFavorites({
+            req: req
+          });
+        case 3:
+          result = _context3.sent;
+          res.status(_httpStatusCodes.StatusCodes.CREATED).json({
+            message: 'Lấy danh sách phim yêu thích thành công',
+            favorites: result
+          });
+          _context3.next = 10;
+          break;
+        case 7:
+          _context3.prev = 7;
+          _context3.t0 = _context3["catch"](0);
+          next(_context3.t0);
+        case 10:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3, null, [[0, 7]]);
+  }));
+  return function getFavorites(_x7, _x8, _x9) {
+    return _ref3.apply(this, arguments);
+  };
+}();
 var favoriteController = {
   addFavorite: addFavorite,
-  removeFavorite: removeFavorite
+  removeFavorite: removeFavorite,
+  getFavorites: getFavorites
 };
 exports.favoriteController = favoriteController;
