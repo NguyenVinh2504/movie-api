@@ -1,8 +1,8 @@
 import { StatusCodes } from 'http-status-codes'
-import { favoriteModel } from '~/models/favoriteModel'
+// import { favoriteModel } from '~/models/favoriteModel'
 import tmdbApi from '~/tmdb/tmdb.api'
 import ApiError from '~/utils/ApiError'
-import tokenMiddleware from '~/middlewares/token.middleware'
+// import tokenMiddleware from '~/middlewares/token.middleware'
 const getList = async (req) => {
   try {
     const { page } = req.query
@@ -21,24 +21,24 @@ const getTrending = async (req) => {
     const { page } = req.query
     const { mediaType, timeWindow } = req.params
     const response = await tmdbApi.mediaTrending({ mediaType, timeWindow, page })
-    const access_token = req.headers['authorization']?.replace('Bearer ', '')
-    if (access_token) {
-      const tokenDecoded = await tokenMiddleware.tokenDecode(access_token)
-      if (tokenDecoded) {
-        const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
-        if (favoriteList) {
-          response.results.forEach((item) => {
-            let isFavorite = favoriteList.find((element) => {
-              return element.mediaId === item.id
-            })
-            if (isFavorite) {
-              item.isFavorite = true
-              item.favoriteId = isFavorite._id
-            }
-          })
-        }
-      }
-    }
+    // const access_token = req.headers['authorization']?.replace('Bearer ', '')
+    // if (access_token) {
+    //   const tokenDecoded = await tokenMiddleware.tokenDecode(access_token)
+    //   if (tokenDecoded) {
+    //     const favoriteList = await favoriteModel.findFavorite(tokenDecoded._id)
+    //     if (favoriteList) {
+    //       response.results.forEach((item) => {
+    //         let isFavorite = favoriteList.find((element) => {
+    //           return element.mediaId === item.id
+    //         })
+    //         if (isFavorite) {
+    //           item.isFavorite = true
+    //           item.favoriteId = isFavorite._id
+    //         }
+    //       })
+    //     }
+    //   }
+    // }
     return response
   } catch (error) {
     // throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')

@@ -8,10 +8,11 @@ exports.mediaService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
-var _favoriteModel = require("../models/favoriteModel");
 var _tmdb = _interopRequireDefault(require("../tmdb/tmdb.api"));
 var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
-var _token = _interopRequireDefault(require("../middlewares/token.middleware"));
+// import { favoriteModel } from '~/models/favoriteModel'
+
+// import tokenMiddleware from '~/middlewares/token.middleware'
 var getList = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req) {
     var page, _req$params, mediaType, mediaCategory, response;
@@ -46,7 +47,7 @@ var getList = /*#__PURE__*/function () {
 }();
 var getTrending = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req) {
-    var _req$headers$authoriz, page, _req$params2, mediaType, timeWindow, response, access_token, tokenDecoded, favoriteList;
+    var page, _req$params2, mediaType, timeWindow, response;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
@@ -62,45 +63,16 @@ var getTrending = /*#__PURE__*/function () {
           });
         case 5:
           response = _context2.sent;
-          access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
-          if (!access_token) {
-            _context2.next = 16;
-            break;
-          }
-          _context2.next = 10;
-          return _token["default"].tokenDecode(access_token);
-        case 10:
-          tokenDecoded = _context2.sent;
-          if (!tokenDecoded) {
-            _context2.next = 16;
-            break;
-          }
-          _context2.next = 14;
-          return _favoriteModel.favoriteModel.findFavorite(tokenDecoded._id);
-        case 14:
-          favoriteList = _context2.sent;
-          if (favoriteList) {
-            response.results.forEach(function (item) {
-              var isFavorite = favoriteList.find(function (element) {
-                return element.mediaId === item.id;
-              });
-              if (isFavorite) {
-                item.isFavorite = true;
-                item.favoriteId = isFavorite._id;
-              }
-            });
-          }
-        case 16:
           return _context2.abrupt("return", response);
-        case 19:
-          _context2.prev = 19;
+        case 9:
+          _context2.prev = 9;
           _context2.t0 = _context2["catch"](0);
           throw _context2.t0;
-        case 22:
+        case 12:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 19]]);
+    }, _callee2, null, [[0, 9]]);
   }));
   return function getTrending(_x2) {
     return _ref2.apply(this, arguments);
