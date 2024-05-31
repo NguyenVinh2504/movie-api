@@ -11,9 +11,9 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 var generateToken = function generateToken(_ref) {
   var user = _ref.user,
-    tokenSecret = _ref.tokenSecret,
     tokenLife = _ref.tokenLife,
-    exp = _ref.exp;
+    exp = _ref.exp,
+    tokenSecret = _ref.tokenSecret;
   var data = {
     _id: user._id,
     admin: user.admin
@@ -21,7 +21,7 @@ var generateToken = function generateToken(_ref) {
   if (exp) {
     return _jsonwebtoken["default"].sign(_objectSpread({
       exp: exp
-    }, data), tokenSecret);
+    }, data), tokenSecret, {});
   } else {
     return _jsonwebtoken["default"].sign(data, tokenSecret, {
       expiresIn: tokenLife

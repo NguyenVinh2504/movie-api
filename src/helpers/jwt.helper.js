@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-const generateToken = ({ user, tokenSecret, tokenLife, exp }) => {
+const generateToken = ({ user, tokenLife, exp, tokenSecret }) => {
   const data = {
     _id: user._id,
     admin: user.admin

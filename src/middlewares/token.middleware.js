@@ -1,26 +1,29 @@
 import { StatusCodes } from 'http-status-codes'
-import { env } from '~/config/environment'
 import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
 import { userModel } from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
+import findKeyTokenById from '~/utils/findKeyTokenById'
 
 
 const tokenDecode = async (token) => {
+  const keyStore = await findKeyTokenById(token)
   try {
-    const decoded = jwtHelper.verifyToken(token, env.ACCESS_TOKEN_SECRET)
+    const decoded = jwtHelper.verifyToken(token, keyStore.publicKey)
     return decoded
-  } catch {
-    return false
+  } catch (err) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
   }
 }
 
 const refreshTokenDecode = async (token) => {
+  const keyStore = await findKeyTokenById(token)
+
   try {
-    const decoded = jwtHelper.verifyToken(token, env.REFRESH_TOKEN_SECRET)
+    const decoded = jwtHelper.verifyToken(token, keyStore.privateKey)
     return decoded
   } catch {
-    return false
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
   }
 }
 
@@ -29,11 +32,6 @@ const auth = async (req, res, next) => {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
     if (access_token) {
       const tokenDecoded = await tokenDecode(access_token)
-      if (!tokenDecoded) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' }
-          // , massage: 'Bạn không được phép truy cập'
-        )
-      }
       const getAccessToken = await authModel.getAccessToken(access_token)
       if (!getAccessToken) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy token')
       const user = await userModel.getInfo(tokenDecoded._id)

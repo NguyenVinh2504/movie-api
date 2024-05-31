@@ -1,5 +1,4 @@
 import Joi from 'joi'
-// import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
 import { joiPasswordExtendCore } from 'joi-password'
 import { userModel } from './userModel'
@@ -9,13 +8,14 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 const joiPassword = Joi.extend(joiPasswordExtendCore)
 const USER_COLLECTION_NAME = 'users'
 const REFRESH_TOKEN_COLLECTION_NAME = 'refreshToken'
+const PUBLIC_KEY_COLLECTION_NAME = 'publicKey'
 const ACCESS_TOKEN_COLLECTION_NAME = 'accessToken'
 const USER_COLLECTION_SCHEMA = Joi.object({
   name: Joi.string().required().label('name')
     .messages({
       'any.required': '{#label} Chưa nhập tên đăng nhập'
     }),
-  slug: Joi.string().min(3).required(),
+  slug: Joi.string().required(),
   // favoriteIds: Joi.array().items(
   //   Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   // ).default([]),
@@ -62,9 +62,16 @@ const REFRESH_TOKEN_COLLECTION_SCHEMA = Joi.object({
   userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   refreshToken: Joi.string().allow('').required()
 })
+
 const ACCESS_TOKEN_COLLECTION_SCHEMA = Joi.object({
   userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   accessToken: Joi.string().allow('').required()
+})
+
+const PUBLIC_KEY_COLLECTION_SCHEMA = Joi.object({
+  userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+  privateKey: Joi.string(),
+  publicKey: Joi.string()
 })
 
 const signUp = async (data) => {
@@ -78,13 +85,45 @@ const signUp = async (data) => {
   }
 }
 
+const createKeyToken = async ({ userId, privateKey, publicKey }) => {
+  const validData = await PUBLIC_KEY_COLLECTION_SCHEMA.validateAsync({ userId, privateKey, publicKey }, { abortEarly: false })
+  try {
+    const filter = { userId: validData.userId }
+    const update = { $set: { privateKey: validData.privateKey, publicKey: validData.publicKey } }
+    const option = { upsert: true, new: true, returnDocument: 'after' }
+    const tokens = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+
+    return tokens ? tokens.publicKey : null
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const getKeyToken = async (userId) => {
+  try {
+    const user = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOne({ userId: userId })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const deleteKeyToken = async (userId) => {
+  try {
+    const user = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).deleteOne({ userId: userId })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 const addRefreshToken = async (data) => {
   try {
     const validData = await REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne({
-      ...validData
-      , createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-    })
+    const filter = { userId: validData.userId }
+    const update = { $set: { ...validData, createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) } }
+    const option = { upsert: true, new: true, returnDocument: 'after' }
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
     GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return user
   } catch (error) {
@@ -95,11 +134,10 @@ const addRefreshToken = async (data) => {
 const addAccessToken = async (data) => {
   try {
     const validData = await ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne({
-      ...validData
-      , createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
-      // , createdAt: new Date(new Date().setSeconds(new Date().getSeconds()))
-    })
+    const filter = { userId: validData.userId }
+    const update = { $set: { ...validData, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5)) } }
+    const option = { upsert: true, new: true, returnDocument: 'after' }
+    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
     GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return user
   } catch (error) {
@@ -146,6 +184,9 @@ export const authModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   signUp,
+  getKeyToken,
+  createKeyToken,
+  deleteKeyToken,
   addAccessToken,
   getAccessToken,
   deleteAccessToken,

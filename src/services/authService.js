@@ -10,6 +10,8 @@ import validationsPassword from '~/utils/validationsPassword'
 import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
 import tokenMiddleware from '~/middlewares/token.middleware'
+import generateKey from '~/utils/generateKey'
+import jwt from 'jsonwebtoken'
 
 const signUp = async (req, res) => {
   try {
@@ -34,26 +36,47 @@ const signUp = async (req, res) => {
 
     // Truyền dữ liệu đã xử lí vào model
     const user = await authModel.signUp(newUser)
+    if (user) {
+      // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+      //   modulusLength: 4096,
+      //   publicKeyEncoding: {
+      //     type: 'pkcs1',
+      //     format: 'pem'
+      //   },
+      //   privateKeyEncoding: {
+      //     type: 'pkcs1',
+      //     format: 'pem'
+      //   }
+      // })
 
-    // Tạo token
-    const accessToken = jwtHelper.generateToken({ user, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: '1m' })
-    const refreshToken = jwtHelper.generateToken({ user, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
-    await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
-    await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      path: '/',
-      // maxAge: 31557600000,
-      expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      sameSite: 'Lax'
-    })
-    user.password = undefined
-    return {
-      accessToken,
-      refreshToken,
-      ...user
+      const { publicKey, privateKey } = generateKey()
+      const keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
+      if (!keyStore) {
+        throw new ApiError(StatusCodes.BAD_REQUEST,
+          'Có lỗi trong quá trình đăng ký')
+      }
+
+      const accessToken = jwtHelper.generateToken({ user, tokenSecret: publicKey, tokenLife: '1m' })
+      const refreshToken = jwtHelper.generateToken({ user, tokenSecret: privateKey, tokenLife: '365d' })
+
+      await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
+      await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        path: '/',
+        // maxAge: 31557600000,
+        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        sameSite: 'Lax'
+      })
+      user.password = undefined
+      return {
+        accessToken,
+        refreshToken,
+        ...user
+      }
     }
+    // Tạo token
   } catch (error) {
     throw error
   }
@@ -143,9 +166,16 @@ const login = async (req, res) => {
       })
     }
     user.password = undefined
+
     if (user && validations) {
-      const accessToken = jwtHelper.generateToken({ user, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: '1m' })
-      const refreshToken = jwtHelper.generateToken({ user: user, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
+      const { publicKey, privateKey } = generateKey()
+      const keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
+      if (!keyStore) {
+        throw new ApiError(StatusCodes.BAD_REQUEST,
+          'Có lỗi trong quá trình đăng ký')
+      }
+      const accessToken = jwtHelper.generateToken({ user, tokenSecret: publicKey, tokenLife: '1m' })
+      const refreshToken = jwtHelper.generateToken({ user: user, tokenSecret: privateKey, tokenLife: '365d' })
       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
       await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
       res.cookie('refreshToken', refreshToken, {
@@ -171,23 +201,25 @@ const refreshToken = async (req, res) => {
   try {
     // const refreshToken = req.cookies.refreshToken
     const refreshToken = req.body.refreshToken
-    const access_token = req.headers['authorization']?.replace('Bearer ', '')
     if (!refreshToken) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Refresh Token không được gửi')
     }
 
     const tokenDecoded = await tokenMiddleware.refreshTokenDecode(refreshToken)
-    if (!tokenDecoded) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
-    }
+
     const checkToken = await authModel.getRefreshToken(refreshToken)
     if (!checkToken) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token')
     }
-    await authModel.deleteRefreshToken(refreshToken)
-    await authModel.deleteAccessToken(access_token)
-    const newAccessToken = jwtHelper.generateToken({ user: tokenDecoded, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: '1m' })
-    const newRefreshToken = jwtHelper.generateToken({ user: tokenDecoded, tokenSecret: env.REFRESH_TOKEN_SECRET, exp: tokenDecoded.exp })
+
+    const { publicKey, privateKey } = generateKey()
+    const keyStore = await authModel.createKeyToken({ userId: tokenDecoded._id, privateKey, publicKey })
+    if (!keyStore) {
+      throw new ApiError(StatusCodes.BAD_REQUEST,
+        'Có lỗi trong quá trình refreshToken')
+    }
+    const newAccessToken = jwtHelper.generateToken({ user: tokenDecoded, tokenSecret: publicKey, tokenLife: '1m' })
+    const newRefreshToken = jwtHelper.generateToken({ user: tokenDecoded, tokenSecret: privateKey, exp: tokenDecoded.exp })
     await authModel.addRefreshToken({ userId: tokenDecoded._id, refreshToken: newRefreshToken })
     await authModel.addAccessToken({ userId: tokenDecoded._id, accessToken: newAccessToken })
     res.cookie('refreshToken', newRefreshToken, {
@@ -212,6 +244,9 @@ const logout = async (req, res) => {
     // await authModel.deleteRefreshToken(req.body.refreshToken)
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
     await authModel.deleteAccessToken(access_token)
+
+    const payLoadToken = jwt.decode(access_token)
+    await authModel.deleteKeyToken(payLoadToken._id)
   }
   catch (error) {
     throw error
