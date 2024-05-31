@@ -21,7 +21,7 @@ var generateToken = function generateToken(_ref) {
   if (exp) {
     return _jsonwebtoken["default"].sign(_objectSpread({
       exp: exp
-    }, data), tokenSecret, {});
+    }, data), tokenSecret);
   } else {
     return _jsonwebtoken["default"].sign(data, tokenSecret, {
       expiresIn: tokenLife

@@ -55,7 +55,7 @@ var CLOSE_DB = /*#__PURE__*/function () {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.next = 2;
-          return mongoClientInstance.close;
+          return mongoClientInstance.close();
         case 2:
         case "end":
           return _context2.stop();

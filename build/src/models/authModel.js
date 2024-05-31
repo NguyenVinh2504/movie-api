@@ -87,7 +87,8 @@ var ACCESS_TOKEN_COLLECTION_SCHEMA = _joi["default"].object({
 var PUBLIC_KEY_COLLECTION_SCHEMA = _joi["default"].object({
   userId: _joi["default"].string().allow('').required().pattern(_validators.OBJECT_ID_RULE).message(_validators.OBJECT_ID_RULE_MESSAGE),
   privateKey: _joi["default"].string(),
-  publicKey: _joi["default"].string()
+  publicKey: _joi["default"].string(),
+  refreshTokensUsed: _joi["default"].array()["default"]([])
 });
 var signUp = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(data) {
@@ -149,7 +150,7 @@ var createKeyToken = /*#__PURE__*/function () {
           update = {
             $set: {
               privateKey: validData.privateKey,
-              publicKey: validData.publicKey
+              publicKey: validData.publicKeys
             }
           };
           option = {
@@ -161,7 +162,7 @@ var createKeyToken = /*#__PURE__*/function () {
           return (0, _mongodb.GET_DB)().collection(PUBLIC_KEY_COLLECTION_NAME).findOneAndUpdate(filter, update, option);
         case 10:
           tokens = _context3.sent;
-          return _context3.abrupt("return", tokens ? tokens.publicKey : null);
+          return _context3.abrupt("return", tokens);
         case 14:
           _context3.prev = 14;
           _context3.t0 = _context3["catch"](4);
@@ -204,144 +205,116 @@ var getKeyToken = /*#__PURE__*/function () {
     return _ref5.apply(this, arguments);
   };
 }();
-var deleteKeyToken = /*#__PURE__*/function () {
-  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(userId) {
-    var user;
+var updateKeyToken = /*#__PURE__*/function () {
+  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(_ref6) {
+    var userId, refreshToken, user;
     return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
-          _context5.prev = 0;
-          _context5.next = 3;
-          return (0, _mongodb.GET_DB)().collection(PUBLIC_KEY_COLLECTION_NAME).deleteOne({
+          userId = _ref6.userId, refreshToken = _ref6.refreshToken;
+          _context5.prev = 1;
+          _context5.next = 4;
+          return (0, _mongodb.GET_DB)().collection(PUBLIC_KEY_COLLECTION_NAME).updateOne({
             userId: userId
+          }, {
+            $addToSet: {
+              refreshTokensUsed: refreshToken
+            }
           });
-        case 3:
+        case 4:
           user = _context5.sent;
           return _context5.abrupt("return", user);
-        case 7:
-          _context5.prev = 7;
-          _context5.t0 = _context5["catch"](0);
+        case 8:
+          _context5.prev = 8;
+          _context5.t0 = _context5["catch"](1);
           throw new Error(_context5.t0);
-        case 10:
+        case 11:
         case "end":
           return _context5.stop();
       }
-    }, _callee5, null, [[0, 7]]);
+    }, _callee5, null, [[1, 8]]);
   }));
-  return function deleteKeyToken(_x6) {
-    return _ref6.apply(this, arguments);
+  return function updateKeyToken(_x6) {
+    return _ref7.apply(this, arguments);
   };
 }();
-var addRefreshToken = /*#__PURE__*/function () {
-  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(data) {
-    var validData, filter, update, option, user;
+var deleteKeyToken = /*#__PURE__*/function () {
+  var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(userId) {
+    var user;
     return _regenerator["default"].wrap(function _callee6$(_context6) {
       while (1) switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           _context6.next = 3;
-          return REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, {
-            abortEarly: false
+          return (0, _mongodb.GET_DB)().collection(PUBLIC_KEY_COLLECTION_NAME).deleteOne({
+            userId: userId
           });
         case 3:
-          validData = _context6.sent;
-          filter = {
-            userId: validData.userId
-          };
-          update = {
-            $set: _objectSpread(_objectSpread({}, validData), {}, {
-              createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-            })
-          };
-          option = {
-            upsert: true,
-            "new": true,
-            returnDocument: 'after'
-          };
-          _context6.next = 9;
-          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option);
-        case 9:
           user = _context6.sent;
-          (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({
-            createdAt: 1
-          }, {
-            expireAfterSeconds: 10
-          });
           return _context6.abrupt("return", user);
-        case 14:
-          _context6.prev = 14;
+        case 7:
+          _context6.prev = 7;
           _context6.t0 = _context6["catch"](0);
           throw new Error(_context6.t0);
-        case 17:
+        case 10:
         case "end":
           return _context6.stop();
       }
-    }, _callee6, null, [[0, 14]]);
+    }, _callee6, null, [[0, 7]]);
   }));
-  return function addRefreshToken(_x7) {
-    return _ref7.apply(this, arguments);
+  return function deleteKeyToken(_x7) {
+    return _ref8.apply(this, arguments);
   };
 }();
-var addAccessToken = /*#__PURE__*/function () {
-  var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(data) {
-    var validData, filter, update, option, user;
+var addRefreshToken = /*#__PURE__*/function () {
+  var _ref9 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(data) {
+    var validData, user;
     return _regenerator["default"].wrap(function _callee7$(_context7) {
       while (1) switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
           _context7.next = 3;
-          return ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, {
+          return REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, {
             abortEarly: false
           });
         case 3:
           validData = _context7.sent;
-          filter = {
-            userId: validData.userId
-          };
-          update = {
-            $set: _objectSpread(_objectSpread({}, validData), {}, {
-              createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
-            })
-          };
-          option = {
-            upsert: true,
-            "new": true,
-            returnDocument: 'after'
-          };
-          _context7.next = 9;
-          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option);
-        case 9:
+          _context7.next = 6;
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne(_objectSpread(_objectSpread({}, validData), {}, {
+            createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+          }));
+        case 6:
           user = _context7.sent;
-          (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({
+          (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({
             createdAt: 1
           }, {
             expireAfterSeconds: 10
           });
           return _context7.abrupt("return", user);
-        case 14:
-          _context7.prev = 14;
+        case 11:
+          _context7.prev = 11;
           _context7.t0 = _context7["catch"](0);
           throw new Error(_context7.t0);
-        case 17:
+        case 14:
         case "end":
           return _context7.stop();
       }
-    }, _callee7, null, [[0, 14]]);
+    }, _callee7, null, [[0, 11]]);
   }));
-  return function addAccessToken(_x8) {
-    return _ref8.apply(this, arguments);
+  return function addRefreshToken(_x8) {
+    return _ref9.apply(this, arguments);
   };
 }();
-var getAccessToken = /*#__PURE__*/function () {
-  var _ref9 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(data) {
+var findByRefreshTokensUsed = /*#__PURE__*/function () {
+  var _ref10 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(refreshToken) {
     var user;
     return _regenerator["default"].wrap(function _callee8$(_context8) {
       while (1) switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
           _context8.next = 3;
-          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).findOne({
-            accessToken: data
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({
+            refreshTokensUsed: refreshToken
           });
         case 3:
           user = _context8.sent;
@@ -356,48 +329,59 @@ var getAccessToken = /*#__PURE__*/function () {
       }
     }, _callee8, null, [[0, 7]]);
   }));
-  return function getAccessToken(_x9) {
-    return _ref9.apply(this, arguments);
+  return function findByRefreshTokensUsed(_x9) {
+    return _ref10.apply(this, arguments);
   };
 }();
-var deleteAccessToken = /*#__PURE__*/function () {
-  var _ref10 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9(data) {
-    var user;
+var addAccessToken = /*#__PURE__*/function () {
+  var _ref11 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9(data) {
+    var validData, user;
     return _regenerator["default"].wrap(function _callee9$(_context9) {
       while (1) switch (_context9.prev = _context9.next) {
         case 0:
           _context9.prev = 0;
           _context9.next = 3;
-          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).deleteOne({
-            accessToken: data
+          return ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, {
+            abortEarly: false
           });
         case 3:
+          validData = _context9.sent;
+          _context9.next = 6;
+          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne(_objectSpread(_objectSpread({}, validData), {}, {
+            createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
+          }));
+        case 6:
           user = _context9.sent;
+          (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({
+            createdAt: 1
+          }, {
+            expireAfterSeconds: 10
+          });
           return _context9.abrupt("return", user);
-        case 7:
-          _context9.prev = 7;
+        case 11:
+          _context9.prev = 11;
           _context9.t0 = _context9["catch"](0);
           throw new Error(_context9.t0);
-        case 10:
+        case 14:
         case "end":
           return _context9.stop();
       }
-    }, _callee9, null, [[0, 7]]);
+    }, _callee9, null, [[0, 11]]);
   }));
-  return function deleteAccessToken(_x10) {
-    return _ref10.apply(this, arguments);
+  return function addAccessToken(_x10) {
+    return _ref11.apply(this, arguments);
   };
 }();
-var getRefreshToken = /*#__PURE__*/function () {
-  var _ref11 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10(data) {
+var getAccessToken = /*#__PURE__*/function () {
+  var _ref12 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10(data) {
     var user;
     return _regenerator["default"].wrap(function _callee10$(_context10) {
       while (1) switch (_context10.prev = _context10.next) {
         case 0:
           _context10.prev = 0;
           _context10.next = 3;
-          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({
-            refreshToken: data
+          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).findOne({
+            accessToken: data
           });
         case 3:
           user = _context10.sent;
@@ -412,20 +396,20 @@ var getRefreshToken = /*#__PURE__*/function () {
       }
     }, _callee10, null, [[0, 7]]);
   }));
-  return function getRefreshToken(_x11) {
-    return _ref11.apply(this, arguments);
+  return function getAccessToken(_x11) {
+    return _ref12.apply(this, arguments);
   };
 }();
-var deleteRefreshToken = /*#__PURE__*/function () {
-  var _ref12 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11(data) {
+var deleteAccessToken = /*#__PURE__*/function () {
+  var _ref13 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11(data) {
     var user;
     return _regenerator["default"].wrap(function _callee11$(_context11) {
       while (1) switch (_context11.prev = _context11.next) {
         case 0:
           _context11.prev = 0;
           _context11.next = 3;
-          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).deleteOne({
-            refreshToken: data
+          return (0, _mongodb.GET_DB)().collection(ACCESS_TOKEN_COLLECTION_NAME).deleteOne({
+            accessToken: data
           });
         case 3:
           user = _context11.sent;
@@ -440,8 +424,64 @@ var deleteRefreshToken = /*#__PURE__*/function () {
       }
     }, _callee11, null, [[0, 7]]);
   }));
-  return function deleteRefreshToken(_x12) {
-    return _ref12.apply(this, arguments);
+  return function deleteAccessToken(_x12) {
+    return _ref13.apply(this, arguments);
+  };
+}();
+var getRefreshToken = /*#__PURE__*/function () {
+  var _ref14 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(data) {
+    var user;
+    return _regenerator["default"].wrap(function _callee12$(_context12) {
+      while (1) switch (_context12.prev = _context12.next) {
+        case 0:
+          _context12.prev = 0;
+          _context12.next = 3;
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({
+            refreshToken: data
+          });
+        case 3:
+          user = _context12.sent;
+          return _context12.abrupt("return", user);
+        case 7:
+          _context12.prev = 7;
+          _context12.t0 = _context12["catch"](0);
+          throw new Error(_context12.t0);
+        case 10:
+        case "end":
+          return _context12.stop();
+      }
+    }, _callee12, null, [[0, 7]]);
+  }));
+  return function getRefreshToken(_x13) {
+    return _ref14.apply(this, arguments);
+  };
+}();
+var deleteRefreshToken = /*#__PURE__*/function () {
+  var _ref15 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(data) {
+    var user;
+    return _regenerator["default"].wrap(function _callee13$(_context13) {
+      while (1) switch (_context13.prev = _context13.next) {
+        case 0:
+          _context13.prev = 0;
+          _context13.next = 3;
+          return (0, _mongodb.GET_DB)().collection(REFRESH_TOKEN_COLLECTION_NAME).deleteOne({
+            refreshToken: data
+          });
+        case 3:
+          user = _context13.sent;
+          return _context13.abrupt("return", user);
+        case 7:
+          _context13.prev = 7;
+          _context13.t0 = _context13["catch"](0);
+          throw new Error(_context13.t0);
+        case 10:
+        case "end":
+          return _context13.stop();
+      }
+    }, _callee13, null, [[0, 7]]);
+  }));
+  return function deleteRefreshToken(_x14) {
+    return _ref15.apply(this, arguments);
   };
 }();
 var authModel = {
@@ -450,11 +490,13 @@ var authModel = {
   signUp: signUp,
   getKeyToken: getKeyToken,
   createKeyToken: createKeyToken,
+  updateKeyToken: updateKeyToken,
   deleteKeyToken: deleteKeyToken,
   addAccessToken: addAccessToken,
   getAccessToken: getAccessToken,
   deleteAccessToken: deleteAccessToken,
   addRefreshToken: addRefreshToken,
+  findByRefreshTokensUsed: findByRefreshTokensUsed,
   deleteRefreshToken: deleteRefreshToken,
   getRefreshToken: getRefreshToken
 };

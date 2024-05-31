@@ -24,6 +24,7 @@ var tokenDecode = /*#__PURE__*/function () {
         case 2:
           keyStore = _context.sent;
           _context.prev = 3;
+          // Verify bằng publicKey vừa lấy trong db
           decoded = _jwt.jwtHelper.verifyToken(token, keyStore.publicKey);
           return _context.abrupt("return", decoded);
         case 8:
@@ -44,29 +45,53 @@ var tokenDecode = /*#__PURE__*/function () {
   };
 }();
 var refreshTokenDecode = /*#__PURE__*/function () {
-  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(token) {
-    var keyStore, decoded;
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
+    var refreshToken, keyStore, decoded;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          _context2.next = 2;
-          return (0, _findKeyTokenById["default"])(token);
-        case 2:
+          _context2.prev = 0;
+          //Lấy token user gửi lên
+          refreshToken = req.body.refreshToken;
+          if (refreshToken) {
+            _context2.next = 4;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Refresh Token không được gửi');
+        case 4:
+          req.refreshToken = refreshToken;
+
+          // Tìm privateKey trong db của user vửa gửi lên bằng token
+          _context2.next = 7;
+          return (0, _findKeyTokenById["default"])(refreshToken);
+        case 7:
           keyStore = _context2.sent;
-          _context2.prev = 3;
-          decoded = _jwt.jwtHelper.verifyToken(token, keyStore.privateKey);
-          return _context2.abrupt("return", decoded);
-        case 8:
-          _context2.prev = 8;
-          _context2.t0 = _context2["catch"](3);
+          req.keyStore = keyStore;
+          _context2.prev = 9;
+          // Verify bằng privateKey vừa lấy trong db
+          decoded = _jwt.jwtHelper.verifyToken(refreshToken, keyStore.privateKey);
+          req.decoded = decoded;
+          _context2.next = 17;
+          break;
+        case 14:
+          _context2.prev = 14;
+          _context2.t0 = _context2["catch"](9);
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập');
-        case 11:
+        case 17:
+          next();
+          _context2.next = 23;
+          break;
+        case 20:
+          _context2.prev = 20;
+          _context2.t1 = _context2["catch"](0);
+          next(_context2.t1);
+        case 23:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[3, 8]]);
+    }, _callee2, null, [[0, 20], [9, 14]]);
   }));
-  return function refreshTokenDecode(_x2) {
+  return function refreshTokenDecode(_x2, _x3, _x4) {
     return _ref2.apply(this, arguments);
   };
 }();
@@ -129,7 +154,7 @@ var auth = /*#__PURE__*/function () {
       }
     }, _callee3, null, [[0, 24]]);
   }));
-  return function auth(_x3, _x4, _x5) {
+  return function auth(_x5, _x6, _x7) {
     return _ref3.apply(this, arguments);
   };
 }();

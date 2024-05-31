@@ -13,7 +13,7 @@ Router.route('/login')
   .post(authValidation.login, authController.login)
 
 Router.route('/refresh-token')
-  .post(authController.refreshToken)
+  .post(tokenMiddleware.refreshTokenDecode, authController.refreshToken)
 Router.route('/logout')
   .post(tokenMiddleware.auth, authController.logout)
 export const authRoutes = Router

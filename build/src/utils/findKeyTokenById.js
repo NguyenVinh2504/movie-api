@@ -13,13 +13,15 @@ var _authModel = require("../models/authModel");
 var _ApiError = _interopRequireDefault(require("./ApiError"));
 /* eslint-disable indent */
 
+// Tìm privateKey và publicKey thông qua id user trong token được user gửi lên
 var findKeyTokenById = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(token) {
     var payLoadToken, keyStore;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          payLoadToken = _jsonwebtoken["default"].decode(token);
+          // Lấy id user trong token để tìm privateKey và publicKey tương ứng trong db
+          payLoadToken = _jsonwebtoken["default"].decode(token); // Tìm privateKey và publicKey trong db với id user vừa lấy được trong token
           _context.next = 3;
           return _authModel.authModel.getKeyToken(payLoadToken._id);
         case 3:

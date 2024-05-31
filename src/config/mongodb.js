@@ -28,5 +28,5 @@ export const GET_DB = () => {
 
 //Đóng kêt nối tới Database khi cần
 export const CLOSE_DB = async () => {
-  await mongoClientInstance.close
+  await mongoClientInstance.close()
 }

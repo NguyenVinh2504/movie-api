@@ -71,7 +71,8 @@ const ACCESS_TOKEN_COLLECTION_SCHEMA = Joi.object({
 const PUBLIC_KEY_COLLECTION_SCHEMA = Joi.object({
   userId: Joi.string().allow('').required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
   privateKey: Joi.string(),
-  publicKey: Joi.string()
+  publicKey: Joi.string(),
+  refreshTokensUsed: Joi.array().default([])
 })
 
 const signUp = async (data) => {
@@ -89,11 +90,12 @@ const createKeyToken = async ({ userId, privateKey, publicKey }) => {
   const validData = await PUBLIC_KEY_COLLECTION_SCHEMA.validateAsync({ userId, privateKey, publicKey }, { abortEarly: false })
   try {
     const filter = { userId: validData.userId }
-    const update = { $set: { privateKey: validData.privateKey, publicKey: validData.publicKey } }
+    const update = { $set: { privateKey: validData.privateKey, publicKey: validData.publicKeys } }
     const option = { upsert: true, new: true, returnDocument: 'after' }
     const tokens = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+    // const tokens = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).insertOne(validData)
 
-    return tokens ? tokens.publicKey : null
+    return tokens
   } catch (error) {
     throw new Error(error)
   }
@@ -101,7 +103,18 @@ const createKeyToken = async ({ userId, privateKey, publicKey }) => {
 
 const getKeyToken = async (userId) => {
   try {
-    const user = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOne({ userId: userId })
+    const user = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOne({ userId })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const updateKeyToken = async ({ userId, refreshToken }) => {
+  try {
+    const user = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).updateOne({ userId }, {
+      $addToSet: { refreshTokensUsed: refreshToken }
+    })
     return user
   } catch (error) {
     throw new Error(error)
@@ -120,11 +133,24 @@ const deleteKeyToken = async (userId) => {
 const addRefreshToken = async (data) => {
   try {
     const validData = await REFRESH_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-    const filter = { userId: validData.userId }
-    const update = { $set: { ...validData, createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) } }
-    const option = { upsert: true, new: true, returnDocument: 'after' }
-    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+    // const filter = { userId: validData.userId }
+    // const update = { $set: { ...validData, createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) } }
+    // const option = { upsert: true, new: true, returnDocument: 'after' }
+    // const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).insertOne({
+      ...validData,
+      createdAt: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+    })
     GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
+    return user
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const findByRefreshTokensUsed = async (refreshToken) => {
+  try {
+    const user = await GET_DB().collection(REFRESH_TOKEN_COLLECTION_NAME).findOne({ refreshTokensUsed: refreshToken })
     return user
   } catch (error) {
     throw new Error(error)
@@ -134,10 +160,14 @@ const addRefreshToken = async (data) => {
 const addAccessToken = async (data) => {
   try {
     const validData = await ACCESS_TOKEN_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
-    const filter = { userId: validData.userId }
-    const update = { $set: { ...validData, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5)) } }
-    const option = { upsert: true, new: true, returnDocument: 'after' }
-    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+    // const filter = { userId: validData.userId }
+    // const update = { $set: { ...validData, createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5)) } }
+    // const option = { upsert: true, new: true, returnDocument: 'after' }
+    // const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
+    const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne({
+      ...validData,
+      createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
+    })
     GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return user
   } catch (error) {
@@ -186,11 +216,13 @@ export const authModel = {
   signUp,
   getKeyToken,
   createKeyToken,
+  updateKeyToken,
   deleteKeyToken,
   addAccessToken,
   getAccessToken,
   deleteAccessToken,
   addRefreshToken,
+  findByRefreshTokensUsed,
   deleteRefreshToken,
   getRefreshToken
 }
