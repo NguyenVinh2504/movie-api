@@ -150,7 +150,7 @@ var createKeyToken = /*#__PURE__*/function () {
           update = {
             $set: {
               privateKey: validData.privateKey,
-              publicKey: validData.publicKeys
+              publicKey: validData.publicKey
             }
           };
           option = {

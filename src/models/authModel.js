@@ -90,7 +90,7 @@ const createKeyToken = async ({ userId, privateKey, publicKey }) => {
   const validData = await PUBLIC_KEY_COLLECTION_SCHEMA.validateAsync({ userId, privateKey, publicKey }, { abortEarly: false })
   try {
     const filter = { userId: validData.userId }
-    const update = { $set: { privateKey: validData.privateKey, publicKey: validData.publicKeys } }
+    const update = { $set: { privateKey: validData.privateKey, publicKey: validData.publicKey } }
     const option = { upsert: true, new: true, returnDocument: 'after' }
     const tokens = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
     // const tokens = await GET_DB().collection(PUBLIC_KEY_COLLECTION_NAME).insertOne(validData)
