@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
 var _jwt = require("../helpers/jwt.helper");
@@ -97,62 +98,71 @@ var refreshTokenDecode = /*#__PURE__*/function () {
 }();
 var auth = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req, res, next) {
-    var _req$headers$authoriz, access_token, tokenDecoded, getAccessToken, user, _id, admin;
+    var _req$headers$authoriz, access_token, _yield$Promise$all, _yield$Promise$all2, tokenDecoded, getAccessToken, user, _id, admin;
     return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
           if (!access_token) {
-            _context3.next = 21;
+            _context3.next = 29;
             break;
           }
-          _context3.next = 5;
+          _context3.t0 = Promise;
+          _context3.next = 6;
           return tokenDecode(access_token);
-        case 5:
-          tokenDecoded = _context3.sent;
-          _context3.next = 8;
+        case 6:
+          _context3.t1 = _context3.sent;
+          _context3.next = 9;
           return _authModel.authModel.getAccessToken(access_token);
-        case 8:
-          getAccessToken = _context3.sent;
+        case 9:
+          _context3.t2 = _context3.sent;
+          _context3.t3 = [_context3.t1, _context3.t2];
+          _context3.next = 13;
+          return _context3.t0.all.call(_context3.t0, _context3.t3);
+        case 13:
+          _yield$Promise$all = _context3.sent;
+          _yield$Promise$all2 = (0, _slicedToArray2["default"])(_yield$Promise$all, 2);
+          tokenDecoded = _yield$Promise$all2[0];
+          getAccessToken = _yield$Promise$all2[1];
           if (getAccessToken) {
-            _context3.next = 11;
+            _context3.next = 19;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy token');
-        case 11:
-          _context3.next = 13;
+        case 19:
+          _context3.next = 21;
           return _userModel.userModel.getInfo(tokenDecoded._id);
-        case 13:
+        case 21:
           user = _context3.sent;
           if (user) {
-            _context3.next = 16;
+            _context3.next = 24;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user');
-        case 16:
+        case 24:
           _id = tokenDecoded._id, admin = tokenDecoded.admin;
           req.user = {
             _id: _id,
             admin: admin
           };
           next();
-          _context3.next = 22;
+          _context3.next = 30;
           break;
-        case 21:
+        case 29:
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Token không được gửi');
-        case 22:
-          _context3.next = 27;
+        case 30:
+          _context3.next = 35;
           break;
-        case 24:
-          _context3.prev = 24;
-          _context3.t0 = _context3["catch"](0);
-          next(_context3.t0);
-        case 27:
+        case 32:
+          _context3.prev = 32;
+          _context3.t4 = _context3["catch"](0);
+          next(_context3.t4);
+        case 35:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[0, 24]]);
+    }, _callee3, null, [[0, 32]]);
   }));
   return function auth(_x5, _x6, _x7) {
     return _ref3.apply(this, arguments);

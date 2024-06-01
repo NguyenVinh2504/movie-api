@@ -49,11 +49,14 @@ const auth = async (req, res, next) => {
   try {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
     if (access_token) {
-      // Kiểm tra accessToken user gửi lên
-      const tokenDecoded = await tokenDecode(access_token)
+      const [tokenDecoded, getAccessToken] = await Promise.all([
+        // Kiểm tra accessToken user gửi lên
+        await tokenDecode(access_token),
 
-      // Kiểm tra accessToken có trong db không
-      const getAccessToken = await authModel.getAccessToken(access_token)
+        // Kiểm tra accessToken có trong db không
+        await authModel.getAccessToken(access_token)
+      ])
+
       if (!getAccessToken) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy token')
 
       // Kiểm tra user có trong db không
