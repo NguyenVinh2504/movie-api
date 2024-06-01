@@ -14,7 +14,7 @@ import generateKey from '~/utils/generateKey'
 import jwt from 'jsonwebtoken'
 import findKeyTokenById from '~/utils/findKeyTokenById'
 
-const timeExpired = '10s'
+const timeExpired = '1m'
 
 const signUp = async (req, res) => {
   try {
