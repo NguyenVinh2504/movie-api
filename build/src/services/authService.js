@@ -391,7 +391,7 @@ var login = /*#__PURE__*/function () {
 }();
 var refreshToken = /*#__PURE__*/function () {
   var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
-    var _req$headers$authoriz, _keyStore$refreshToke, decoded, keyStore, _refreshToken5, access_token, checkToken, user, newAccessToken, newRefreshToken;
+    var _req$headers$authoriz, decoded, keyStore, _refreshToken5, access_token, checkToken, user, newAccessToken, newRefreshToken;
     return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
@@ -401,7 +401,7 @@ var refreshToken = /*#__PURE__*/function () {
           keyStore = req.keyStore;
           _refreshToken5 = req.refreshToken;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', ''); // refreshToken gửi lên đã được sử dụng để refreshToken chưa
-          if (!((_keyStore$refreshToke = keyStore.refreshTokensUsed) !== null && _keyStore$refreshToke !== void 0 && _keyStore$refreshToke.includes(_refreshToken5))) {
+          if (!('refreshTokensUsed' in keyStore && Array.isArray(keyStore.refreshTokensUsed) && keyStore.refreshTokensUsed.includes(_refreshToken5))) {
             _context4.next = 7;
             break;
           }

@@ -220,7 +220,7 @@ const refreshToken = async (req, res) => {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
 
     // refreshToken gửi lên đã được sử dụng để refreshToken chưa
-    if (keyStore.refreshTokensUsed?.includes(refreshToken)) {
+    if ('refreshTokensUsed' in keyStore && Array.isArray(keyStore.refreshTokensUsed) && keyStore.refreshTokensUsed.includes(refreshToken)) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Có gì đó không ổn. Đăng nhập lại!')
     }
 
