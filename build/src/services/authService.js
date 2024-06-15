@@ -19,16 +19,14 @@ var _validationsPassword = _interopRequireDefault(require("../utils/validationsP
 var _jwt = require("../helpers/jwt.helper");
 var _authModel = require("../models/authModel");
 var _token = _interopRequireDefault(require("../middlewares/token.middleware"));
-var _generateKey3 = _interopRequireDefault(require("../utils/generateKey"));
-var _jsonwebtoken = _interopRequireDefault(require("jsonwebtoken"));
-var _findKeyTokenById = _interopRequireDefault(require("../utils/findKeyTokenById"));
-var _excluded = ["confirmPassword"],
-  _excluded2 = ["name", "confirmPassword", "avatar"];
+var _generateKey5 = _interopRequireDefault(require("../utils/generateKey"));
+var _axios = _interopRequireDefault(require("axios"));
+var _constants = require("../utils/constants");
+var _excluded = ["confirmPassword"];
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-useless-catch */
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
-var timeExpired = '1m';
 var signUp = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req, res) {
     var checkEmail, hashed, _req$body, confirmPassword, option, newUser, user, _generateKey, publicKey, privateKey, keyStore, accessToken, _refreshToken;
@@ -81,7 +79,7 @@ var signUp = /*#__PURE__*/function () {
           //   }
           // })
           // Tạo privateKey và publicKey mới cho user
-          _generateKey = (0, _generateKey3["default"])(), publicKey = _generateKey.publicKey, privateKey = _generateKey.privateKey; // Thêm vào db để lưu privateKey và publicKey
+          _generateKey = (0, _generateKey5["default"])(), publicKey = _generateKey.publicKey, privateKey = _generateKey.privateKey; // Thêm vào db để lưu privateKey và publicKey
           _context.next = 18;
           return _authModel.authModel.createKeyToken({
             userId: user._id.toString(),
@@ -94,7 +92,7 @@ var signUp = /*#__PURE__*/function () {
           accessToken = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: keyStore.publicKey,
-            tokenLife: timeExpired
+            tokenLife: _constants.timeExpired
           });
           _refreshToken = _jwt.jwtHelper.generateToken({
             user: user,
@@ -150,96 +148,271 @@ var signUp = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
-var loginGoogle = /*#__PURE__*/function () {
-  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res) {
-    var checkEmail, accessToken, _refreshToken2, hashed, _req$body2, name, confirmPassword, avatar, option, newUser, user, _accessToken, _refreshToken3;
+
+// const loginGoogle = async (req, res) => {
+//   try {
+//     const checkEmail = await userModel.getEmail(req.body.email)
+//     // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
+//     if (checkEmail) {
+//       const accessToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
+//       const refreshToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
+//       await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
+//       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
+//       res.cookie('refreshToken', refreshToken, {
+//         httpOnly: true,
+//         secure: true,
+//         path: '/',
+//         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+//         sameSite: 'Lax'
+//       })
+//       return {
+//         accessToken,
+//         refreshToken,
+//         ...checkEmail
+//       }
+//     } else {
+//       // Mã hóa mật khẩu từ phía người dùng nhập vào
+//       const hashed = await hashPassword(req.body.password)
+//       // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
+//       const { name, confirmPassword, avatar, ...option } = req.body
+//       // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
+//       const newUser = {
+//         name,
+//         temporaryAvatar: avatar,
+//         ...option,
+//         password: hashed,
+//         slug: slugify(name),
+//         userName: `@${formatUserName(name)}`
+//       }
+
+//       // Truyền dữ liệu đã xử lí vào model
+//       const user = await authModel.signUp(newUser)
+//       // Tạo accessToken
+//       const accessToken = jwtHelper.generateToken({ user, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
+//       const refreshToken = jwtHelper.generateToken({ user, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
+//       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
+//       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
+//       res.cookie('refreshToken', refreshToken, {
+//         httpOnly: true,
+//         secure: true,
+//         path: '/',
+//         // maxAge: 31557600000,
+//         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+//         sameSite: 'Lax'
+//       })
+//       user.password = undefined
+//       return {
+//         accessToken,
+//         refreshToken,
+//         ...user
+//       }
+//     }
+//   } catch (error) {
+//     throw error
+//   }
+// }
+
+var getOauthGoogleToken = /*#__PURE__*/function () {
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(code) {
+    var body, _yield$axios$post, data;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          _context2.prev = 0;
+          body = {
+            code: code,
+            client_id: _environment.env.CLIENT_ID_GOOGLE,
+            redirect_uri: _environment.env.REDIRECT_URI,
+            client_secret: _environment.env.CLIENT_SECRET,
+            grant_type: 'authorization_code'
+          };
           _context2.next = 3;
-          return _userModel.userModel.getEmail(req.body.email);
+          return _axios["default"].post('https://oauth2.googleapis.com/token', body, {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            }
+          });
         case 3:
-          checkEmail = _context2.sent;
-          if (!checkEmail) {
-            _context2.next = 15;
+          _yield$axios$post = _context2.sent;
+          data = _yield$axios$post.data;
+          return _context2.abrupt("return", data);
+        case 6:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2);
+  }));
+  return function getOauthGoogleToken(_x3) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+var getGoogleUserInfo = /*#__PURE__*/function () {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(access_token, id_token) {
+    var _yield$axios$get, data;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.next = 2;
+          return _axios["default"].get('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: {
+              Authorization: "Bearer ".concat(id_token)
+            },
+            params: {
+              access_token: access_token,
+              alt: 'json'
+            }
+          });
+        case 2:
+          _yield$axios$get = _context3.sent;
+          data = _yield$axios$get.data;
+          return _context3.abrupt("return", data);
+        case 5:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3);
+  }));
+  return function getGoogleUserInfo(_x4, _x5) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+var loginGoogle = /*#__PURE__*/function () {
+  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(code, res) {
+    var _yield$getOauthGoogle, id_token, access_token, userInfo, checkEmail, keyStore, _generateKey2, publicKey, privateKey, accessToken, _refreshToken2, name, picture, email, sub, hashed, newUser, user, _generateKey3, _publicKey, _privateKey, _keyStore, _accessToken, _refreshToken3;
+    return _regenerator["default"].wrap(function _callee4$(_context4) {
+      while (1) switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.next = 2;
+          return getOauthGoogleToken(code);
+        case 2:
+          _yield$getOauthGoogle = _context4.sent;
+          id_token = _yield$getOauthGoogle.id_token;
+          access_token = _yield$getOauthGoogle.access_token;
+          _context4.next = 7;
+          return getGoogleUserInfo(access_token, id_token);
+        case 7:
+          userInfo = _context4.sent;
+          if (userInfo.email_verified) {
+            _context4.next = 10;
             break;
           }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Email not verified');
+        case 10:
+          _context4.next = 12;
+          return _userModel.userModel.getEmail(userInfo.email);
+        case 12:
+          checkEmail = _context4.sent;
+          if (!checkEmail) {
+            _context4.next = 30;
+            break;
+          }
+          _context4.next = 16;
+          return _authModel.authModel.getKeyToken(checkEmail._id.toString());
+        case 16:
+          keyStore = _context4.sent;
+          if (keyStore) {
+            _context4.next = 21;
+            break;
+          }
+          _generateKey2 = (0, _generateKey5["default"])(), publicKey = _generateKey2.publicKey, privateKey = _generateKey2.privateKey;
+          _context4.next = 21;
+          return _authModel.authModel.createKeyToken({
+            userId: checkEmail._id.toString(),
+            privateKey: privateKey,
+            publicKey: publicKey
+          });
+        case 21:
+          _context4.next = 23;
+          return _authModel.authModel.getKeyToken(checkEmail._id.toString());
+        case 23:
+          keyStore = _context4.sent;
           accessToken = _jwt.jwtHelper.generateToken({
             user: checkEmail,
-            tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: timeExpired
+            tokenSecret: keyStore.publicKey,
+            tokenLife: _constants.timeExpired
           });
           _refreshToken2 = _jwt.jwtHelper.generateToken({
             user: checkEmail,
-            tokenSecret: _environment.env.REFRESH_TOKEN_SECRET,
+            tokenSecret: keyStore.privateKey,
             tokenLife: '365d'
           });
-          _context2.next = 9;
-          return _authModel.authModel.addRefreshToken({
+          _context4.next = 28;
+          return Promise.all([_authModel.authModel.addRefreshToken({
             userId: checkEmail._id.toString(),
             refreshToken: _refreshToken2
-          });
-        case 9:
-          _context2.next = 11;
-          return _authModel.authModel.addAccessToken({
+          }), _authModel.authModel.addAccessToken({
             userId: checkEmail._id.toString(),
             accessToken: accessToken
-          });
-        case 11:
+          })]);
+        case 28:
           res.cookie('refreshToken', _refreshToken2, {
             httpOnly: true,
             secure: true,
             path: '/',
+            // maxAge: 31557600000,
             expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
             sameSite: 'Lax'
           });
-          return _context2.abrupt("return", _objectSpread({
+          return _context4.abrupt("return", _objectSpread(_objectSpread({}, checkEmail), {}, {
+            password: undefined,
             accessToken: accessToken,
             refreshToken: _refreshToken2
-          }, checkEmail));
-        case 15:
-          _context2.next = 17;
-          return (0, _hashPassword["default"])(req.body.password);
-        case 17:
-          hashed = _context2.sent;
+          }));
+        case 30:
+          name = userInfo.name, picture = userInfo.picture, email = userInfo.email, sub = userInfo.sub; // Mã hóa mật khẩu từ phía người dùng nhập vào
+          _context4.next = 33;
+          return (0, _hashPassword["default"])(sub);
+        case 33:
+          hashed = _context4.sent;
           // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-          _req$body2 = req.body, name = _req$body2.name, confirmPassword = _req$body2.confirmPassword, avatar = _req$body2.avatar, option = (0, _objectWithoutProperties2["default"])(_req$body2, _excluded2); // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-          newUser = _objectSpread(_objectSpread({
-            name: name,
-            temporaryAvatar: avatar
-          }, option), {}, {
+          // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
+          newUser = {
             password: hashed,
             slug: (0, _formatters.slugify)(name),
-            userName: "@".concat((0, _formatters.formatUserName)(name))
-          }); // Truyền dữ liệu đã xử lí vào model
-          _context2.next = 22;
+            userName: "@".concat((0, _formatters.formatUserName)(name)),
+            temporaryAvatar: picture,
+            email: email,
+            name: name
+          }; // Truyền dữ liệu đã xử lí vào model
+          _context4.next = 37;
           return _authModel.authModel.signUp(newUser);
-        case 22:
-          user = _context2.sent;
-          // Tạo accessToken
+        case 37:
+          user = _context4.sent;
+          if (!user) {
+            _context4.next = 50;
+            break;
+          }
+          // Tạo privateKey và publicKey mới cho user
+          _generateKey3 = (0, _generateKey5["default"])(), _publicKey = _generateKey3.publicKey, _privateKey = _generateKey3.privateKey; // Thêm vào db để lưu privateKey và publicKey
+          _context4.next = 42;
+          return _authModel.authModel.createKeyToken({
+            userId: user._id.toString(),
+            privateKey: _privateKey,
+            publicKey: _publicKey
+          });
+        case 42:
+          _keyStore = _context4.sent;
+          // Tạo accessToken và refreshToken bằng privateKey và publicKey
           _accessToken = _jwt.jwtHelper.generateToken({
             user: user,
-            tokenSecret: _environment.env.ACCESS_TOKEN_SECRET,
-            tokenLife: timeExpired
+            tokenSecret: _keyStore.publicKey,
+            tokenLife: _constants.timeExpired
           });
           _refreshToken3 = _jwt.jwtHelper.generateToken({
             user: user,
-            tokenSecret: _environment.env.REFRESH_TOKEN_SECRET,
+            tokenSecret: _keyStore.privateKey,
             tokenLife: '365d'
           });
-          _context2.next = 27;
-          return _authModel.authModel.addRefreshToken({
+          _context4.next = 47;
+          return Promise.all([
+          // Thêm accessToken và refreshToke vào db
+          _authModel.authModel.addRefreshToken({
             userId: user._id.toString(),
             refreshToken: _refreshToken3
-          });
-        case 27:
-          _context2.next = 29;
-          return _authModel.authModel.addAccessToken({
-            userId: checkEmail._id.toString(),
+          }), _authModel.authModel.addAccessToken({
+            userId: user._id.toString(),
             accessToken: _accessToken
-          });
-        case 29:
+          })]);
+        case 47:
           res.cookie('refreshToken', _refreshToken3, {
             httpOnly: true,
             secure: true,
@@ -249,40 +422,33 @@ var loginGoogle = /*#__PURE__*/function () {
             sameSite: 'Lax'
           });
           user.password = undefined;
-          return _context2.abrupt("return", _objectSpread({
+          return _context4.abrupt("return", _objectSpread({
             accessToken: _accessToken,
             refreshToken: _refreshToken3
           }, user));
-        case 32:
-          _context2.next = 37;
-          break;
-        case 34:
-          _context2.prev = 34;
-          _context2.t0 = _context2["catch"](0);
-          throw _context2.t0;
-        case 37:
+        case 50:
         case "end":
-          return _context2.stop();
+          return _context4.stop();
       }
-    }, _callee2, null, [[0, 34]]);
+    }, _callee4);
   }));
-  return function loginGoogle(_x3, _x4) {
-    return _ref2.apply(this, arguments);
+  return function loginGoogle(_x6, _x7) {
+    return _ref4.apply(this, arguments);
   };
 }();
 var login = /*#__PURE__*/function () {
-  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req, res) {
-    var user, validations, keyStore, _generateKey2, publicKey, privateKey, accessToken, _refreshToken4;
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
+  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req, res) {
+    var user, validations, keyStore, _generateKey4, publicKey, privateKey, accessToken, _refreshToken4;
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
         case 0:
-          _context3.prev = 0;
-          _context3.next = 3;
+          _context5.prev = 0;
+          _context5.next = 3;
           return _userModel.userModel.getEmail(req.body.email);
         case 3:
-          user = _context3.sent;
+          user = _context5.sent;
           if (user) {
-            _context3.next = 6;
+            _context5.next = 6;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
@@ -290,15 +456,15 @@ var login = /*#__PURE__*/function () {
             message: 'Không tìm thấy email'
           });
         case 6:
-          _context3.next = 8;
+          _context5.next = 8;
           return (0, _validationsPassword["default"])({
             id: user._id,
             password: req.body.password
           });
         case 8:
-          validations = _context3.sent;
+          validations = _context5.sent;
           if (validations) {
-            _context3.next = 11;
+            _context5.next = 11;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, {
@@ -308,58 +474,48 @@ var login = /*#__PURE__*/function () {
         case 11:
           user.password = undefined;
           if (!(user && validations)) {
-            _context3.next = 37;
+            _context5.next = 29;
             break;
           }
-          _context3.next = 15;
+          _context5.next = 15;
           return _authModel.authModel.getKeyToken(user._id.toString());
         case 15:
-          keyStore = _context3.sent;
+          keyStore = _context5.sent;
           if (keyStore) {
-            _context3.next = 20;
+            _context5.next = 20;
             break;
           }
-          _generateKey2 = (0, _generateKey3["default"])(), publicKey = _generateKey2.publicKey, privateKey = _generateKey2.privateKey;
-          _context3.next = 20;
+          _generateKey4 = (0, _generateKey5["default"])(), publicKey = _generateKey4.publicKey, privateKey = _generateKey4.privateKey;
+          _context5.next = 20;
           return _authModel.authModel.createKeyToken({
             userId: user._id.toString(),
             privateKey: privateKey,
             publicKey: publicKey
           });
         case 20:
-          _context3.next = 22;
+          _context5.next = 22;
           return _authModel.authModel.getKeyToken(user._id.toString());
         case 22:
-          keyStore = _context3.sent;
+          keyStore = _context5.sent;
           accessToken = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: keyStore.publicKey,
-            tokenLife: timeExpired
+            tokenLife: _constants.timeExpired
           });
           _refreshToken4 = _jwt.jwtHelper.generateToken({
             user: user,
             tokenSecret: keyStore.privateKey,
             tokenLife: '365d'
           });
-          _context3.t0 = Promise;
-          _context3.next = 28;
-          return _authModel.authModel.addRefreshToken({
+          _context5.next = 27;
+          return Promise.all([_authModel.authModel.addRefreshToken({
             userId: user._id.toString(),
             refreshToken: _refreshToken4
-          });
-        case 28:
-          _context3.t1 = _context3.sent;
-          _context3.next = 31;
-          return _authModel.authModel.addAccessToken({
+          }), _authModel.authModel.addAccessToken({
             userId: user._id.toString(),
             accessToken: accessToken
-          });
-        case 31:
-          _context3.t2 = _context3.sent;
-          _context3.t3 = [_context3.t1, _context3.t2];
-          _context3.next = 35;
-          return _context3.t0.all.call(_context3.t0, _context3.t3);
-        case 35:
+          })]);
+        case 27:
           res.cookie('refreshToken', _refreshToken4, {
             httpOnly: true,
             secure: true,
@@ -368,66 +524,66 @@ var login = /*#__PURE__*/function () {
             expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
             sameSite: 'Lax'
           });
-          return _context3.abrupt("return", _objectSpread(_objectSpread({}, user), {}, {
+          return _context5.abrupt("return", _objectSpread(_objectSpread({}, user), {}, {
             accessToken: accessToken,
             refreshToken: _refreshToken4
           }));
-        case 37:
-          _context3.next = 42;
+        case 29:
+          _context5.next = 34;
           break;
-        case 39:
-          _context3.prev = 39;
-          _context3.t4 = _context3["catch"](0);
-          throw _context3.t4;
-        case 42:
+        case 31:
+          _context5.prev = 31;
+          _context5.t0 = _context5["catch"](0);
+          throw _context5.t0;
+        case 34:
         case "end":
-          return _context3.stop();
+          return _context5.stop();
       }
-    }, _callee3, null, [[0, 39]]);
+    }, _callee5, null, [[0, 31]]);
   }));
-  return function login(_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function login(_x8, _x9) {
+    return _ref5.apply(this, arguments);
   };
 }();
 var refreshToken = /*#__PURE__*/function () {
-  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
+  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(req, res) {
     var _req$headers$authoriz, decoded, keyStore, _refreshToken5, access_token, checkToken, user, newAccessToken, newRefreshToken;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
-      while (1) switch (_context4.prev = _context4.next) {
+    return _regenerator["default"].wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
         case 0:
-          _context4.prev = 0;
+          _context6.prev = 0;
           // const refreshToken = req.cookies.refreshToken
           decoded = req.decoded;
           keyStore = req.keyStore;
           _refreshToken5 = req.refreshToken;
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', ''); // refreshToken gửi lên đã được sử dụng để refreshToken chưa
           if (!('refreshTokensUsed' in keyStore && Array.isArray(keyStore.refreshTokensUsed) && keyStore.refreshTokensUsed.includes(_refreshToken5))) {
-            _context4.next = 7;
+            _context6.next = 7;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.FORBIDDEN, 'Có gì đó không ổn. Đăng nhập lại!');
         case 7:
-          _context4.next = 9;
+          _context6.next = 9;
           return _authModel.authModel.getRefreshToken(_refreshToken5);
         case 9:
-          checkToken = _context4.sent;
+          checkToken = _context6.sent;
           if (checkToken) {
-            _context4.next = 12;
+            _context6.next = 12;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy Refresh Token');
         case 12:
-          _context4.next = 14;
+          _context6.next = 14;
           return _userModel.userModel.getInfo(decoded._id);
         case 14:
-          user = _context4.sent;
+          user = _context6.sent;
           if (user) {
-            _context4.next = 17;
+            _context6.next = 17;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user');
         case 17:
-          _context4.next = 19;
+          _context6.next = 19;
           return Promise.all([
           // Xóa refreshToken và accessToken cũ
           _authModel.authModel.deleteRefreshToken(_refreshToken5), _authModel.authModel.deleteAccessToken(access_token)]);
@@ -439,39 +595,25 @@ var refreshToken = /*#__PURE__*/function () {
           newAccessToken = _jwt.jwtHelper.generateToken({
             user: decoded,
             tokenSecret: keyStore.publicKey,
-            tokenLife: timeExpired
+            tokenLife: _constants.timeExpired
           });
           newRefreshToken = _jwt.jwtHelper.generateToken({
             user: decoded,
             tokenSecret: keyStore.privateKey,
             exp: decoded.exp
           });
-          _context4.t0 = Promise;
-          _context4.next = 24;
-          return _authModel.authModel.addRefreshToken({
+          _context6.next = 23;
+          return Promise.all([_authModel.authModel.addRefreshToken({
             userId: decoded._id,
             refreshToken: newRefreshToken
-          });
-        case 24:
-          _context4.t1 = _context4.sent;
-          _context4.next = 27;
-          return _authModel.authModel.addAccessToken({
+          }), _authModel.authModel.addAccessToken({
             userId: decoded._id,
             accessToken: newAccessToken
-          });
-        case 27:
-          _context4.t2 = _context4.sent;
-          _context4.next = 30;
-          return _authModel.authModel.updateKeyToken({
+          }), _authModel.authModel.updateKeyToken({
             userId: decoded._id,
             refreshToken: _refreshToken5
-          });
-        case 30:
-          _context4.t3 = _context4.sent;
-          _context4.t4 = [_context4.t1, _context4.t2, _context4.t3];
-          _context4.next = 34;
-          return _context4.t0.all.call(_context4.t0, _context4.t4);
-        case 34:
+          })]);
+        case 23:
           res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: true,
@@ -479,62 +621,56 @@ var refreshToken = /*#__PURE__*/function () {
             expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
             sameSite: 'Lax'
           });
-          return _context4.abrupt("return", {
+          return _context6.abrupt("return", {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken
           });
-        case 38:
-          _context4.prev = 38;
-          _context4.t5 = _context4["catch"](0);
-          throw _context4.t5;
-        case 41:
+        case 27:
+          _context6.prev = 27;
+          _context6.t0 = _context6["catch"](0);
+          throw _context6.t0;
+        case 30:
         case "end":
-          return _context4.stop();
+          return _context6.stop();
       }
-    }, _callee4, null, [[0, 38]]);
+    }, _callee6, null, [[0, 27]]);
   }));
-  return function refreshToken(_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function refreshToken(_x10, _x11) {
+    return _ref6.apply(this, arguments);
   };
 }();
 var logout = /*#__PURE__*/function () {
-  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req, res) {
+  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(req, res) {
     var _req$headers$authoriz2, access_token;
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
-      while (1) switch (_context5.prev = _context5.next) {
+    return _regenerator["default"].wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          _context5.prev = 0;
+          _context7.prev = 0;
           // Xóa refreshToken ở cookie
           res.clearCookie('refreshToken');
           // await authModel.deleteRefreshToken(req.body.refreshToken)
           access_token = (_req$headers$authoriz2 = req.headers['authorization']) === null || _req$headers$authoriz2 === void 0 ? void 0 : _req$headers$authoriz2.replace('Bearer ', '');
-          _context5.t0 = Promise;
-          _context5.next = 6;
-          return _authModel.authModel.deleteRefreshToken(req.cookies.refreshToken);
-        case 6:
-          _context5.t1 = _context5.sent;
-          _context5.next = 9;
-          return _authModel.authModel.deleteAccessToken(access_token);
-        case 9:
-          _context5.t2 = _context5.sent;
-          _context5.t3 = [_context5.t1, _context5.t2];
-          _context5.next = 13;
-          return _context5.t0.all.call(_context5.t0, _context5.t3);
-        case 13:
-          _context5.next = 18;
+          _context7.next = 5;
+          return Promise.all([
+          // Xóa refreshToken ở db
+          _authModel.authModel.deleteRefreshToken(req.cookies.refreshToken),
+          // Xóa accessToken ở db
+          _authModel.authModel.deleteAccessToken(access_token)]);
+        case 5:
+          _context7.next = 10;
           break;
-        case 15:
-          _context5.prev = 15;
-          _context5.t4 = _context5["catch"](0);
-          throw _context5.t4;
-        case 18:
+        case 7:
+          _context7.prev = 7;
+          _context7.t0 = _context7["catch"](0);
+          throw _context7.t0;
+        case 10:
         case "end":
-          return _context5.stop();
+          return _context7.stop();
       }
-    }, _callee5, null, [[0, 15]]);
+    }, _callee7, null, [[0, 7]]);
   }));
-  return function logout(_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function logout(_x12, _x13) {
+    return _ref7.apply(this, arguments);
   };
 }();
 var authService = {

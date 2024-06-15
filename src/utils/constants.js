@@ -4,3 +4,5 @@ export const WHITELIST_DOMAINS = [
   'https://viejoy.site',
   'https://www.viejoy.site'
 ]
+
+export const timeExpired = '1h'

@@ -166,7 +166,7 @@ const addAccessToken = async (data) => {
     // const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).findOneAndUpdate(filter, update, option)
     const user = await GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).insertOne({
       ...validData,
-      createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 1.5))
+      createdAt: new Date(new Date().setHours(new Date().getHours() + 1.5))
     })
     GET_DB().collection(ACCESS_TOKEN_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return user

@@ -11,10 +11,8 @@ import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
 import tokenMiddleware from '~/middlewares/token.middleware'
 import generateKey from '~/utils/generateKey'
-import jwt from 'jsonwebtoken'
-import findKeyTokenById from '~/utils/findKeyTokenById'
-
-const timeExpired = '1m'
+import axios from 'axios'
+import { timeExpired } from '~/utils/constants'
 
 const signUp = async (req, res) => {
   try {
@@ -87,66 +85,188 @@ const signUp = async (req, res) => {
   }
 }
 
-const loginGoogle = async (req, res) => {
-  try {
-    const checkEmail = await userModel.getEmail(req.body.email)
-    // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
-    if (checkEmail) {
-      const accessToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
-      const refreshToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
-      await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
-      await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        path: '/',
-        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'Lax'
-      })
-      return {
-        accessToken,
-        refreshToken,
-        ...checkEmail
-      }
-    } else {
-      // Mã hóa mật khẩu từ phía người dùng nhập vào
-      const hashed = await hashPassword(req.body.password)
-      // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-      const { name, confirmPassword, avatar, ...option } = req.body
-      // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-      const newUser = {
-        name,
-        temporaryAvatar: avatar,
-        ...option,
-        password: hashed,
-        slug: slugify(name),
-        userName: `@${formatUserName(name)}`
-      }
+// const loginGoogle = async (req, res) => {
+//   try {
+//     const checkEmail = await userModel.getEmail(req.body.email)
+//     // if (checkEmail) throw new ApiError(StatusCodes.BAD_GATEWAY, 'Email đã được sử dụng. Vui lòng đăng nhập với mật khẩu hoặc sử dụng email khác')
+//     if (checkEmail) {
+//       const accessToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
+//       const refreshToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
+//       await authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken })
+//       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
+//       res.cookie('refreshToken', refreshToken, {
+//         httpOnly: true,
+//         secure: true,
+//         path: '/',
+//         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+//         sameSite: 'Lax'
+//       })
+//       return {
+//         accessToken,
+//         refreshToken,
+//         ...checkEmail
+//       }
+//     } else {
+//       // Mã hóa mật khẩu từ phía người dùng nhập vào
+//       const hashed = await hashPassword(req.body.password)
+//       // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
+//       const { name, confirmPassword, avatar, ...option } = req.body
+//       // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
+//       const newUser = {
+//         name,
+//         temporaryAvatar: avatar,
+//         ...option,
+//         password: hashed,
+//         slug: slugify(name),
+//         userName: `@${formatUserName(name)}`
+//       }
 
-      // Truyền dữ liệu đã xử lí vào model
-      const user = await authModel.signUp(newUser)
-      // Tạo accessToken
-      const accessToken = jwtHelper.generateToken({ user, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
-      const refreshToken = jwtHelper.generateToken({ user, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
-      await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
-      await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        path: '/',
-        // maxAge: 31557600000,
-        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'Lax'
-      })
-      user.password = undefined
-      return {
-        accessToken,
-        refreshToken,
-        ...user
-      }
+//       // Truyền dữ liệu đã xử lí vào model
+//       const user = await authModel.signUp(newUser)
+//       // Tạo accessToken
+//       const accessToken = jwtHelper.generateToken({ user, tokenSecret: env.ACCESS_TOKEN_SECRET, tokenLife: timeExpired })
+//       const refreshToken = jwtHelper.generateToken({ user, tokenSecret: env.REFRESH_TOKEN_SECRET, tokenLife: '365d' })
+//       await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken })
+//       await authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
+//       res.cookie('refreshToken', refreshToken, {
+//         httpOnly: true,
+//         secure: true,
+//         path: '/',
+//         // maxAge: 31557600000,
+//         expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+//         sameSite: 'Lax'
+//       })
+//       user.password = undefined
+//       return {
+//         accessToken,
+//         refreshToken,
+//         ...user
+//       }
+//     }
+//   } catch (error) {
+//     throw error
+//   }
+// }
+
+
+const getOauthGoogleToken = async (code) => {
+  const body = {
+    code,
+    client_id: env.CLIENT_ID_GOOGLE,
+    redirect_uri: env.REDIRECT_URI,
+    client_secret: env.CLIENT_SECRET,
+    grant_type: 'authorization_code'
+  }
+
+  const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
     }
-  } catch (error) {
-    throw error
+  })
+
+  return data
+}
+
+
+const getGoogleUserInfo = async (access_token, id_token) => {
+  const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: {
+      Authorization: `Bearer ${id_token}`
+    },
+    params: {
+      access_token,
+      alt: 'json'
+    }
+  })
+
+  return data
+}
+
+const loginGoogle = async (code, res) => {
+  const { id_token, access_token } = await getOauthGoogleToken(code)
+  const userInfo = await getGoogleUserInfo(access_token, id_token)
+  if (!userInfo.email_verified) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email not verified')
+  }
+  const checkEmail = await userModel.getEmail(userInfo.email)
+  if (checkEmail) {
+    // Kiểm tra xem keyStore có tồn tại không
+    let keyStore = await authModel.getKeyToken(checkEmail._id.toString())
+    // Không thì tạo tài liệu keyStore
+    if (!keyStore) {
+      const { publicKey, privateKey } = generateKey()
+      await authModel.createKeyToken({ userId: checkEmail._id.toString(), privateKey, publicKey })
+    }
+    // Get privateKey và publicKey trong db để tạo token
+    keyStore = await authModel.getKeyToken(checkEmail._id.toString())
+    const accessToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
+    const refreshToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
+
+    await Promise.all([
+      authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken }),
+      authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
+    ])
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      // maxAge: 31557600000,
+      expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      sameSite: 'Lax'
+    })
+    return {
+      ...checkEmail,
+      password: undefined,
+      accessToken,
+      refreshToken
+    }
+  }
+  const { name, picture, email, sub } = userInfo
+  // Mã hóa mật khẩu từ phía người dùng nhập vào
+  const hashed = await hashPassword(sub)
+  // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
+
+  // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
+  const newUser = {
+    password: hashed,
+    slug: slugify(name),
+    userName: `@${formatUserName(name)}`,
+    temporaryAvatar: picture,
+    email,
+    name
+  }
+  // Truyền dữ liệu đã xử lí vào model
+  const user = await authModel.signUp(newUser)
+  if (user) {
+    // Tạo privateKey và publicKey mới cho user
+    const { publicKey, privateKey } = generateKey()
+    // Thêm vào db để lưu privateKey và publicKey
+    const keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
+
+    // Tạo accessToken và refreshToken bằng privateKey và publicKey
+    const accessToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
+    const refreshToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
+
+    await Promise.all([
+      // Thêm accessToken và refreshToke vào db
+      authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
+      authModel.addAccessToken({ userId: user._id.toString(), accessToken })
+    ])
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      // maxAge: 31557600000,
+      expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      sameSite: 'Lax'
+    })
+    user.password = undefined
+    return {
+      accessToken,
+      refreshToken,
+      ...user
+    }
   }
 }
 
@@ -189,8 +309,8 @@ const login = async (req, res) => {
       const refreshToken = jwtHelper.generateToken({ user: user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
 
       await Promise.all([
-        await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
-        await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
+        authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
+        authModel.addAccessToken({ userId: user._id.toString(), accessToken })
       ])
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -250,9 +370,9 @@ const refreshToken = async (req, res) => {
     const newAccessToken = jwtHelper.generateToken({ user: decoded, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
     const newRefreshToken = jwtHelper.generateToken({ user: decoded, tokenSecret: keyStore.privateKey, exp: decoded.exp })
     await Promise.all([
-      await authModel.addRefreshToken({ userId: decoded._id, refreshToken: newRefreshToken }),
-      await authModel.addAccessToken({ userId: decoded._id, accessToken: newAccessToken }),
-      await authModel.updateKeyToken({ userId: decoded._id, refreshToken })
+      authModel.addRefreshToken({ userId: decoded._id, refreshToken: newRefreshToken }),
+      authModel.addAccessToken({ userId: decoded._id, accessToken: newAccessToken }),
+      authModel.updateKeyToken({ userId: decoded._id, refreshToken })
     ])
 
     res.cookie('refreshToken', newRefreshToken, {
@@ -279,9 +399,9 @@ const logout = async (req, res) => {
 
     await Promise.all([
       // Xóa refreshToken ở db
-      await authModel.deleteRefreshToken(req.cookies.refreshToken),
+      authModel.deleteRefreshToken(req.cookies.refreshToken),
       // Xóa accessToken ở db
-      await authModel.deleteAccessToken(access_token)
+      authModel.deleteAccessToken(access_token)
     ])
   }
   catch (error) {

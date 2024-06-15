@@ -7,7 +7,8 @@ Router.route('/signup')
   .post(authValidation.signUp, authController.signUp)
 
 Router.route('/google-login')
-  .post(authValidation.signUp, authController.loginGoogle)
+  // .post(authValidation.signUp, authController.loginGoogle)
+  .get(authController.loginGoogle)
 
 Router.route('/login')
   .post(authValidation.login, authController.login)

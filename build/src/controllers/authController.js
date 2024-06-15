@@ -8,6 +8,7 @@ exports.authController = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
+var _environment = require("../config/environment");
 var _authService = require("../services/authService");
 /* eslint-disable no-console */
 
@@ -45,33 +46,60 @@ var signUp = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
+
+// const loginGoogle = async (req, res, next) => {
+//   try {
+
+//     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
+//     const user = await authService.loginGoogle(req, res)
+
+//     // Có kết quả thì trả về Client
+//     res.status(StatusCodes.CREATED).json(
+//       //dữ liệu từ service
+//       user
+//     )
+//   } catch (error) {
+//     // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
+//     next(error)
+//   }
+// }
+
 var loginGoogle = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
-    var user;
+    var code, user, urlRedirect;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          _context2.next = 3;
-          return _authService.authService.loginGoogle(req, res);
+          if (!req.query.error) {
+            _context2.next = 3;
+            break;
+          }
+          return _context2.abrupt("return", res.redirect("".concat(_environment.env.CLIENT_URL_REDIRECT, "?error=").concat(req.query.error)));
         case 3:
+          code = req.query.code;
+          _context2.next = 6;
+          return _authService.authService.loginGoogle(code, res);
+        case 6:
           user = _context2.sent;
-          // Có kết quả thì trả về Client
-          res.status(_httpStatusCodes.StatusCodes.CREATED).json(
-          //dữ liệu từ service
-          user);
-          _context2.next = 10;
+          urlRedirect = "".concat(_environment.env.CLIENT_URL_REDIRECT, "?accessToken=").concat(user.accessToken, "&refreshToken=").concat(user.refreshToken); // Có kết quả thì trả về Client
+          res.redirect(urlRedirect);
+          // res.status(StatusCodes.CREATED).json(
+          //   //dữ liệu từ service
+          //   user
+          // )
+          _context2.next = 14;
           break;
-        case 7:
-          _context2.prev = 7;
+        case 11:
+          _context2.prev = 11;
           _context2.t0 = _context2["catch"](0);
           // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
           next(_context2.t0);
-        case 10:
+        case 14:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 7]]);
+    }, _callee2, null, [[0, 11]]);
   }));
   return function loginGoogle(_x4, _x5, _x6) {
     return _ref2.apply(this, arguments);

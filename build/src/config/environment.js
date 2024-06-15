@@ -17,6 +17,10 @@ var env = {
   TMDB_KEY: process.env.TMDB_KEY,
   TMDB_BASE_URL: process.env.TMDB_BASE_URL,
   EMAIL_PASS: process.env.EMAIL_PASS,
-  EMAIL_NAME: process.env.EMAIL_NAME
+  EMAIL_NAME: process.env.EMAIL_NAME,
+  CLIENT_URL_REDIRECT: process.env.CLIENT_URL_REDIRECT,
+  CLIENT_ID_GOOGLE: process.env.CLIENT_ID_GOOGLE,
+  REDIRECT_URI: process.env.REDIRECT_URI,
+  CLIENT_SECRET: process.env.CLIENT_SECRET
 };
 exports.env = env;
