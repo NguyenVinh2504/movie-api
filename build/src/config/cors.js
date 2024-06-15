@@ -14,12 +14,13 @@ var corsOptions = {
   origin: function origin(_origin, callback) {
     // Cho phép việc gọi API bằng POSTMAN trên môi trường dev,
     // Thông thường khi sử dụng postman thì cái origin sẽ có giá trị là undefined
+    console.log(_origin);
     if (_environment.env.BUILD_MODE === 'dev') {
       return callback(null, true);
     }
 
     // Kiểm tra dem origin có phải là domain được chấp nhận hay không
-    if (_constants.WHITELIST_DOMAINS.includes(_origin)) {
+    if (_constants.WHITELIST_DOMAINS.includes(_origin) || _origin === undefined) {
       return callback(null, true);
     }
 
