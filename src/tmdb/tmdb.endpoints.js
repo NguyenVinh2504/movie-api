@@ -32,7 +32,7 @@ const tmdbEndpoints = {
     `${mediaType}/${mediaId}/images`
   ),
   mediaSearch: ({ mediaType, query, page }) => tmdbConfig.getUrl(
-    `/search/${mediaType}`, { query, page }
+    `search/${mediaType}`, { query, page }
   ),
   personDetail: ({ personId }) => tmdbConfig.getUrl(
     `person/${personId}`

@@ -73,7 +73,7 @@ var tmdbEndpoints = {
     var mediaType = _ref11.mediaType,
       query = _ref11.query,
       page = _ref11.page;
-    return _tmdbConfig["default"].getUrl("/search/".concat(mediaType), {
+    return _tmdbConfig["default"].getUrl("search/".concat(mediaType), {
       query: query,
       page: page
     });

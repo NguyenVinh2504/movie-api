@@ -263,18 +263,26 @@ var tmdbApi = {
     }
     return mediaRecommend;
   }(),
-  mediaSearch: function () {
-    var _mediaSearch = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11(_ref11) {
-      var mediaType, query, page;
+  mediaSearch: function mediaSearch(_ref11) {
+    var mediaType = _ref11.mediaType,
+      query = _ref11.query,
+      page = _ref11.page;
+    return _axiosClient["default"].get(_tmdbEndpoints["default"].mediaSearch({
+      mediaType: mediaType,
+      query: query,
+      page: page
+    }));
+  },
+  personDetail: function () {
+    var _personDetail = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11(_ref12) {
+      var personId;
       return _regenerator["default"].wrap(function _callee11$(_context11) {
         while (1) switch (_context11.prev = _context11.next) {
           case 0:
-            mediaType = _ref11.mediaType, query = _ref11.query, page = _ref11.page;
+            personId = _ref12.personId;
             _context11.next = 3;
-            return _axiosClient["default"].get(_tmdbEndpoints["default"].mediaSearch({
-              mediaType: mediaType,
-              query: query,
-              page: page
+            return _axiosClient["default"].get(_tmdbEndpoints["default"].personDetail({
+              personId: personId
             }));
           case 3:
             return _context11.abrupt("return", _context11.sent);
@@ -284,20 +292,20 @@ var tmdbApi = {
         }
       }, _callee11);
     }));
-    function mediaSearch(_x11) {
-      return _mediaSearch.apply(this, arguments);
+    function personDetail(_x11) {
+      return _personDetail.apply(this, arguments);
     }
-    return mediaSearch;
+    return personDetail;
   }(),
-  personDetail: function () {
-    var _personDetail = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(_ref12) {
+  personMedias: function () {
+    var _personMedias = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(_ref13) {
       var personId;
       return _regenerator["default"].wrap(function _callee12$(_context12) {
         while (1) switch (_context12.prev = _context12.next) {
           case 0:
-            personId = _ref12.personId;
+            personId = _ref13.personId;
             _context12.next = 3;
-            return _axiosClient["default"].get(_tmdbEndpoints["default"].personDetail({
+            return _axiosClient["default"].get(_tmdbEndpoints["default"].personMedias({
               personId: personId
             }));
           case 3:
@@ -308,31 +316,7 @@ var tmdbApi = {
         }
       }, _callee12);
     }));
-    function personDetail(_x12) {
-      return _personDetail.apply(this, arguments);
-    }
-    return personDetail;
-  }(),
-  personMedias: function () {
-    var _personMedias = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(_ref13) {
-      var personId;
-      return _regenerator["default"].wrap(function _callee13$(_context13) {
-        while (1) switch (_context13.prev = _context13.next) {
-          case 0:
-            personId = _ref13.personId;
-            _context13.next = 3;
-            return _axiosClient["default"].get(_tmdbEndpoints["default"].personMedias({
-              personId: personId
-            }));
-          case 3:
-            return _context13.abrupt("return", _context13.sent);
-          case 4:
-          case "end":
-            return _context13.stop();
-        }
-      }, _callee13);
-    }));
-    function personMedias(_x13) {
+    function personMedias(_x12) {
       return _personMedias.apply(this, arguments);
     }
     return personMedias;

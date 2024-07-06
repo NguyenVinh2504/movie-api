@@ -102,7 +102,7 @@ const search = async (req) => {
     })
 
     return response
-  } catch {
+  } catch (err) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
   }
 }
