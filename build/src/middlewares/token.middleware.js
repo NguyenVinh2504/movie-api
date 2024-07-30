@@ -9,7 +9,6 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
-var _jsonwebtoken = require("jsonwebtoken");
 var _jwt = require("../helpers/jwt.helper");
 var _authModel = require("../models/authModel");
 var _userModel = require("../models/userModel");
@@ -32,7 +31,7 @@ var tokenDecode = /*#__PURE__*/function () {
         case 8:
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
-          if (!(_context.t0.message.includes('jwt expired') && _context.t0.name.includes('TokenExpiredError'))) {
+          if (!_context.t0.message.includes('jwt expired')) {
             _context.next = 12;
             break;
           }

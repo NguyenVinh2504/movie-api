@@ -1,5 +1,4 @@
 import { StatusCodes } from 'http-status-codes'
-import { JsonWebTokenError } from 'jsonwebtoken'
 import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
 import { userModel } from '~/models/userModel'
@@ -15,7 +14,7 @@ const tokenDecode = async (token) => {
     const decoded = jwtHelper.verifyToken(token, keyStore.publicKey)
     return decoded
   } catch (err) {
-    if (err.message.includes('jwt expired') && err.name.includes('TokenExpiredError')) {
+    if (err.message.includes('jwt expired')) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
     }
     throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
