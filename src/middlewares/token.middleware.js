@@ -6,7 +6,7 @@ import ApiError from '~/utils/ApiError'
 import findKeyTokenById from '~/utils/findKeyTokenById'
 
 
-const tokenDecode = async (token) => {
+const tokenDecode = async (token, next) => {
   try {
     // Tìm publicKey trong db của user vửa gửi lên bằng token
     const keyStore = await findKeyTokenById(token)
@@ -15,9 +15,9 @@ const tokenDecode = async (token) => {
     return decoded
   } catch (err) {
     if (err.message.includes('jwt expired')) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
+      next(new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' }))
     }
-    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
+    next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'))
   }
 }
 
@@ -41,37 +41,34 @@ const refreshTokenDecode = async (req, res, next) => {
     if (error.message.includes('jwt malformed')) {
       next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'))
     }
-    next(error)
+    next(new ApiError(StatusCodes.UNAUTHORIZED, 'Có lỗi xảy ra trong quá trình xử lý'))
   }
 }
 
 const auth = async (req, res, next) => {
+  const access_token = req.headers['authorization']?.replace('Bearer ', '')
+  if (!access_token) next(new ApiError(StatusCodes.UNAUTHORIZED, 'Token không được gửi'))
   try {
-    const access_token = req.headers['authorization']?.replace('Bearer ', '')
-    if (access_token) {
-      const [tokenDecoded, getAccessToken] = await Promise.all([
-        // Kiểm tra accessToken user gửi lên
-        tokenDecode(access_token),
+    const [tokenDecoded, getAccessToken] = await Promise.all([
+      // Kiểm tra accessToken user gửi lên
+      tokenDecode(access_token, next),
 
-        // Kiểm tra accessToken có trong db không
-        authModel.getAccessToken(access_token)
-      ])
+      // Kiểm tra accessToken có trong db không
+      authModel.getAccessToken(access_token)
+    ])
 
-      if (!getAccessToken) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy token')
+    if (!getAccessToken) next(new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy token'))
 
-      // Kiểm tra user có trong db không
-      const user = await userModel.getInfo(tokenDecoded._id)
-      if (!user) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy user')
-      }
-      const { _id, admin } = tokenDecoded
-      req.user = { _id, admin }
-      next()
-    } else {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Token không được gửi')
+    // Kiểm tra user có trong db không
+    const user = await userModel.getInfo(tokenDecoded._id)
+    if (!user) {
+      next(new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy user'))
     }
+    const { _id, admin } = tokenDecoded
+    req.user = { _id, admin }
+    next()
   } catch (error) {
-    next(error)
+    next(new ApiError(StatusCodes.UNAUTHORIZED, 'Có lỗi trong quá trình xác thực'))
   }
 }
 
