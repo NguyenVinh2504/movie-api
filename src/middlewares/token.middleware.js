@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import { JsonWebTokenError } from 'jsonwebtoken'
 import { jwtHelper } from '~/helpers/jwt.helper'
 import { authModel } from '~/models/authModel'
 import { userModel } from '~/models/userModel'
@@ -7,14 +8,17 @@ import findKeyTokenById from '~/utils/findKeyTokenById'
 
 
 const tokenDecode = async (token) => {
-  // Tìm publicKey trong db của user vửa gửi lên bằng token
-  const keyStore = await findKeyTokenById(token)
   try {
+    // Tìm publicKey trong db của user vửa gửi lên bằng token
+    const keyStore = await findKeyTokenById(token)
     // Verify bằng publicKey vừa lấy trong db
     const decoded = jwtHelper.verifyToken(token, keyStore.publicKey)
     return decoded
   } catch (err) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
+    if (err.message.includes('jwt expired') && err.name.includes('TokenExpiredError')) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
+    }
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
   }
 }
 
@@ -30,17 +34,14 @@ const refreshTokenDecode = async (req, res, next) => {
     // Tìm privateKey trong db của user vửa gửi lên bằng token
     const keyStore = await findKeyTokenById(refreshToken)
     req.keyStore = keyStore
-
-    try {
-      // Verify bằng privateKey vừa lấy trong db
-      const decoded = jwtHelper.verifyToken(refreshToken, keyStore.privateKey)
-      req.decoded = decoded
-    } catch {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập')
-    }
+    const decoded = jwtHelper.verifyToken(refreshToken, keyStore.privateKey)
+    req.decoded = decoded
     next()
   }
   catch (error) {
+    if (error instanceof JsonWebTokenError) {
+      next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'))
+    }
     next(error)
   }
 }
@@ -51,10 +52,10 @@ const auth = async (req, res, next) => {
     if (access_token) {
       const [tokenDecoded, getAccessToken] = await Promise.all([
         // Kiểm tra accessToken user gửi lên
-        await tokenDecode(access_token),
+        tokenDecode(access_token),
 
         // Kiểm tra accessToken có trong db không
-        await authModel.getAccessToken(access_token)
+        authModel.getAccessToken(access_token)
       ])
 
       if (!getAccessToken) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Không tìm thấy token')
