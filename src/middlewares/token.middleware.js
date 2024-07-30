@@ -39,7 +39,7 @@ const refreshTokenDecode = async (req, res, next) => {
     next()
   }
   catch (error) {
-    if (error instanceof JsonWebTokenError) {
+    if (error.message.includes('jwt malformed')) {
       next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'))
     }
     next(error)

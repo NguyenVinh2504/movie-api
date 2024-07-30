@@ -83,7 +83,7 @@ var refreshTokenDecode = /*#__PURE__*/function () {
         case 14:
           _context2.prev = 14;
           _context2.t0 = _context2["catch"](0);
-          if (_context2.t0 instanceof _jsonwebtoken.JsonWebTokenError) {
+          if (_context2.t0.message.includes('jwt malformed')) {
             next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'));
           }
           next(_context2.t0);
