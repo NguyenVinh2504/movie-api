@@ -15,7 +15,7 @@ var _userModel = require("../models/userModel");
 var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
 var _findKeyTokenById = _interopRequireDefault(require("../utils/findKeyTokenById"));
 var tokenDecode = /*#__PURE__*/function () {
-  var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(token, next) {
+  var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(token) {
     var keyStore, decoded;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
@@ -31,20 +31,23 @@ var tokenDecode = /*#__PURE__*/function () {
         case 8:
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
-          if (_context.t0.message.includes('jwt expired')) {
-            next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
-              name: 'EXPIRED_TOKEN',
-              message: 'Token hết hạn'
-            }));
+          if (!_context.t0.message.includes('jwt expired')) {
+            _context.next = 12;
+            break;
           }
-          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'));
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
+            name: 'EXPIRED_TOKEN',
+            message: 'Token hết hạn'
+          });
         case 12:
+          throw _context.t0;
+        case 13:
         case "end":
           return _context.stop();
       }
     }, _callee, null, [[0, 8]]);
   }));
-  return function tokenDecode(_x, _x2) {
+  return function tokenDecode(_x) {
     return _ref.apply(this, arguments);
   };
 }();
@@ -74,22 +77,32 @@ var refreshTokenDecode = /*#__PURE__*/function () {
           decoded = _jwt.jwtHelper.verifyToken(refreshToken, keyStore.privateKey);
           req.decoded = decoded;
           next();
-          _context2.next = 18;
+          _context2.next = 22;
           break;
         case 14:
           _context2.prev = 14;
           _context2.t0 = _context2["catch"](0);
-          if (_context2.t0.message.includes('jwt malformed')) {
-            next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'));
+          if (!_context2.t0.message.includes('jwt malformed')) {
+            _context2.next = 19;
+            break;
           }
+          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'));
+          return _context2.abrupt("return");
+        case 19:
+          if (!(_context2.t0 instanceof _ApiError["default"])) {
+            _context2.next = 21;
+            break;
+          }
+          return _context2.abrupt("return", next(_context2.t0));
+        case 21:
           next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Có lỗi xảy ra trong quá trình xử lý'));
-        case 18:
+        case 22:
         case "end":
           return _context2.stop();
       }
     }, _callee2, null, [[0, 14]]);
   }));
-  return function refreshTokenDecode(_x3, _x4, _x5) {
+  return function refreshTokenDecode(_x2, _x3, _x4) {
     return _ref2.apply(this, arguments);
   };
 }();
@@ -101,48 +114,67 @@ var auth = /*#__PURE__*/function () {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
           access_token = (_req$headers$authoriz = req.headers['authorization']) === null || _req$headers$authoriz === void 0 ? void 0 : _req$headers$authoriz.replace('Bearer ', '');
-          if (!access_token) next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Token không được gửi'));
-          _context3.prev = 2;
-          _context3.next = 5;
+          if (access_token) {
+            _context3.next = 4;
+            break;
+          }
+          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Token không được gửi'));
+          return _context3.abrupt("return");
+        case 4:
+          _context3.prev = 4;
+          _context3.next = 7;
           return Promise.all([
           // Kiểm tra accessToken user gửi lên
-          tokenDecode(access_token, next),
+          tokenDecode(access_token),
           // Kiểm tra accessToken có trong db không
           _authModel.authModel.getAccessToken(access_token)]);
-        case 5:
+        case 7:
           _yield$Promise$all = _context3.sent;
           _yield$Promise$all2 = (0, _slicedToArray2["default"])(_yield$Promise$all, 2);
           tokenDecoded = _yield$Promise$all2[0];
           getAccessToken = _yield$Promise$all2[1];
-          if (!getAccessToken) next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy token'));
-
-          // Kiểm tra user có trong db không
-          _context3.next = 12;
-          return _userModel.userModel.getInfo(tokenDecoded._id);
-        case 12:
-          user = _context3.sent;
-          if (!user) {
-            next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user'));
+          if (getAccessToken) {
+            _context3.next = 13;
+            break;
           }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy token');
+        case 13:
+          _context3.next = 15;
+          return _userModel.userModel.getInfo(tokenDecoded._id);
+        case 15:
+          user = _context3.sent;
+          if (user) {
+            _context3.next = 18;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Không tìm thấy user');
+        case 18:
           _id = tokenDecoded._id, admin = tokenDecoded.admin;
           req.user = {
             _id: _id,
             admin: admin
           };
           next();
-          _context3.next = 22;
+          _context3.next = 28;
           break;
-        case 19:
-          _context3.prev = 19;
-          _context3.t0 = _context3["catch"](2);
-          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Có lỗi trong quá trình xác thực'));
-        case 22:
+        case 23:
+          _context3.prev = 23;
+          _context3.t0 = _context3["catch"](4);
+          if (!(_context3.t0 instanceof _ApiError["default"])) {
+            _context3.next = 27;
+            break;
+          }
+          return _context3.abrupt("return", next(_context3.t0));
+        case 27:
+          // Xử lý các lỗi không xác định
+          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'));
+        case 28:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[2, 19]]);
+    }, _callee3, null, [[4, 23]]);
   }));
-  return function auth(_x6, _x7, _x8) {
+  return function auth(_x5, _x6, _x7) {
     return _ref3.apply(this, arguments);
   };
 }();

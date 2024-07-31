@@ -20,32 +20,27 @@ var findKeyTokenById = /*#__PURE__*/function () {
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          _context.prev = 0;
           // Lấy id user trong token để tìm privateKey và publicKey tương ứng trong db
           payLoadToken = _jsonwebtoken["default"].decode(token);
-          _context.next = 4;
+          _context.next = 3;
           return _authModel.authModel.getKeyToken(payLoadToken === null || payLoadToken === void 0 ? void 0 : payLoadToken._id);
-        case 4:
+        case 3:
           keyStore = _context.sent;
           if (keyStore) {
-            _context.next = 7;
+            _context.next = 6;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, {
             name: 'NOT_FOUND',
             message: 'Không tìm thấy keyStore'
           });
-        case 7:
+        case 6:
           return _context.abrupt("return", keyStore);
-        case 10:
-          _context.prev = 10;
-          _context.t0 = _context["catch"](0);
-          throw Error(_context.t0);
-        case 13:
+        case 7:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee);
   }));
   return function findKeyTokenById(_x) {
     return _ref.apply(this, arguments);
