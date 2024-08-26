@@ -8,9 +8,9 @@ exports.timeExpired = exports.WHITELIST_DOMAINS = exports.UPLOAD_TEMP_DIR = expo
 var _path = _interopRequireDefault(require("path"));
 var WHITELIST_DOMAINS = ['https://viejoy.vercel.app', 'http://localhost:3000', 'https://viejoy.site', 'https://www.viejoy.site'];
 exports.WHITELIST_DOMAINS = WHITELIST_DOMAINS;
-var UPLOAD_TEMP_DIR = _path["default"].resolve('uploads/temp');
+var UPLOAD_TEMP_DIR = _path["default"].resolve(process.cwd(), 'uploads/temp');
 exports.UPLOAD_TEMP_DIR = UPLOAD_TEMP_DIR;
-var UPLOAD_DIR = _path["default"].resolve('uploads');
+var UPLOAD_DIR = _path["default"].resolve(process.cwd(), 'uploads');
 exports.UPLOAD_DIR = UPLOAD_DIR;
 var timeExpired = '1h';
 exports.timeExpired = timeExpired;
