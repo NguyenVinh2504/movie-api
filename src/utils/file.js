@@ -5,10 +5,14 @@ import { StatusCodes } from 'http-status-codes'
 import { UPLOAD_TEMP_DIR } from './constants'
 
 export const initFolder = () => {
-  if (!fs.existsSync(UPLOAD_TEMP_DIR)) {
-    fs.mkdirSync(UPLOAD_TEMP_DIR, {
-      recursive: true // Tạo folder lồng nhau
-    })
+  try {
+    if (!fs.existsSync(UPLOAD_TEMP_DIR)) {
+      fs.mkdirSync(UPLOAD_TEMP_DIR, {
+        recursive: true // Tạo folder lồng nhau
+      })
+    }
+  } catch {
+    // console.log(error)
   }
 }
 

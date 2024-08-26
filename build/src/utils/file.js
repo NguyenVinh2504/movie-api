@@ -11,10 +11,14 @@ var _ApiError = _interopRequireDefault(require("./ApiError"));
 var _httpStatusCodes = require("http-status-codes");
 var _constants = require("./constants");
 var initFolder = function initFolder() {
-  if (!_fs["default"].existsSync(_constants.UPLOAD_TEMP_DIR)) {
-    _fs["default"].mkdirSync(_constants.UPLOAD_TEMP_DIR, {
-      recursive: true // Tạo folder lồng nhau
-    });
+  try {
+    if (!_fs["default"].existsSync(_constants.UPLOAD_TEMP_DIR)) {
+      _fs["default"].mkdirSync(_constants.UPLOAD_TEMP_DIR, {
+        recursive: true // Tạo folder lồng nhau
+      });
+    }
+  } catch (_unused) {
+    // console.log(error)
   }
 };
 exports.initFolder = initFolder;
