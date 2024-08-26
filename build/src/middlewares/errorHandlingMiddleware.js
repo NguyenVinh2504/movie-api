@@ -18,7 +18,7 @@ var errorHandlingMiddleware = function errorHandlingMiddleware(err, req, res, ne
   var responseError = {
     statusCode: err.statusCode,
     data: (0, _typeof2["default"])(err.error) === 'object' ? err.error : {
-      message: err.error
+      message: err.error || err.message
     } || _httpStatusCodes.StatusCodes[err.statusCode],
     // Nếu lỗi mà không có message thì lấy ReasonPhrases chuẩn theo mã Status Code
     stack: err.stack

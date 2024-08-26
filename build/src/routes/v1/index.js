@@ -11,6 +11,8 @@ var _userRoutes = require("./userRoutes.js");
 var _authRoutes = require("./authRoutes.js");
 var _mediaRoute = require("./media.route.js");
 var _favoriteRoutes = require("./favoriteRoutes.js");
+var _mediasUploadRoutes = require("./mediasUploadRoutes.js");
+var _staticRoutes = require("./static.routes.js");
 var Router = _express["default"].Router({
   mergeParams: true
 });
@@ -26,6 +28,8 @@ Router.get('/status', function (req, res) {
 Router.use('/user', _userRoutes.userRoutes);
 Router.use('/favorite', _favoriteRoutes.favoriteRoutes);
 Router.use('/auth', _authRoutes.authRoutes);
+Router.use('/files', _staticRoutes.staticRoute);
+Router.use('/medias-upload', _mediasUploadRoutes.mediasUploadRoutes);
 Router.use('/:mediaType', _mediaRoute.mediaRoute);
 var _default = Router;
 exports["default"] = _default;

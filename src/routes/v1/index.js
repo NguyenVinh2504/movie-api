@@ -4,6 +4,8 @@ import { userRoutes } from './userRoutes.js'
 import { authRoutes } from './authRoutes.js'
 import { mediaRoute } from './media.route.js'
 import { favoriteRoutes } from './favoriteRoutes.js'
+import { mediasUploadRoutes } from './mediasUploadRoutes.js'
+import { staticRoute } from './static.routes.js'
 const Router = express.Router({ mergeParams: true })
 
 // Check api v1
@@ -15,6 +17,10 @@ Router.get('/status', (req, res) => {
 Router.use('/user', userRoutes)
 Router.use('/favorite', favoriteRoutes)
 Router.use('/auth', authRoutes)
+
+Router.use('/files', staticRoute)
+
+Router.use('/medias-upload', mediasUploadRoutes)
 
 Router.use('/:mediaType', mediaRoute)
 

@@ -1,6 +1,7 @@
 import 'dotenv/config.js'
 
 export const env = {
+  PRODUCT_APP_HOST: process.env.PRODUCT_APP_HOST,
   MONGODB_URI: process.env.MONGODB_URI,
   DATABASE_NAME: process.env.DATABASE_NAME,
   LOCAL_DEV_APP_HOST: process.env.LOCAL_DEV_APP_HOST,

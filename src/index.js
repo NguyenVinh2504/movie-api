@@ -10,8 +10,12 @@ import { env } from './config/environment.js'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware.js'
 import { StatusCodes } from 'http-status-codes'
 import cookieParser from 'cookie-parser'
+import { initFolder } from './utils/file.js'
 const START_SERVER = () => {
   const app = express()
+
+  //Tạo folder upload
+  initFolder()
 
   // Bat req cookie
   app.use(cookieParser())

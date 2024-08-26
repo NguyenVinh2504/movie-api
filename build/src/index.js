@@ -11,10 +11,14 @@ var _environment = require("./config/environment.js");
 var _errorHandlingMiddleware = require("./middlewares/errorHandlingMiddleware.js");
 var _httpStatusCodes = require("http-status-codes");
 var _cookieParser = _interopRequireDefault(require("cookie-parser"));
+var _file = require("./utils/file.js");
 /* eslint-disable no-console */
 
 var START_SERVER = function START_SERVER() {
   var app = (0, _express["default"])();
+
+  //Tạo folder upload
+  (0, _file.initFolder)();
 
   // Bat req cookie
   app.use((0, _cookieParser["default"])());
