@@ -7,7 +7,7 @@ export const WHITELIST_DOMAINS = [
   'https://www.viejoy.site'
 ]
 
-export const UPLOAD_TEMP_DIR = path.resolve(process.cwd(), 'uploads/temp')
+export const UPLOAD_TEMP_DIR = path.resolve('tmp/uploads/temp')
 
-export const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads')
+export const UPLOAD_DIR = path.resolve('tmp/uploads')
 export const timeExpired = '1h'
