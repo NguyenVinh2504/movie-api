@@ -15,7 +15,7 @@ const tokenDecode = async (token) => {
     return decoded
   } catch (err) {
     if (err.message.includes('jwt expired')) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
+      throw new ApiError(StatusCodes.UNAUTHORIZED, undefined, { name: 'EXPIRED_TOKEN', message: 'Token hết hạn' })
     }
     throw err
   }

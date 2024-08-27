@@ -17,7 +17,7 @@ import { timeExpired } from '~/utils/constants'
 const signUp = async (req, res) => {
   try {
     const checkEmail = await userModel.getEmail(req.body.email)
-    if (checkEmail) throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+    if (checkEmail) throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
       name: 'EMAIL',
       message: 'Email đã được đăng ký'
     })
@@ -275,7 +275,7 @@ const login = async (req, res) => {
     // Kiểm tra user đã được đăng ký chưa
     const user = await userModel.getEmail(req.body.email)
     if (!user) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
         name: 'EMAIL',
         message: 'Không tìm thấy email'
       })
@@ -288,7 +288,7 @@ const login = async (req, res) => {
     })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
         name: 'PASSWORD',
         message: 'Mật khẩu không chính xác'
       })

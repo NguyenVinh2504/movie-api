@@ -32,12 +32,15 @@
     "joi": "^17.10.2",
     "joi-password": "^4.1.1",
     "jsonwebtoken": "^9.0.2",
+    "mime": "3",
     "mongodb": "^6.0.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.8",
     "path": "^0.12.7",
     "sharp": "^0.33.5",
-    "uuid": "^9.0.1"
+    "slash": "4",
+    "uuid": "^9.0.1",
+    "zx": "^8.1.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.22.10",

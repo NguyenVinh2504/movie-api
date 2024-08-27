@@ -29,7 +29,7 @@ const deleteUser = async (req) => {
     const validations = await validationsPassword({ id: user._id, password: req.body.password })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
         name: 'PASSWORD',
         message: 'Mật khẩu không chính xác'
       })
@@ -56,7 +56,7 @@ const updatePassword = async (req) => {
     const validations = await validationsPassword({ id: user._id, password: req.body.password })
 
     if (!validations) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
         name: 'PASSWORD',
         message: 'Mật khẩu không chính xác'
       })
@@ -125,7 +125,7 @@ const checkEmail = async (req) => {
     const { email } = req.body
     const user = await userModel.getEmail(email)
     if (!user) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, {
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
         name: 'EMAIL',
         message: 'Không có email này'
       })

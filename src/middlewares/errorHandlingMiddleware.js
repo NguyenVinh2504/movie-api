@@ -9,7 +9,8 @@ export const errorHandlingMiddleware = (err, req, res, next) => {
   // Tạo ra một biến responseError để kiểm soát những gì muốn trả về
   const responseError = {
     statusCode: err.statusCode,
-    data: typeof err.error === 'object' ? err.error : { message: err.error || err.message } || StatusCodes[err.statusCode], // Nếu lỗi mà không có message thì lấy ReasonPhrases chuẩn theo mã Status Code
+    message: err.message || StatusCodes[err.statusCode],
+    data: err.error && typeof err.error === 'object' ? err.error : undefined, // Nếu lỗi mà không có message thì lấy ReasonPhrases chuẩn theo mã Status Code
     stack: err.stack
   }
   // console.error(responseError)

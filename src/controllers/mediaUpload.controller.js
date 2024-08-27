@@ -2,34 +2,74 @@
 import { StatusCodes } from 'http-status-codes'
 import path from 'path'
 import { mediaUploadService } from '~/services/mediaUpload.service'
-import { UPLOAD_DIR } from '~/utils/constants'
+import ApiError from '~/utils/ApiError'
+import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_TEMP_DIR } from '~/utils/constants'
+import fs from 'fs'
+import mime from 'mime'
 
-const uploadImage = async (req, res, next) => {
-  try {
-    const result = await mediaUploadService.uploadImage(req)
-    return res.status(StatusCodes.CREATED).json({ result })
-  } catch (error) {
-    next(error)
-  }
+const uploadImage = async (req, res) => {
+  const result = await mediaUploadService.uploadImage(req)
+  return res.status(StatusCodes.CREATED).json({ message: 'Upload image successfully', result })
 
+}
+
+const uploadVideo = async (req, res) => {
+  const result = await mediaUploadService.uploadVideo(req)
+  return res.status(StatusCodes.CREATED).json({ message: 'Upload video successfully', result })
+}
+
+const uploadVideoHls = async (req, res) => {
+  const result = await mediaUploadService.uploadVideoHls(req)
 }
 
 const serveImage = (req, res, next) => {
-  try {
-    const { name } = req.params
-    const filePath = path.resolve(UPLOAD_DIR, name)
-    res.sendFile(filePath, (err) => {
-      if (err) {
-        next(err)
-      }
-    })
-  } catch (error) {
-    next(error)
-  }
+  const { name } = req.params
+  const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      next(err)
+    }
+  })
 }
 
+const serveVideoStream = async (req, res) => {
+  const { name } = req.params
+  const range = req.headers.range
+  if (!range) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Missing Range header')
+  }
+  const filePath = path.resolve(UPLOAD_VIDEO_TEMP_DIR, name)
+  // 1MB = 10^6 bytes (Tính theo hệ thập phân, đây là giá trị thấy trên UI )
+  // 1 MB = 2^20 bytes tính theo hệ thập phân (1024 * 1024)
 
+  //Lấy dung lượng video (Bytes)
+  const videoSize = fs.statSync(filePath).size
+
+  // Dung lượng video cho mỗi phân đoạn stream
+  const CHUNK_SIZE = 10 ** 6 // 1MB
+  // Lấy giá trị byte bắt đầu từ header Range (vd: bytes=1048575-)
+  const start = Number(range.replace(/\D/g, ''))
+  const end = Math.min(start + CHUNK_SIZE, videoSize - 1)
+
+  // Dung lượng thực tế cho một phân đoạn stream
+  // Thường đây là chunks, ngoại trừ đoạn cuối cùng
+  const contentLength = end - start + 1
+  const contentType = mime.getType(filePath) || 'video/*'
+  const headers = {
+    'Content-Range': `bytes ${start}-${end}/${videoSize}`,
+    'Accept-Ranges': 'bytes',
+    'Content-Length': contentLength,
+    'Content-Type': contentType
+  }
+
+  res.writeHead(StatusCodes.PARTIAL_CONTENT, headers)
+  const videoStream = fs.createReadStream(filePath, { start, end })
+  videoStream.pipe(res)
+}
 export const mediaUploadController = {
   uploadImage,
-  serveImage
+  uploadVideo,
+  uploadVideoHls,
+  serveImage,
+  serveVideoStream
 }
