@@ -31,7 +31,6 @@ class Queue {
       await mediaModel.updateVideoStatus({ name: idName, status: EncodingStatus.processing })
       try {
         await encodeHLSWithMultipleVideoStreams(videoPath)
-        this.#listItem.shift()
         await fsPromises.unlink(videoPath)
         await mediaModel.updateVideoStatus({ name: idName, status: EncodingStatus.success })
 
@@ -45,6 +44,7 @@ class Queue {
         console.error(error)
       }
       this.#isEncoding = false
+      this.#listItem.shift()
       this.processEncode()
     } else {
       console.log('queue is empty')
