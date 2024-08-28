@@ -2,10 +2,11 @@ import path from 'path'
 const MAXIMUM_BITRATE_720P = 5 * 10 ** 6 // 5Mbps
 const MAXIMUM_BITRATE_1080P = 8 * 10 ** 6 // 8Mbps
 const MAXIMUM_BITRATE_1440P = 16 * 10 ** 6 // 16Mbps
+
 export const checkVideoHasAudio = async (filePath) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const { stdout } = await $ `ffprobe ${[
+  const normalizedPath = filePath.split(path.win32.sep).join(path.posix.sep)
+  const { stdout } = await $`ffprobe ${[
     '-v',
     'error',
     '-select_streams',
@@ -14,14 +15,15 @@ export const checkVideoHasAudio = async (filePath) => {
     'stream=codec_type',
     '-of',
     'default=nw=1:nk=1',
-    slash(filePath)
+    normalizedPath
   ]}`
   return stdout.trim() === 'audio'
 }
+
 const getBitrate = async (filePath) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const { stdout } = await $ `ffprobe ${[
+  const normalizedPath = filePath.split(path.win32.sep).join(path.posix.sep)
+  const { stdout } = await $`ffprobe ${[
     '-v',
     'error',
     '-select_streams',
@@ -30,14 +32,15 @@ const getBitrate = async (filePath) => {
     'stream=bit_rate',
     '-of',
     'default=nw=1:nk=1',
-    slash(filePath)
+    normalizedPath
   ]}`
   return Number(stdout.trim())
 }
+
 const getResolution = async (filePath) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const { stdout } = await $ `ffprobe ${[
+  const normalizedPath = filePath.split(path.win32.sep).join(path.posix.sep)
+  const { stdout } = await $`ffprobe ${[
     '-v',
     'error',
     '-select_streams',
@@ -46,7 +49,7 @@ const getResolution = async (filePath) => {
     'stream=width,height',
     '-of',
     'csv=s=x:p=0',
-    slash(filePath)
+    normalizedPath
   ]}`
   const resolution = stdout.trim().split('x')
   const [width, height] = resolution
@@ -55,18 +58,22 @@ const getResolution = async (filePath) => {
     height: Number(height)
   }
 }
+
 const getWidth = (height, resolution) => {
   const width = Math.round((height * resolution.width) / resolution.height)
   // Vì ffmpeg yêu cầu width và height phải là số chẵn
   return width % 2 === 0 ? width : width + 1
 }
+
 const encodeMax720 = async ({ bitrate, inputPath, isHasAudio, outputPath, outputSegmentPath, resolution }) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
+  const normalizedInputPath = inputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputPath = outputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputSegmentPath = outputSegmentPath.split(path.win32.sep).join(path.posix.sep)
   const args = [
     '-y',
     '-i',
-    slash(inputPath),
+    normalizedInputPath,
     '-preset',
     'veryslow',
     '-g',
@@ -88,14 +95,17 @@ const encodeMax720 = async ({ bitrate, inputPath, isHasAudio, outputPath, output
   else {
     args.push('v:0')
   }
-  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', slash(outputSegmentPath), slash(outputPath))
+  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', normalizedOutputSegmentPath, normalizedOutputPath)
   await $ `ffmpeg ${args}`
   return true
 }
+
 const encodeMax1080 = async ({ bitrate, inputPath, isHasAudio, outputPath, outputSegmentPath, resolution }) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const args = ['-y', '-i', slash(inputPath), '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
+  const normalizedInputPath = inputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputPath = outputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputSegmentPath = outputSegmentPath.split(path.win32.sep).join(path.posix.sep)
+  const args = ['-y', '-i', normalizedInputPath, '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
   if (isHasAudio) {
     args.push('-map', '0:0', '-map', '0:1', '-map', '0:0', '-map', '0:1')
   }
@@ -109,14 +119,17 @@ const encodeMax1080 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
   else {
     args.push('v:0 v:1')
   }
-  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', slash(outputSegmentPath), slash(outputPath))
+  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', normalizedOutputSegmentPath, normalizedOutputPath)
   await $ `ffmpeg ${args}`
   return true
 }
+
 const encodeMax1440 = async ({ bitrate, inputPath, isHasAudio, outputPath, outputSegmentPath, resolution }) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const args = ['-y', '-i', slash(inputPath), '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
+  const normalizedInputPath = inputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputPath = outputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputSegmentPath = outputSegmentPath.split(path.win32.sep).join(path.posix.sep)
+  const args = ['-y', '-i', normalizedInputPath, '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
   if (isHasAudio) {
     args.push('-map', '0:0', '-map', '0:1', '-map', '0:0', '-map', '0:1', '-map', '0:0', '-map', '0:1')
   }
@@ -130,14 +143,17 @@ const encodeMax1440 = async ({ bitrate, inputPath, isHasAudio, outputPath, outpu
   else {
     args.push('v:0 v:1 v2')
   }
-  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', slash(outputSegmentPath), slash(outputPath))
+  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', normalizedOutputSegmentPath, normalizedOutputPath)
   await $ `ffmpeg ${args}`
   return true
 }
+
 const encodeMaxOriginal = async ({ bitrate, inputPath, isHasAudio, outputPath, outputSegmentPath, resolution }) => {
   const { $ } = await import('zx')
-  const slash = (await import('slash')).default
-  const args = ['-y', '-i', slash(inputPath), '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
+  const normalizedInputPath = inputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputPath = outputPath.split(path.win32.sep).join(path.posix.sep)
+  const normalizedOutputSegmentPath = outputSegmentPath.split(path.win32.sep).join(path.posix.sep)
+  const args = ['-y', '-i', normalizedInputPath, '-preset', 'veryslow', '-g', '48', '-crf', '17', '-sc_threshold', '0']
   if (isHasAudio) {
     args.push('-map', '0:0', '-map', '0:1', '-map', '0:0', '-map', '0:1', '-map', '0:0', '-map', '0:1')
   }
@@ -151,10 +167,11 @@ const encodeMaxOriginal = async ({ bitrate, inputPath, isHasAudio, outputPath, o
   else {
     args.push('v:0 v:1 v2')
   }
-  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', slash(outputSegmentPath), slash(outputPath))
+  args.push('-master_pl_name', 'master.m3u8', '-f', 'hls', '-hls_time', '6', '-hls_list_size', '0', '-hls_segment_filename', normalizedOutputSegmentPath, normalizedOutputPath)
   await $ `ffmpeg ${args}`
   return true
 }
+
 export const encodeHLSWithMultipleVideoStreams = async (inputPath) => {
   const [bitrate, resolution] = await Promise.all([getBitrate(inputPath), getResolution(inputPath)])
   const parent_folder = path.join(inputPath, '..')

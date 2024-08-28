@@ -16,3 +16,10 @@ export const UPLOAD_VIDEO_TEMP_DIR = path.resolve('uploads/videos/temp')
 export const UPLOAD_VIDEO_DIR = path.resolve('uploads/videos')
 
 export const timeExpired = '1h'
+
+export const EncodingStatus = {
+  pending: 'pending',
+  processing: 'processing',
+  success: 'success',
+  failed: 'failed'
+}

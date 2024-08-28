@@ -5,4 +5,6 @@ const Router = express.Router()
 
 Router.get('/image/:name', wrapRequestHandler( mediaUploadController.serveImage))
 Router.get('/video-stream/:name', wrapRequestHandler( mediaUploadController.serveVideoStream))
+Router.get('/video-hls/:id/master.m3u8', wrapRequestHandler( mediaUploadController.serveM3u8))
+Router.get('/video-hls/:id/:v/:segment', wrapRequestHandler( mediaUploadController.serveSegment))
 export const staticRoute = Router

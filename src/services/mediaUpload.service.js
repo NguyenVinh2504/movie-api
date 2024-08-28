@@ -1,10 +1,58 @@
+/* eslint-disable no-console */
 import sharp from 'sharp'
-import { UPLOAD_IMAGE_DIR } from '~/utils/constants'
-import { handleUploadImage, handleUploadVideo } from '~/utils/file'
+import { EncodingStatus, UPLOAD_IMAGE_DIR } from '~/utils/constants'
+import { getNameFromFullName, handleUploadImage, handleUploadVideo } from '~/utils/file'
 import fs from 'fs'
 import { env } from '~/config/environment'
-import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
+import { encodeHLSWithMultipleVideoStreams } from '~/utils/video.js'
+import fsPromises from 'fs/promises'
+import { mediaModel } from '~/models/mediaModel'
 
+class Queue {
+  #listItem = []
+  #isEncoding = false
+  constructor() {
+  }
+  async enqueue(item) {
+    this.#listItem.push(item)
+    const fileName = item.split('\\').pop()
+    const idName = getNameFromFullName(fileName)
+    await mediaModel.createVideoStatus({ name: idName, status: EncodingStatus.pending }).catch(err => console.error('createVideoStatus error: ', err))
+    this.processEncode()
+  }
+
+  async processEncode() {
+    if (this.#isEncoding) return
+    if (this.#listItem.length > 0) {
+      this.#isEncoding = true
+      const videoPath = this.#listItem[0]
+      const fileName = videoPath.split('\\').pop()
+      const idName = getNameFromFullName(fileName)
+      await mediaModel.updateVideoStatus({ name: idName, status: EncodingStatus.processing })
+      try {
+        await encodeHLSWithMultipleVideoStreams(videoPath)
+        this.#listItem.shift()
+        await fsPromises.unlink(videoPath)
+        await mediaModel.updateVideoStatus({ name: idName, status: EncodingStatus.success })
+
+        console.log('encode success')
+      } catch (error) {
+
+        console.error(`encode error: ${videoPath}`)
+
+        await mediaModel.updateVideoStatus({ name: idName, status: EncodingStatus.failed }).catch(err => console.error('updateVideoStatus error: ', err))
+
+        console.error(error)
+      }
+      this.#isEncoding = false
+      this.processEncode()
+    } else {
+      console.log('queue is empty')
+    }
+  }
+}
+
+const queue = new Queue()
 const uploadImage = async (req) => {
   const files = await handleUploadImage(req)
   // const newName = getNameFromFullName(file?.newFilename)
@@ -41,20 +89,27 @@ const uploadVideo = async (req) => {
 
 const uploadVideoHls = async (req) => {
   const files = await handleUploadVideo(req)
-  console.log('files', files)
   const result = await Promise.all(files.map( async (file) => {
-    await encodeHLSWithMultipleVideoStreams(file.filepath)
+    // console.log('file.filepath', file)
+    const newName = getNameFromFullName(file?.newFilename)
+    queue.enqueue(file.filepath)
     return {
-      name: file?.newFilename,
-      type: file?.mimetype,
-      url: env.BUILD_MODE === 'production' ? `${env.PRODUCT_APP_HOST}/files/video/${file?.newFilename}`: `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
+      name: file?.newName,
+      type: 'video/m3u8',
+      url: env.BUILD_MODE === 'production' ? `${env.PRODUCT_APP_HOST}/files/video-hls/${newName}.m3u8`: `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video-hls/${newName}.m3u8`
     }
   }))
   return result
 }
 
+const getVideoStatus = async (idName) => {
+  const videoStatus = await mediaModel.getVideoStatus(idName)
+  return videoStatus
+}
+
 export const mediaUploadService = {
   uploadImage,
   uploadVideo,
-  uploadVideoHls
+  uploadVideoHls,
+  getVideoStatus
 }
