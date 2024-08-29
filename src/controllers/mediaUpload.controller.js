@@ -2,9 +2,12 @@ import { StatusCodes } from 'http-status-codes'
 import path from 'path'
 import { mediaUploadService } from '~/services/mediaUpload.service'
 import ApiError from '~/utils/ApiError'
-import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/utils/constants'
+import { UPLOAD_VIDEO_DIR } from '~/utils/constants'
 import fs from 'fs'
 import mime from 'mime'
+import { getDownloadURL, ref } from 'firebase/storage'
+import { storage } from '~/config/firebase'
+import axios from 'axios'
 
 const uploadImage = async (req, res) => {
   const result = await mediaUploadService.uploadImage(req)
@@ -21,14 +24,18 @@ const uploadVideoHls = async (req, res) => {
   return res.status(StatusCodes.CREATED).json({ message: 'Upload video successfully', result })
 }
 
-const serveImage = (req, res, next) => {
+const serveImage = async (req, res) => {
   const { name } = req.params
-  const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      next(err)
-    }
-  })
+  // const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
+  const file = ref(storage, `images/${name}`)
+  const url = await getDownloadURL(file)
+  const response = await axios.get(url, { responseType: 'stream' })
+  response.data.pipe(res)
+  // res.sendFile(file, (err) => {
+  //   if (err) {
+  //     next(err)
+  //   }
+  // })
 }
 
 const serveM3u8 = (req, res) => {

@@ -29,7 +29,7 @@ var initFolder = function initFolder() {
 exports.initFolder = initFolder;
 var handleUploadImage = function handleUploadImage(req) {
   var form = (0, _formidable["default"])({
-    uploadDir: _constants.UPLOAD_IMAGE_TEMP_DIR,
+    uploadDir: null,
     // maxFiles: 4,
     keepExtensions: true,
     // maxFileSize: 1 * 1024 * 1024, // 1MB,

@@ -14,6 +14,9 @@ var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
 var _constants = require("../utils/constants");
 var _fs = _interopRequireDefault(require("fs"));
 var _mime = _interopRequireDefault(require("mime"));
+var _storage = require("firebase/storage");
+var _firebase = require("../config/firebase");
+var _axios = _interopRequireDefault(require("axios"));
 var uploadImage = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req, res) {
     var result;
@@ -86,15 +89,40 @@ var uploadVideoHls = /*#__PURE__*/function () {
     return _ref3.apply(this, arguments);
   };
 }();
-var serveImage = function serveImage(req, res, next) {
-  var name = req.params.name;
-  var filePath = _path["default"].resolve(_constants.UPLOAD_IMAGE_DIR, name);
-  res.sendFile(filePath, function (err) {
-    if (err) {
-      next(err);
-    }
-  });
-};
+var serveImage = /*#__PURE__*/function () {
+  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
+    var name, file, url, response;
+    return _regenerator["default"].wrap(function _callee4$(_context4) {
+      while (1) switch (_context4.prev = _context4.next) {
+        case 0:
+          name = req.params.name; // const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
+          file = (0, _storage.ref)(_firebase.storage, "images/".concat(name));
+          _context4.next = 4;
+          return (0, _storage.getDownloadURL)(file);
+        case 4:
+          url = _context4.sent;
+          _context4.next = 7;
+          return _axios["default"].get(url, {
+            responseType: 'stream'
+          });
+        case 7:
+          response = _context4.sent;
+          response.data.pipe(res);
+          // res.sendFile(file, (err) => {
+          //   if (err) {
+          //     next(err)
+          //   }
+          // })
+        case 9:
+        case "end":
+          return _context4.stop();
+      }
+    }, _callee4);
+  }));
+  return function serveImage(_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}();
 var serveM3u8 = function serveM3u8(req, res) {
   var id = req.params.id;
   var filePath = _path["default"].resolve(_constants.UPLOAD_VIDEO_DIR, id, 'master.m3u8');
@@ -123,15 +151,15 @@ var serveSegment = function serveSegment(req, res) {
   });
 };
 var serveVideoStream = /*#__PURE__*/function () {
-  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
+  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req, res) {
     var name, range, filePath, videoSize, CHUNK_SIZE, start, end, contentLength, contentType, headers, videoStream;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
-      while (1) switch (_context4.prev = _context4.next) {
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
         case 0:
           name = req.params.name;
           range = req.headers.range;
           if (range) {
-            _context4.next = 4;
+            _context5.next = 4;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Missing Range header');
@@ -161,37 +189,37 @@ var serveVideoStream = /*#__PURE__*/function () {
           videoStream.pipe(res);
         case 15:
         case "end":
-          return _context4.stop();
+          return _context5.stop();
       }
-    }, _callee4);
+    }, _callee5);
   }));
-  return function serveVideoStream(_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function serveVideoStream(_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }();
 var videoStatus = /*#__PURE__*/function () {
-  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req, res) {
+  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(req, res) {
     var id, result;
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
-      while (1) switch (_context5.prev = _context5.next) {
+    return _regenerator["default"].wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
         case 0:
           id = req.params.id;
-          _context5.next = 3;
+          _context6.next = 3;
           return _mediaUpload.mediaUploadService.getVideoStatus(id);
         case 3:
-          result = _context5.sent;
-          return _context5.abrupt("return", res.status(_httpStatusCodes.StatusCodes.OK).json({
+          result = _context6.sent;
+          return _context6.abrupt("return", res.status(_httpStatusCodes.StatusCodes.OK).json({
             message: 'Get video status successfully',
             result: result
           }));
         case 5:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
-    }, _callee5);
+    }, _callee6);
   }));
-  return function videoStatus(_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function videoStatus(_x11, _x12) {
+    return _ref6.apply(this, arguments);
   };
 }();
 var mediaUploadController = {

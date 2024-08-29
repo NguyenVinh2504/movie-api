@@ -17,8 +17,10 @@ var _file = require("../utils/file");
 var _environment = require("../config/environment");
 var _video = require("../utils/video.js");
 var _promises = _interopRequireDefault(require("fs/promises"));
-var _fs = _interopRequireDefault(require("fs"));
 var _mediaModel = require("../models/mediaModel");
+var _storage = require("firebase/storage");
+var _firebase = require("../config/firebase");
+var _crypto = require("crypto");
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } } /* eslint-disable no-console */
 var _listItem = /*#__PURE__*/new WeakMap();
@@ -148,39 +150,51 @@ var Queue = /*#__PURE__*/function () {
 var queue = new Queue();
 var uploadImage = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req) {
-    var files, result;
+    var result;
     return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
           _context4.next = 2;
-          return (0, _file.handleUploadImage)(req);
-        case 2:
-          files = _context4.sent;
-          _context4.next = 5;
-          return Promise.all(files.map( /*#__PURE__*/function () {
+          return Promise.all(
+          // files.map(async (file) => {
+          req.files.map( /*#__PURE__*/function () {
             var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(file) {
-              var newPath;
+              var newFile, idName, imageRef, metadata, resultUpload, _resultUpload$metadat, name, contentType;
               return _regenerator["default"].wrap(function _callee3$(_context3) {
                 while (1) switch (_context3.prev = _context3.next) {
                   case 0:
-                    newPath = "".concat(_constants.UPLOAD_IMAGE_DIR, "/").concat(file === null || file === void 0 ? void 0 : file.newFilename);
-                    _context3.next = 3;
-                    return (0, _sharp["default"])(file.filepath).resize({
+                    _context3.next = 2;
+                    return (0, _sharp["default"])(file.buffer).resize({
                       width: 400,
                       withoutEnlargement: true
-                    }).toFile(newPath);
-                  case 3:
-                    try {
-                      _fs["default"].unlinkSync(file.filepath);
-                    } catch (error) {
-                      // console.log(error)
-                    }
+                    }).toBuffer();
+                  case 2:
+                    newFile = _context3.sent;
+                    // console.log('newFile', newFile)
+                    // Upload lên firebase
+                    idName = (0, _crypto.randomUUID)();
+                    imageRef = (0, _storage.ref)(_firebase.storage, "images/".concat(idName));
+                    metadata = {
+                      contentType: file === null || file === void 0 ? void 0 : file.mimetype
+                    };
+                    _context3.next = 8;
+                    return (0, _storage.uploadBytes)(imageRef, newFile, metadata);
+                  case 8:
+                    resultUpload = _context3.sent;
+                    // Trả dữ liệu file sau khi update về cho người dùng
+                    _resultUpload$metadat = resultUpload.metadata, name = _resultUpload$metadat.name, contentType = _resultUpload$metadat.contentType; // const newFile = await sharp(file.filepath).resize({ width: 400, withoutEnlargement: true }).toFile(newPath)
+                    // console.log('newFile', resultUpload)
+                    // try {
+                    //   fs.unlinkSync(file.filepath)
+                    // } catch (error) {
+                    //   // console.log(error)
+                    // }
                     return _context3.abrupt("return", {
-                      name: file === null || file === void 0 ? void 0 : file.newFilename,
-                      type: file === null || file === void 0 ? void 0 : file.mimetype,
-                      url: _environment.env.BUILD_MODE === 'production' ? "".concat(_environment.env.PRODUCT_APP_HOST, "/files/image/").concat(file === null || file === void 0 ? void 0 : file.newFilename) : "http://localhost:".concat(_environment.env.LOCAL_DEV_APP_PORT, "/api/v1/files/image/").concat(file === null || file === void 0 ? void 0 : file.newFilename)
+                      name: name,
+                      type: contentType,
+                      url: _environment.env.BUILD_MODE === 'production' ? "".concat(_environment.env.PRODUCT_APP_HOST, "/files/image/").concat(name) : "http://localhost:".concat(_environment.env.LOCAL_DEV_APP_PORT, "/api/v1/files/image/").concat(name)
                     });
-                  case 5:
+                  case 11:
                   case "end":
                     return _context3.stop();
                 }
@@ -190,10 +204,10 @@ var uploadImage = /*#__PURE__*/function () {
               return _ref2.apply(this, arguments);
             };
           }()));
-        case 5:
+        case 2:
           result = _context4.sent;
           return _context4.abrupt("return", result);
-        case 7:
+        case 4:
         case "end":
           return _context4.stop();
       }

@@ -1,12 +1,14 @@
 /* eslint-disable no-console */
 import sharp from 'sharp'
-import { EncodingStatus, UPLOAD_IMAGE_DIR } from '~/utils/constants'
-import { getNameFromFullName, handleUploadImage, handleUploadVideo } from '~/utils/file'
+import { EncodingStatus } from '~/utils/constants'
+import { getNameFromFullName, handleUploadVideo } from '~/utils/file'
 import { env } from '~/config/environment'
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video.js'
 import fsPromises from 'fs/promises'
-import fs from 'fs'
 import { mediaModel } from '~/models/mediaModel'
+import { ref, uploadBytes } from 'firebase/storage'
+import { storage } from '~/config/firebase'
+import { randomUUID } from 'crypto'
 
 class Queue {
   #listItem = []
@@ -56,26 +58,43 @@ class Queue {
 
 const queue = new Queue()
 const uploadImage = async (req) => {
-  const files = await handleUploadImage(req)
+  // const files = await handleUploadImage(req)
   // const newName = getNameFromFullName(file?.newFilename)
   // const newPath = `${UPLOAD_IMAGE_DIR}/${newName}.jpg`
 
   const result = await Promise.all(
-    files.map(async (file) => {
-      const newPath = `${UPLOAD_IMAGE_DIR}/${file?.newFilename}`
-      await sharp(file.filepath).resize({ width: 400, withoutEnlargement: true }).toFile(newPath)
-      try {
-        fs.unlinkSync(file.filepath)
-      } catch (error) {
-        // console.log(error)
+    // files.map(async (file) => {
+    req.files.map(async (file) => {
+      // const newPath = `${UPLOAD_IMAGE_DIR}/${file?.newFilename}`
+
+      // Giảm dung lượng file sau khi nhận được từ user thông qua formidable
+      const newFile = await sharp(file.buffer).resize({ width: 400, withoutEnlargement: true }).toBuffer()
+      // console.log('newFile', newFile)
+
+      // Upload lên firebase
+      const idName = randomUUID()
+      const imageRef = ref(storage, `images/${idName}`)
+      const metadata = {
+        contentType: file?.mimetype
       }
+      const resultUpload = await uploadBytes(imageRef, newFile, metadata)
+
+      // Trả dữ liệu file sau khi update về cho người dùng
+      const { name, contentType } = resultUpload.metadata
+      // const newFile = await sharp(file.filepath).resize({ width: 400, withoutEnlargement: true }).toFile(newPath)
+      // console.log('newFile', resultUpload)
+      // try {
+      //   fs.unlinkSync(file.filepath)
+      // } catch (error) {
+      //   // console.log(error)
+      // }
       return {
-        name: file?.newFilename,
-        type: file?.mimetype,
+        name: name,
+        type: contentType,
         url:
           env.BUILD_MODE === 'production'
-            ? `${env.PRODUCT_APP_HOST}/files/image/${file?.newFilename}`
-            : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/image/${file?.newFilename}`
+            ? `${env.PRODUCT_APP_HOST}/files/image/${name}`
+            : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/image/${name}`
       }
     })
   )

@@ -3,8 +3,8 @@ import express from 'express'
 import { userValidation } from '~/validations/userValidation'
 import { userController } from '~/controllers/userController'
 import tokenMiddleware from '~/middlewares/token.middleware'
-import multer from 'multer'
-const upload = multer({ storage: multer.memoryStorage() })
+import { uploadMulter } from '~/utils/multerFile'
+
 const Router = express.Router({ mergeParams: true })
 // /user/delete
 Router.route('/delete').patch(tokenMiddleware.auth, userValidation.deleteUser, userController.deleteUser)
@@ -18,7 +18,7 @@ Router.route('/update-password').patch(
 // /user/update-profile
 Router.route('/update-profile').post(
   tokenMiddleware.auth,
-  upload.single('imageAvatar'),
+  uploadMulter.single('imageAvatar'),
   userValidation.updateProfile,
   userController.updateProfile
 )

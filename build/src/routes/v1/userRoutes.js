@@ -9,12 +9,9 @@ var _express = _interopRequireDefault(require("express"));
 var _userValidation = require("../../validations/userValidation");
 var _userController = require("../../controllers/userController");
 var _token = _interopRequireDefault(require("../../middlewares/token.middleware"));
-var _multer = _interopRequireDefault(require("multer"));
+var _multerFile = require("../../utils/multerFile");
 /* eslint-disable no-console */
 
-var upload = (0, _multer["default"])({
-  storage: _multer["default"].memoryStorage()
-});
 var Router = _express["default"].Router({
   mergeParams: true
 });
@@ -24,7 +21,7 @@ Router.route('/delete').patch(_token["default"].auth, _userValidation.userValida
 // /user/update-password
 Router.route('/update-password').patch(_token["default"].auth, _userValidation.userValidation.updatePassword, _userController.userController.updatePassword);
 // /user/update-profile
-Router.route('/update-profile').post(_token["default"].auth, upload.single('imageAvatar'), _userValidation.userValidation.updateProfile, _userController.userController.updateProfile);
+Router.route('/update-profile').post(_token["default"].auth, _multerFile.uploadMulter.single('imageAvatar'), _userValidation.userValidation.updateProfile, _userController.userController.updateProfile);
 // /user/info
 Router.route('/info').get(_token["default"].auth, _userController.userController.getInfo);
 Router.route('/check-email').post(_userValidation.userValidation.sendGmail, _userController.userController.checkEmail);
