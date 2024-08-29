@@ -9,6 +9,14 @@
       }
     }
   ],
+  "build": {
+    "env": {
+      "BUILD_MODE": "production"
+    },
+    "commands": {
+      "build": "npm run build"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
