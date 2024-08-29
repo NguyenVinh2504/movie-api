@@ -15,9 +15,7 @@
     "build": "npm run clean && npm run build-babel",
     "production": "npm run build && cross-env BUILD_MODE=production node ./build/src/index.js",
     "start": "npm run build && cross-env BUILD_MODE=production node ./build/src/index.js",
-    "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node ./src/index.js",
-    "vercel-build": "npm run build",
-    "vercel-start": "cross-env BUILD_MODE=production node ./build/src/index.js"
+    "dev": "cross-env BUILD_MODE=dev nodemon --exec babel-node ./src/index.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.22.10",
