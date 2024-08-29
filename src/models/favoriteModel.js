@@ -22,7 +22,9 @@ const addFavorite = async (data) => {
   }
   try {
     const favoriteItem = await GET_DB().collection(FAVORITE_COLLECTION_NAME).insertOne(newFavoriteToAdd)
-    const result = await GET_DB().collection(FAVORITE_COLLECTION_NAME).findOne({ _id: new ObjectId(favoriteItem.insertedId) })
+    const result = await GET_DB()
+      .collection(FAVORITE_COLLECTION_NAME)
+      .findOne({ _id: new ObjectId(favoriteItem.insertedId) })
     return result
   } catch (error) {
     throw new Error(error)
@@ -31,7 +33,9 @@ const addFavorite = async (data) => {
 
 const deleteOneById = async ({ idUser, favoriteId }) => {
   try {
-    await GET_DB().collection(FAVORITE_COLLECTION_NAME).deleteOne({ _id: new ObjectId(favoriteId) })
+    await GET_DB()
+      .collection(FAVORITE_COLLECTION_NAME)
+      .deleteOne({ _id: new ObjectId(favoriteId) })
     const result = await findFavorite(idUser)
     return result
   } catch (error) {
@@ -41,7 +45,10 @@ const deleteOneById = async ({ idUser, favoriteId }) => {
 
 const findFavorite = async (idUser) => {
   try {
-    const result = await GET_DB().collection(FAVORITE_COLLECTION_NAME).find({ userId: new ObjectId(idUser) }).toArray()
+    const result = await GET_DB()
+      .collection(FAVORITE_COLLECTION_NAME)
+      .find({ userId: new ObjectId(idUser) })
+      .toArray()
     return result
   } catch (error) {
     throw new Error(error)

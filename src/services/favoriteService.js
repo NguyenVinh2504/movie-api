@@ -22,9 +22,7 @@ const addFavorite = async (req) => {
     // }
 
     return {
-      favorites: [
-        newFavorite
-      ]
+      favorites: [newFavorite]
     }
   } catch (error) {
     throw error
@@ -36,7 +34,6 @@ const removeFavorite = async ({ req, favoriteId }) => {
     const idUser = req.user._id
     const retult = await favoriteModel.deleteOneById({ idUser, favoriteId })
 
-
     return retult
   } catch (error) {
     throw error
@@ -47,7 +44,6 @@ const getFavorites = async ({ req }) => {
   try {
     const idUser = req.user._id
     const retult = await favoriteModel.findFavorite(idUser)
-
 
     return retult
   } catch (error) {

@@ -7,22 +7,24 @@ import multer from 'multer'
 const upload = multer({ storage: multer.memoryStorage() })
 const Router = express.Router({ mergeParams: true })
 // /user/delete
-Router.route('/delete')
-  .patch(tokenMiddleware.auth, userValidation.deleteUser, userController.deleteUser)
+Router.route('/delete').patch(tokenMiddleware.auth, userValidation.deleteUser, userController.deleteUser)
 
 // /user/update-password
-Router.route('/update-password')
-  .patch(tokenMiddleware.auth, userValidation.updatePassword, userController.updatePassword)
+Router.route('/update-password').patch(
+  tokenMiddleware.auth,
+  userValidation.updatePassword,
+  userController.updatePassword
+)
 // /user/update-profile
-Router.route('/update-profile')
-  .post(tokenMiddleware.auth, upload.single('imageAvatar'), userValidation.updateProfile, userController.updateProfile)
+Router.route('/update-profile').post(
+  tokenMiddleware.auth,
+  upload.single('imageAvatar'),
+  userValidation.updateProfile,
+  userController.updateProfile
+)
 // /user/info
-Router.route('/info')
-  .get(tokenMiddleware.auth, userController.getInfo)
-Router.route('/check-email')
-  .post(userValidation.sendGmail, userController.checkEmail)
-Router.route('/send-email')
-  .post(userValidation.sendGmail, userController.sendEmail)
-Router.route('/forgot-password')
-  .post(userValidation.forgotPassword, userController.forgotPassword)
+Router.route('/info').get(tokenMiddleware.auth, userController.getInfo)
+Router.route('/check-email').post(userValidation.sendGmail, userController.checkEmail)
+Router.route('/send-email').post(userValidation.sendGmail, userController.sendEmail)
+Router.route('/forgot-password').post(userValidation.forgotPassword, userController.forgotPassword)
 export const userRoutes = Router

@@ -42,12 +42,16 @@ const START_SERVER = () => {
   if (env.BUILD_MODE === 'production') {
     app.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console
-      console.log(`3.Hello production ${env.AUTHOR}, Back-end Server đang chạy thành công tại Port: ${process.env.PORT}`)
+      console.log(
+        `3.Hello production ${env.AUTHOR}, Back-end Server đang chạy thành công tại Port: ${process.env.PORT}`
+      )
     })
   } else {
     app.listen(env.LOCAL_DEV_APP_PORT, env.LOCAL_DEV_APP_HOST, () => {
       // eslint-disable-next-line no-console
-      console.log(`3.Hello ${env.AUTHOR}, Back-end Server đang chạy thành công tại Host: http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`)
+      console.log(
+        `3.Hello ${env.AUTHOR}, Back-end Server đang chạy thành công tại Host: http://${env.LOCAL_DEV_APP_HOST}:${env.LOCAL_DEV_APP_PORT}/`
+      )
     })
   }
 
@@ -63,7 +67,7 @@ console.log('1.Đang kết.....')
 CONNECT_DB()
   .then(() => console.log('2.Kết nối cloud thành công'))
   .then(() => START_SERVER())
-  .catch(error => {
+  .catch((error) => {
     // eslint-disable-next-line no-console
     console.error(error)
     process.exit(0)

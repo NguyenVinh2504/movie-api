@@ -5,7 +5,6 @@ import { userModel } from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
 import findKeyTokenById from '~/utils/findKeyTokenById'
 
-
 const tokenDecode = async (token) => {
   try {
     // Tìm publicKey trong db của user vửa gửi lên bằng token
@@ -36,8 +35,7 @@ const refreshTokenDecode = async (req, res, next) => {
     const decoded = jwtHelper.verifyToken(refreshToken, keyStore.privateKey)
     req.decoded = decoded
     next()
-  }
-  catch (error) {
+  } catch (error) {
     if (error.message.includes('jwt malformed')) {
       next(new ApiError(StatusCodes.UNAUTHORIZED, 'Bạn không được phép truy cập'))
       return

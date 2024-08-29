@@ -41,7 +41,6 @@ const deleteUser = async (req) => {
     if (req.user.admin) {
       return await userModel.deleteUser(req.body.userId)
     }
-
   } catch (error) {
     throw error
   }
@@ -80,9 +79,9 @@ const updateProfile = async (req) => {
     if (req.body.avatar) {
       const imageDel = ref(storage, req.body.avatar)
       // const err = await deleteObject(imageDel)
-      deleteObject(imageDel).then((data) => {
-      }).catch((error) => {
-      })
+      deleteObject(imageDel)
+        .then((data) => {})
+        .catch((error) => {})
       req.body.avatar = null
       req.body.temporaryAvatar = null
     }
@@ -145,7 +144,12 @@ const sendEmail = async (req) => {
     if (otpHolder) {
       await otpModel.deleteOtp(email)
     }
-    const OTP = otpGenerator.generate(6, { digits: true, lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false })
+    const OTP = otpGenerator.generate(6, {
+      digits: true,
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false
+    })
 
     await otpService.otpCreate({ email, otp: OTP })
     const transporter = nodemailer.createTransport({

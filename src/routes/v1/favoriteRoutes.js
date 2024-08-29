@@ -9,6 +9,5 @@ Router.route('/')
   .post(tokenMiddleware.auth, favoriteValidation.createFavorite, favoriteController.addFavorite)
   .get(tokenMiddleware.auth, favoriteController.getFavorites)
 
-Router.route('/:id')
-  .delete(tokenMiddleware.auth, favoriteValidation.deleteFavorite, favoriteController.removeFavorite)
+Router.route('/:id').delete(tokenMiddleware.auth, favoriteValidation.deleteFavorite, favoriteController.removeFavorite)
 export const favoriteRoutes = Router

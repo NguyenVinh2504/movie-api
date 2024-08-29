@@ -7,7 +7,6 @@ import { authService } from '~/services/authService'
 // /user/signup
 const signUp = async (req, res, next) => {
   try {
-
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
     const user = await authService.signUp(req, res)
 
@@ -41,7 +40,6 @@ const signUp = async (req, res, next) => {
 
 const loginGoogle = async (req, res, next) => {
   try {
-
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
     if (req.query.error) {
       return res.redirect(`${env.CLIENT_URL_REDIRECT}?error=${req.query.error}`)
@@ -67,9 +65,7 @@ const loginGoogle = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const user = await authService.login(req, res)
-    res.status(StatusCodes.CREATED).json(
-      user
-    )
+    res.status(StatusCodes.CREATED).json(user)
   } catch (error) {
     next(error)
   }
@@ -78,9 +74,7 @@ const login = async (req, res, next) => {
 const refreshToken = async (req, res, next) => {
   try {
     const newRefreshToken = await authService.refreshToken(req, res)
-    res.status(StatusCodes.CREATED).json(
-      newRefreshToken
-    )
+    res.status(StatusCodes.CREATED).json(newRefreshToken)
   } catch (error) {
     next(error)
   }
@@ -88,9 +82,7 @@ const refreshToken = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     await authService.logout(req, res)
-    res.status(StatusCodes.CREATED).json(
-      'Logged out'
-    )
+    res.status(StatusCodes.CREATED).json('Logged out')
   } catch (error) {
     next(error)
   }

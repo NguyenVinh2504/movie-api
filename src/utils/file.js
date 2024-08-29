@@ -5,10 +5,9 @@ import { StatusCodes } from 'http-status-codes'
 import { UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR, UPLOAD_VIDEO_TEMP_DIR } from './constants'
 import { randomUUID } from 'crypto'
 import path from 'path'
-
 export const initFolder = () => {
   try {
-    [UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR].forEach((dir) => {
+    ;[UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_TEMP_DIR].forEach((dir) => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, {
           recursive: true // Tạo folder lồng nhau
@@ -26,7 +25,7 @@ export const handleUploadImage = (req) => {
     // maxFiles: 4,
     keepExtensions: true,
     // maxFileSize: 1 * 1024 * 1024, // 1MB,
-    filter: function({ name, mimetype }) {
+    filter: function ({ name, mimetype }) {
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'))
       if (!valid) {
         form.emit('error', new ApiError(StatusCodes.BAD_REQUEST, 'Invalid file type'))
@@ -61,7 +60,7 @@ export const handleUploadVideo = (req) => {
     // maxFileSize: 1 * 1024 * 1024, // 1MB,
 
     // Filter file type nếu trả về true thì pass
-    filter: function({ name, mimetype }) {
+    filter: function ({ name, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'))
       if (!valid) {
         form.emit('error', new ApiError(StatusCodes.BAD_REQUEST, 'Invalid file type'))

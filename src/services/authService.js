@@ -17,10 +17,11 @@ import { timeExpired } from '~/utils/constants'
 const signUp = async (req, res) => {
   try {
     const checkEmail = await userModel.getEmail(req.body.email)
-    if (checkEmail) throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
-      name: 'EMAIL',
-      message: 'Email đã được đăng ký'
-    })
+    if (checkEmail)
+      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
+        name: 'EMAIL',
+        message: 'Email đã được đăng ký'
+      })
     // Mã hóa mật khẩu từ phía người dùng nhập vào
     const hashed = await hashPassword(req.body.password)
     // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
@@ -148,7 +149,6 @@ const signUp = async (req, res) => {
 //   }
 // }
 
-
 const getOauthGoogleToken = async (code) => {
   const body = {
     code,
@@ -166,7 +166,6 @@ const getOauthGoogleToken = async (code) => {
 
   return data
 }
-
 
 const getGoogleUserInfo = async (access_token, id_token) => {
   const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -199,8 +198,16 @@ const loginGoogle = async (code, res) => {
     }
     // Get privateKey và publicKey trong db để tạo token
     keyStore = await authModel.getKeyToken(checkEmail._id.toString())
-    const accessToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
-    const refreshToken = jwtHelper.generateToken({ user: checkEmail, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
+    const accessToken = jwtHelper.generateToken({
+      user: checkEmail,
+      tokenSecret: keyStore.publicKey,
+      tokenLife: timeExpired
+    })
+    const refreshToken = jwtHelper.generateToken({
+      user: checkEmail,
+      tokenSecret: keyStore.privateKey,
+      tokenLife: '365d'
+    })
 
     await Promise.all([
       authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken }),
@@ -340,7 +347,11 @@ const refreshToken = async (req, res) => {
     const access_token = req.headers['authorization']?.replace('Bearer ', '')
 
     // refreshToken gửi lên đã được sử dụng để refreshToken chưa
-    if ('refreshTokensUsed' in keyStore && Array.isArray(keyStore.refreshTokensUsed) && keyStore.refreshTokensUsed.includes(refreshToken)) {
+    if (
+      'refreshTokensUsed' in keyStore &&
+      Array.isArray(keyStore.refreshTokensUsed) &&
+      keyStore.refreshTokensUsed.includes(refreshToken)
+    ) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Có gì đó không ổn. Đăng nhập lại!')
     }
 
@@ -365,10 +376,17 @@ const refreshToken = async (req, res) => {
     // await authModel.deleteRefreshToken(refreshToken)
     // await authModel.deleteAccessToken(access_token)
 
-
     // Tạo accessToken và refreshToken bằng privateKey và publicKey của user trong db
-    const newAccessToken = jwtHelper.generateToken({ user: decoded, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
-    const newRefreshToken = jwtHelper.generateToken({ user: decoded, tokenSecret: keyStore.privateKey, exp: decoded.exp })
+    const newAccessToken = jwtHelper.generateToken({
+      user: decoded,
+      tokenSecret: keyStore.publicKey,
+      tokenLife: timeExpired
+    })
+    const newRefreshToken = jwtHelper.generateToken({
+      user: decoded,
+      tokenSecret: keyStore.privateKey,
+      exp: decoded.exp
+    })
     await Promise.all([
       authModel.addRefreshToken({ userId: decoded._id, refreshToken: newRefreshToken }),
       authModel.addAccessToken({ userId: decoded._id, accessToken: newAccessToken }),
@@ -403,8 +421,7 @@ const logout = async (req, res) => {
       // Xóa accessToken ở db
       authModel.deleteAccessToken(access_token)
     ])
-  }
-  catch (error) {
+  } catch (error) {
     throw error
   }
 }

@@ -1,4 +1,3 @@
-
 import { StatusCodes } from 'http-status-codes'
 import path from 'path'
 import { mediaUploadService } from '~/services/mediaUpload.service'
@@ -10,7 +9,6 @@ import mime from 'mime'
 const uploadImage = async (req, res) => {
   const result = await mediaUploadService.uploadImage(req)
   return res.status(StatusCodes.CREATED).json({ message: 'Upload image successfully', result })
-
 }
 
 const uploadVideo = async (req, res) => {
@@ -21,7 +19,6 @@ const uploadVideo = async (req, res) => {
 const uploadVideoHls = async (req, res) => {
   const result = await mediaUploadService.uploadVideoHls(req)
   return res.status(StatusCodes.CREATED).json({ message: 'Upload video successfully', result })
-
 }
 
 const serveImage = (req, res, next) => {

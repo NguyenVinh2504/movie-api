@@ -20,10 +20,7 @@ const otpCreate = async (data) => {
 
 const otpVerify = async ({ otp, hashOtp }) => {
   try {
-    const isValid = await bcryct.compare(
-      otp,
-      hashOtp
-    )
+    const isValid = await bcryct.compare(otp, hashOtp)
     return isValid
   } catch (error) {
     throw error

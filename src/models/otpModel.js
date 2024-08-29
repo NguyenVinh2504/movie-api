@@ -3,22 +3,22 @@ import { GET_DB } from '~/config/mongodb'
 
 const OTP_COLLECTION_NAME = 'otp'
 const OTP_COLLECTION_SCHEMA = Joi.object({
-  email: Joi.string().email().required()
-    .label('email')
-    .messages({
-      'string.email': '{#label} Sai định dạng email',
-      'any.required': '{#label} Email chưa nhập'
-    }),
+  email: Joi.string().email().required().label('email').messages({
+    'string.email': '{#label} Sai định dạng email',
+    'any.required': '{#label} Email chưa nhập'
+  }),
   otp: Joi.string().required()
 })
 
 const createOtp = async (data) => {
   const validData = await OTP_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
   try {
-    const otp = await GET_DB().collection(OTP_COLLECTION_NAME).insertOne({
-      ...validData
-      , createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 2))
-    })
+    const otp = await GET_DB()
+      .collection(OTP_COLLECTION_NAME)
+      .insertOne({
+        ...validData,
+        createdAt: new Date(new Date().setMinutes(new Date().getMinutes() + 2))
+      })
     GET_DB().collection(OTP_COLLECTION_NAME).createIndex({ createdAt: 1 }, { expireAfterSeconds: 10 })
     return otp
   } catch (error) {
