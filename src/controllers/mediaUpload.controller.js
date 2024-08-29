@@ -5,9 +5,8 @@ import ApiError from '~/utils/ApiError'
 import { UPLOAD_VIDEO_DIR } from '~/utils/constants'
 import fs from 'fs'
 import mime from 'mime'
-import { getDownloadURL, ref } from 'firebase/storage'
+import { getStream, ref } from 'firebase/storage'
 import { storage } from '~/config/firebase'
-import axios from 'axios'
 
 const uploadImage = async (req, res) => {
   const result = await mediaUploadService.uploadImage(req)
@@ -28,9 +27,8 @@ const serveImage = async (req, res) => {
   const { name } = req.params
   // const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
   const file = ref(storage, `images/${name}`)
-  const url = await getDownloadURL(file)
-  const response = await axios.get(url, { responseType: 'stream' })
-  response.data.pipe(res)
+  getStream(file).pipe(res)
+  // response.data.pipe(res)
   // res.sendFile(file, (err) => {
   //   if (err) {
   //     next(err)

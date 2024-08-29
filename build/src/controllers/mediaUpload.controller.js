@@ -16,7 +16,6 @@ var _fs = _interopRequireDefault(require("fs"));
 var _mime = _interopRequireDefault(require("mime"));
 var _storage = require("firebase/storage");
 var _firebase = require("../config/firebase");
-var _axios = _interopRequireDefault(require("axios"));
 var uploadImage = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req, res) {
     var result;
@@ -91,29 +90,20 @@ var uploadVideoHls = /*#__PURE__*/function () {
 }();
 var serveImage = /*#__PURE__*/function () {
   var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req, res) {
-    var name, file, url, response;
+    var name, file;
     return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
           name = req.params.name; // const filePath = path.resolve(UPLOAD_IMAGE_DIR, name)
           file = (0, _storage.ref)(_firebase.storage, "images/".concat(name));
-          _context4.next = 4;
-          return (0, _storage.getDownloadURL)(file);
-        case 4:
-          url = _context4.sent;
-          _context4.next = 7;
-          return _axios["default"].get(url, {
-            responseType: 'stream'
-          });
-        case 7:
-          response = _context4.sent;
-          response.data.pipe(res);
+          (0, _storage.getStream)(file).pipe(res);
+          // response.data.pipe(res)
           // res.sendFile(file, (err) => {
           //   if (err) {
           //     next(err)
           //   }
           // })
-        case 9:
+        case 3:
         case "end":
           return _context4.stop();
       }
