@@ -6,9 +6,11 @@ import { env } from '~/config/environment'
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video.js'
 import fsPromises from 'fs/promises'
 import { mediaModel } from '~/models/mediaModel'
-import { ref, uploadBytes } from 'firebase/storage'
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import { storage } from '~/config/firebase'
 import { randomUUID } from 'crypto'
+import ApiError from '~/utils/ApiError'
+import { StatusCodes } from 'http-status-codes'
 
 class Queue {
   #listItem = []
@@ -61,6 +63,10 @@ const uploadImage = async (req) => {
   // const files = await handleUploadImage(req)
   // const newName = getNameFromFullName(file?.newFilename)
   // const newPath = `${UPLOAD_IMAGE_DIR}/${newName}.jpg`
+  // console.log('files', req.files)
+  if (!('files' in req)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'File is empty')
+  }
 
   const result = await Promise.all(
     // files.map(async (file) => {
@@ -103,18 +109,38 @@ const uploadImage = async (req) => {
 }
 
 const uploadVideo = async (req) => {
-  const files = await handleUploadVideo(req)
-  const result = files.map((file) => {
-    return {
-      name: file?.newFilename,
-      type: file?.mimetype,
-      url:
-        env.BUILD_MODE === 'production'
-          ? `${env.PRODUCT_APP_HOST}/files/video/${file?.newFilename}`
-          : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
-    }
-  })
-  return result
+  // const files = await handleUploadVideo(req)
+  // const result = files.map((file) => {
+  //   return {
+  //     name: file?.newFilename,
+  //     type: file?.mimetype,
+  //     url:
+  //       env.BUILD_MODE === 'production'
+  //         ? `${env.PRODUCT_APP_HOST}/files/video/${file?.newFilename}`
+  //         : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
+  //   }
+  // })
+  console.log('req.files', req.file)
+  const file = req.file
+  // Upload lên firebase
+  const idName = randomUUID()
+  const videoRef = ref(storage, `video/${idName}`)
+
+  const metadata = {
+    contentType: file?.mimetype
+  }
+  console.log('videoRef', file)
+  const resultUpload = await uploadBytes(videoRef, file.buffer, metadata)
+
+  // Trả dữ liệu file sau khi update về cho người dùng
+  const { name, contentType } = resultUpload.metadata
+  const fileRef = ref(storage, `video/${name}`)
+  const downloadURL = await getDownloadURL(fileRef)
+  return {
+    name: name,
+    type: contentType,
+    url: downloadURL
+  }
 }
 
 const uploadVideoHls = async (req) => {

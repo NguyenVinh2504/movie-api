@@ -21,6 +21,8 @@ var _mediaModel = require("../models/mediaModel");
 var _storage = require("firebase/storage");
 var _firebase = require("../config/firebase");
 var _crypto = require("crypto");
+var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
+var _httpStatusCodes = require("http-status-codes");
 function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
 function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } } /* eslint-disable no-console */
 var _listItem = /*#__PURE__*/new WeakMap();
@@ -154,7 +156,13 @@ var uploadImage = /*#__PURE__*/function () {
     return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
         case 0:
-          _context4.next = 2;
+          if ('files' in req) {
+            _context4.next = 2;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'File is empty');
+        case 2:
+          _context4.next = 4;
           return Promise.all(
           // files.map(async (file) => {
           req.files.map( /*#__PURE__*/function () {
@@ -204,10 +212,10 @@ var uploadImage = /*#__PURE__*/function () {
               return _ref2.apply(this, arguments);
             };
           }()));
-        case 2:
+        case 4:
           result = _context4.sent;
           return _context4.abrupt("return", result);
-        case 4:
+        case 6:
         case "end":
           return _context4.stop();
       }
@@ -219,23 +227,46 @@ var uploadImage = /*#__PURE__*/function () {
 }();
 var uploadVideo = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req) {
-    var files, result;
+    var file, idName, videoRef, metadata, resultUpload, _resultUpload$metadat2, name, contentType, fileRef, downloadURL;
     return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
-          _context5.next = 2;
-          return (0, _file.handleUploadVideo)(req);
-        case 2:
-          files = _context5.sent;
-          result = files.map(function (file) {
-            return {
-              name: file === null || file === void 0 ? void 0 : file.newFilename,
-              type: file === null || file === void 0 ? void 0 : file.mimetype,
-              url: _environment.env.BUILD_MODE === 'production' ? "".concat(_environment.env.PRODUCT_APP_HOST, "/files/video/").concat(file === null || file === void 0 ? void 0 : file.newFilename) : "http://localhost:".concat(_environment.env.LOCAL_DEV_APP_PORT, "/api/v1/files/video/").concat(file === null || file === void 0 ? void 0 : file.newFilename)
-            };
+          // const files = await handleUploadVideo(req)
+          // const result = files.map((file) => {
+          //   return {
+          //     name: file?.newFilename,
+          //     type: file?.mimetype,
+          //     url:
+          //       env.BUILD_MODE === 'production'
+          //         ? `${env.PRODUCT_APP_HOST}/files/video/${file?.newFilename}`
+          //         : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
+          //   }
+          // })
+          console.log('req.files', req.file);
+          file = req.file; // Upload lên firebase
+          idName = (0, _crypto.randomUUID)();
+          videoRef = (0, _storage.ref)(_firebase.storage, "video/".concat(idName));
+          metadata = {
+            contentType: file === null || file === void 0 ? void 0 : file.mimetype
+          };
+          console.log('videoRef', file);
+          _context5.next = 8;
+          return (0, _storage.uploadBytes)(videoRef, file.buffer, metadata);
+        case 8:
+          resultUpload = _context5.sent;
+          // Trả dữ liệu file sau khi update về cho người dùng
+          _resultUpload$metadat2 = resultUpload.metadata, name = _resultUpload$metadat2.name, contentType = _resultUpload$metadat2.contentType;
+          fileRef = (0, _storage.ref)(_firebase.storage, "video/".concat(name));
+          _context5.next = 13;
+          return (0, _storage.getDownloadURL)(fileRef);
+        case 13:
+          downloadURL = _context5.sent;
+          return _context5.abrupt("return", {
+            name: name,
+            type: contentType,
+            url: downloadURL
           });
-          return _context5.abrupt("return", result);
-        case 5:
+        case 15:
         case "end":
           return _context5.stop();
       }
