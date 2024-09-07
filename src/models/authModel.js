@@ -55,7 +55,9 @@ const USER_COLLECTION_SCHEMA = Joi.object({
     }),
   phone: Joi.number().default(null),
   userName: Joi.string(),
-  createdAt: Joi.date().timestamp('javascript').default(Date.now),
+  createdAt: Joi.date()
+    .iso()
+    .default(() => new Date()),
   admin: Joi.boolean().default(false),
   _destroy: Joi.boolean().default(false)
 })

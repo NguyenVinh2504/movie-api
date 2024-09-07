@@ -7,6 +7,7 @@ import { favoriteRoutes } from './favoriteRoutes.js'
 import { mediasUploadRoutes } from './mediasUploadRoutes.js'
 import { staticRoute } from './static.routes.js'
 import { UPLOAD_VIDEO_TEMP_DIR } from '~/utils/constants.js'
+import { commentRoutes } from './commentRoute.js'
 const Router = express.Router({ mergeParams: true })
 
 // Check api v1
@@ -24,6 +25,7 @@ Router.use('/files/video', express.static(UPLOAD_VIDEO_TEMP_DIR))
 
 Router.use('/medias-upload', mediasUploadRoutes)
 
+Router.use('/comment', commentRoutes)
 Router.use('/:mediaType', mediaRoute)
 
 export default Router

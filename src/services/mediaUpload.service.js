@@ -120,7 +120,6 @@ const uploadVideo = async (req) => {
   //         : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
   //   }
   // })
-  console.log('req.files', req.file)
   const file = req.file
   // Upload lên firebase
   const idName = randomUUID()
@@ -129,7 +128,6 @@ const uploadVideo = async (req) => {
   const metadata = {
     contentType: file?.mimetype
   }
-  console.log('videoRef', file)
   const resultUpload = await uploadBytes(videoRef, file.buffer, metadata)
 
   // Trả dữ liệu file sau khi update về cho người dùng

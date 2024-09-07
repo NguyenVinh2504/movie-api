@@ -242,31 +242,29 @@ var uploadVideo = /*#__PURE__*/function () {
           //         : `http://localhost:${env.LOCAL_DEV_APP_PORT}/api/v1/files/video/${file?.newFilename}`
           //   }
           // })
-          console.log('req.files', req.file);
           file = req.file; // Upload lên firebase
           idName = (0, _crypto.randomUUID)();
           videoRef = (0, _storage.ref)(_firebase.storage, "video/".concat(idName));
           metadata = {
             contentType: file === null || file === void 0 ? void 0 : file.mimetype
           };
-          console.log('videoRef', file);
-          _context5.next = 8;
+          _context5.next = 6;
           return (0, _storage.uploadBytes)(videoRef, file.buffer, metadata);
-        case 8:
+        case 6:
           resultUpload = _context5.sent;
           // Trả dữ liệu file sau khi update về cho người dùng
           _resultUpload$metadat2 = resultUpload.metadata, name = _resultUpload$metadat2.name, contentType = _resultUpload$metadat2.contentType;
           fileRef = (0, _storage.ref)(_firebase.storage, "video/".concat(name));
-          _context5.next = 13;
+          _context5.next = 11;
           return (0, _storage.getDownloadURL)(fileRef);
-        case 13:
+        case 11:
           downloadURL = _context5.sent;
           return _context5.abrupt("return", {
             name: name,
             type: contentType,
             url: downloadURL
           });
-        case 15:
+        case 13:
         case "end":
           return _context5.stop();
       }

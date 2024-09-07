@@ -72,7 +72,9 @@ var USER_COLLECTION_SCHEMA = _joi["default"].object({
   }),
   phone: _joi["default"].number()["default"](null),
   userName: _joi["default"].string(),
-  createdAt: _joi["default"].date().timestamp('javascript')["default"](Date.now),
+  createdAt: _joi["default"].date().iso()["default"](function () {
+    return new Date();
+  }),
   admin: _joi["default"]["boolean"]()["default"](false),
   _destroy: _joi["default"]["boolean"]()["default"](false)
 });

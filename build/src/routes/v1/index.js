@@ -14,6 +14,7 @@ var _favoriteRoutes = require("./favoriteRoutes.js");
 var _mediasUploadRoutes = require("./mediasUploadRoutes.js");
 var _staticRoutes = require("./static.routes.js");
 var _constants = require("../../utils/constants.js");
+var _commentRoute = require("./commentRoute.js");
 var Router = _express["default"].Router({
   mergeParams: true
 });
@@ -32,6 +33,7 @@ Router.use('/auth', _authRoutes.authRoutes);
 Router.use('/files', _staticRoutes.staticRoute);
 Router.use('/files/video', _express["default"]["static"](_constants.UPLOAD_VIDEO_TEMP_DIR));
 Router.use('/medias-upload', _mediasUploadRoutes.mediasUploadRoutes);
+Router.use('/comment', _commentRoute.commentRoutes);
 Router.use('/:mediaType', _mediaRoute.mediaRoute);
 var _default = Router;
 exports["default"] = _default;

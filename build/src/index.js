@@ -12,13 +12,36 @@ var _errorHandlingMiddleware = require("./middlewares/errorHandlingMiddleware.js
 var _httpStatusCodes = require("http-status-codes");
 var _cookieParser = _interopRequireDefault(require("cookie-parser"));
 var _file = require("./utils/file.js");
+var _http = require("http");
+var _socket = require("socket.io");
+var _constants = require("./utils/constants.js");
 /* eslint-disable no-console */
 
 var START_SERVER = function START_SERVER() {
   var app = (0, _express["default"])();
-
+  var httpServer = (0, _http.createServer)(app);
+  var io = new _socket.Server(httpServer, {
+    cors: {
+      origin: _constants.WHITELIST_DOMAINS
+    }
+  });
+  io.on('connection', function (socket) {
+    console.log('Socket connected with user have id: ', socket.id);
+    // Lắng nghe sự kiện người dùng tham gia room movie
+    socket.on('joinMovieRoom', function (movieId) {
+      socket.join(movieId); // Tham gia room tương ứng với movieId
+      console.log("User with socket id ".concat(socket.id, " joined room ").concat(movieId));
+    });
+    socket.on('disconnect', function () {
+      console.log('Socket disconnected with user have id: ', socket.id);
+    });
+  });
   //Tạo folder upload
   (0, _file.initFolder)();
+  app.use(function (req, res, next) {
+    req.io = io;
+    next();
+  });
 
   // Bat req cookie
   app.use((0, _cookieParser["default"])());
@@ -46,12 +69,12 @@ var START_SERVER = function START_SERVER() {
   //Middleware xử lý lỗi tập trung
   app.use(_errorHandlingMiddleware.errorHandlingMiddleware);
   if (_environment.env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT, function () {
+    httpServer.listen(process.env.PORT, function () {
       // eslint-disable-next-line no-console
       console.log("3.Hello production ".concat(_environment.env.AUTHOR, ", Back-end Server \u0111ang ch\u1EA1y th\xE0nh c\xF4ng t\u1EA1i Port: ").concat(process.env.PORT));
     });
   } else {
-    app.listen(_environment.env.LOCAL_DEV_APP_PORT, _environment.env.LOCAL_DEV_APP_HOST, function () {
+    httpServer.listen(_environment.env.LOCAL_DEV_APP_PORT, _environment.env.LOCAL_DEV_APP_HOST, function () {
       // eslint-disable-next-line no-console
       console.log("3.Hello ".concat(_environment.env.AUTHOR, ", Back-end Server \u0111ang ch\u1EA1y th\xE0nh c\xF4ng t\u1EA1i Host: http://").concat(_environment.env.LOCAL_DEV_APP_HOST, ":").concat(_environment.env.LOCAL_DEV_APP_PORT, "/"));
     });

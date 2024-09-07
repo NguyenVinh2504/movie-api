@@ -16,7 +16,7 @@ export const imageMulterMiddleware = (req, res, next) => {
     if (!req.files) {
       return next(new ApiError(StatusCodes.BAD_REQUEST, 'Không có file nào được tải lên!'))
     }
-    next()
+    return next()
   })
 }
 
@@ -33,5 +33,6 @@ export const videoMulterMiddleware = (req, res, next) => {
     if (!req.file) {
       return next(new ApiError(StatusCodes.BAD_REQUEST, 'Không có file nào được tải lên!'))
     }
+    return next()
   })
 }

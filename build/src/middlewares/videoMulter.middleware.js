@@ -24,7 +24,7 @@ var imageMulterMiddleware = function imageMulterMiddleware(req, res, next) {
     if (!req.files) {
       return next(new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Không có file nào được tải lên!'));
     }
-    next();
+    return next();
   });
 };
 exports.imageMulterMiddleware = imageMulterMiddleware;
@@ -41,6 +41,7 @@ var videoMulterMiddleware = function videoMulterMiddleware(req, res, next) {
     if (!req.file) {
       return next(new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Không có file nào được tải lên!'));
     }
+    return next();
   });
 };
 exports.videoMulterMiddleware = videoMulterMiddleware;
