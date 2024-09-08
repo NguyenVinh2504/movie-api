@@ -35,19 +35,32 @@ var addComment = /*#__PURE__*/function () {
 }();
 var getCommentsByMovieId = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res) {
-    var data;
+    var _req$params, movieId, movieType, limit, page, data, totalPage;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          _context2.next = 2;
-          return _commentService.commentService.getCommentsByMovieId(req, res);
-        case 2:
+          _req$params = req.params, movieId = _req$params.movieId, movieType = _req$params.movieType;
+          limit = req.query.limit;
+          page = req.query.page;
+          _context2.next = 5;
+          return _commentService.commentService.getCommentsByMovieId({
+            movieId: movieId,
+            movieType: movieType,
+            limit: limit,
+            page: page
+          });
+        case 5:
           data = _context2.sent;
+          totalPage = Math.ceil(data.total / limit);
           res.status(_httpStatusCodes.StatusCodes.OK).json({
             message: 'Get comment successfully',
-            data: data
+            totalPage: totalPage !== 0 ? totalPage : 1,
+            limit: limit,
+            page: page,
+            totalComment: data.total,
+            listComment: data.listComments
           });
-        case 4:
+        case 8:
         case "end":
           return _context2.stop();
       }

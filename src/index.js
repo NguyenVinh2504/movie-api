@@ -14,25 +14,35 @@ import { initFolder } from './utils/file.js'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { WHITELIST_DOMAINS } from './utils/constants.js'
+import { commentModel } from './models/commentModel.js'
 const START_SERVER = () => {
   const app = express()
   const httpServer = createServer(app)
   const io = new Server(httpServer, {
-    transports: ['websocket', 'polling'],
-    allowEIO3: true,
     cors: {
       origin: WHITELIST_DOMAINS,
       credentials: true
     }
   })
-
   io.on('connection', (socket) => {
     console.log('Socket connected with user have id: ', socket.id)
-    // Lắng nghe sự kiện người dùng tham gia room movie
-    socket.on('joinMovieRoom', (movieId) => {
-      socket.join(movieId) // Tham gia room tương ứng với movieId
-      console.log(`User with socket id ${socket.id} joined room ${movieId}`)
+    const userId = socket.handshake.auth.id
+    console.log('userId: ', userId)
+
+    socket.on('addComment', async (data) => {
+      const { movieId, movieType, content } = data
+
+      const newComment = await commentModel.createComment({ movieId, userId, content, movieType })
+
+      console.log(newComment)
+
+      socket.emit('newListComments', newComment)
     })
+    // // Lắng nghe sự kiện người dùng tham gia room movie
+    // socket.on('joinMovieRoom', (movieId) => {
+    //   socket.join(movieId) // Tham gia room tương ứng với movieId
+    //   console.log(`User with socket id ${socket.id} joined room ${movieId}`)
+    // })
     socket.on('disconnect', () => {
       console.log('Socket disconnected with user have id: ', socket.id)
     })

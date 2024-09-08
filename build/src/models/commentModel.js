@@ -24,6 +24,35 @@ var COMMENTS_COLLECTION_SCHEMA = _joi["default"].object({
     return new Date();
   })
 });
+var lookup = {
+  from: 'users',
+  // Collection "users" mà bạn muốn join
+  localField: 'userId',
+  // Trường trong "comments" tương ứng với user
+  foreignField: '_id',
+  // Trường trong "users" là _id
+  as: 'user' // Tên trường mới chứa thông tin user
+};
+
+var unwind = '$user';
+var project = {
+  _id: 1,
+  // Hiển thị _id của comment
+  content: 1,
+  // Hiển thị nội dung comment
+  movieId: 1,
+  // Hiển thị movieId
+  movieType: 1,
+  // Hiển thị movieType
+  createAt: 1,
+  // Hiện thị thời gian tạo comment
+  'user.name': 1,
+  // Hiển thị tên người dùng
+  'user.avatar': 1,
+  // Hiển thị avatar người dùng
+  'user.temporaryAvatar': 1 // Hiển thị avatar người dùng
+};
+
 var createComment = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(data) {
     var validData, newValidData, db, result;
@@ -47,33 +76,11 @@ var createComment = /*#__PURE__*/function () {
               _id: new _mongodb.ObjectId(db.insertedId)
             }
           }, {
-            $lookup: {
-              from: 'users',
-              // Collection "users" mà bạn muốn join
-              localField: 'userId',
-              // Trường trong "comments" tương ứng với user
-              foreignField: '_id',
-              // Trường trong "users" là _id
-              as: 'user' // Tên trường mới chứa thông tin user
-            }
+            $lookup: lookup
           }, {
-            $unwind: '$user' // Đưa các trường trong "user" ra ngoài tạo thành 1 object thay vì lưu trong mảng với phần tử là object
+            $unwind: unwind // Đưa các trường trong "user" ra ngoài tạo thành 1 object thay vì lưu trong mảng với phần tử là object
           }, {
-            $project: {
-              _id: 1,
-              // Hiển thị _id của comment
-              content: 1,
-              // Hiển thị nội dung comment
-              movieId: 1,
-              // Hiển thị movieId
-              createAt: 1,
-              // Hiện thị thời gian tạo comment
-              'user.name': 1,
-              // Hiển thị tên người dùng
-              'user.avatar': 1,
-              // Hiển thị avatar người dùng
-              'user.temporaryAvatar': 1 // Hiển thị avatar người dùng
-            }
+            $project: project
           }]).next();
         case 9:
           result = _context.sent;
@@ -90,56 +97,39 @@ var createComment = /*#__PURE__*/function () {
 }();
 var getCommentsByMovieId = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref2) {
-    var movieId, movieType, result;
+    var movieId, movieType, page, limit, skip, result;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          movieId = _ref2.movieId, movieType = _ref2.movieType;
-          if (!(typeof movieId !== 'string')) {
+          movieId = _ref2.movieId, movieType = _ref2.movieType, page = _ref2.page, limit = _ref2.limit;
+          if (!(typeof movieId !== 'string' || typeof movieType !== 'string')) {
             _context2.next = 3;
             break;
           }
-          throw new Error('idMovie là string');
+          throw new Error('movieId, movieType phải là string');
         case 3:
-          _context2.next = 5;
+          skip = (page - 1) * limit;
+          _context2.next = 6;
           return (0, _mongodb2.GET_DB)().collection(COMMENTS_COLLECTION_NAME).aggregate([{
             $match: {
               movieId: movieId,
               movieType: movieType
             }
           }, {
-            $lookup: {
-              from: 'users',
-              // Collection "users" mà bạn muốn join
-              localField: 'userId',
-              // Trường trong "comments" tương ứng với user
-              foreignField: '_id',
-              // Trường trong "users" là _id
-              as: 'user' // Tên trường mới chứa thông tin user
+            $lookup: lookup
+          }, {
+            $unwind: unwind // Đưa các trường trong "user" ra ngoài tạo thành 1 object thay vì lưu trong mảng với phần tử là object
+          }, {
+            $sort: {
+              createAt: -1
             }
           }, {
-            $unwind: '$user' // Đưa các trường trong "user" ra ngoài tạo thành 1 object thay vì lưu trong mảng với phần tử là object
-          }, {
-            $project: {
-              _id: 1,
-              // Không hiển thị _id của comment
-              content: 1,
-              // Hiển thị nội dung comment
-              movieId: 1,
-              // Hiển thị movieId
-              createAt: 1,
-              // Hiện thị thời gian tạo comment
-              'user.name': 1,
-              // Hiển thị tên người dùng
-              'user.avatar': 1,
-              // Hiển thị avatar người dùng
-              'user.temporaryAvatar': 1 // Hiển thị avatar người dùng
-            }
-          }]).toArray();
-        case 5:
+            $project: project
+          }]).skip(skip).limit(limit).toArray();
+        case 6:
           result = _context2.sent;
           return _context2.abrupt("return", result);
-        case 7:
+        case 8:
         case "end":
           return _context2.stop();
       }
@@ -149,10 +139,30 @@ var getCommentsByMovieId = /*#__PURE__*/function () {
     return _ref3.apply(this, arguments);
   };
 }();
+var countDocument = /*#__PURE__*/function () {
+  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(data) {
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.next = 2;
+          return (0, _mongodb2.GET_DB)().collection(COMMENTS_COLLECTION_NAME).countDocuments(data);
+        case 2:
+          return _context3.abrupt("return", _context3.sent);
+        case 3:
+        case "end":
+          return _context3.stop();
+      }
+    }, _callee3);
+  }));
+  return function countDocument(_x3) {
+    return _ref4.apply(this, arguments);
+  };
+}();
 var commentModel = {
   COMMENTS_COLLECTION_NAME: COMMENTS_COLLECTION_NAME,
   COMMENTS_COLLECTION_SCHEMA: COMMENTS_COLLECTION_SCHEMA,
   createComment: createComment,
-  getCommentsByMovieId: getCommentsByMovieId
+  getCommentsByMovieId: getCommentsByMovieId,
+  countDocument: countDocument
 };
 exports.commentModel = commentModel;

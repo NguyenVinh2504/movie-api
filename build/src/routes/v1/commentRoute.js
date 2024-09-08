@@ -17,6 +17,6 @@ var Router = _express["default"].Router({
 });
 // /user/delete
 Router.route('/add-comment').post(_token["default"].auth, _commentValidation.commentValidation.addComment, (0, _wrapRequestHandler["default"])(_commentController.commentController.addComment));
-Router.route('/get-comment/:movieType/:movieId').get((0, _wrapRequestHandler["default"])(_commentController.commentController.getCommentsByMovieId));
+Router.route('/get-comment/:movieType/:movieId').get(_commentValidation.commentValidation.paginationValidation, (0, _wrapRequestHandler["default"])(_commentController.commentController.getCommentsByMovieId));
 var commentRoutes = Router;
 exports.commentRoutes = commentRoutes;

@@ -48,7 +48,53 @@ var addComment = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
+var paginationValidation = /*#__PURE__*/function () {
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
+    var correctCondition, value;
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          correctCondition = _joi["default"].object({
+            page: _joi["default"].number().integer().min(1)["default"](1).messages({
+              'number.base': '"page" phải là số',
+              'number.min': '"page" phải lớn hơn hoặc bằng 1',
+              'number.integer': '"page" phải là số nguyên'
+            }),
+            limit: _joi["default"].number().integer().min(1)["default"](10).messages({
+              'number.base': '"limit" phải là số',
+              'number.min': '"limit" phải lớn hơn hoặc bằng 1',
+              'number.integer': '"limit" phải là số nguyên'
+            })
+          });
+          _context2.prev = 1;
+          _context2.next = 4;
+          return correctCondition.validateAsync(req.query, {
+            abortEarly: false
+          });
+        case 4:
+          value = _context2.sent;
+          // Kiểm tra dữ liệu xong xuôi cho giá trị client đi tiếp controller
+          req.query = value;
+          next();
+          _context2.next = 12;
+          break;
+        case 9:
+          _context2.prev = 9;
+          _context2.t0 = _context2["catch"](1);
+          // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
+          next(new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, _context2.t0.message));
+        case 12:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[1, 9]]);
+  }));
+  return function paginationValidation(_x4, _x5, _x6) {
+    return _ref2.apply(this, arguments);
+  };
+}();
 var commentValidation = {
-  addComment: addComment
+  addComment: addComment,
+  paginationValidation: paginationValidation
 };
 exports.commentValidation = commentValidation;

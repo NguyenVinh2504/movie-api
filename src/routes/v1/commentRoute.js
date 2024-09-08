@@ -12,5 +12,8 @@ Router.route('/add-comment').post(
   wrapRequestHandler(commentController.addComment)
 )
 
-Router.route('/get-comment/:movieType/:movieId').get(wrapRequestHandler(commentController.getCommentsByMovieId))
+Router.route('/get-comment/:movieType/:movieId').get(
+  commentValidation.paginationValidation,
+  wrapRequestHandler(commentController.getCommentsByMovieId)
+)
 export const commentRoutes = Router
