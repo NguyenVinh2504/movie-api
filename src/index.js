@@ -18,6 +18,8 @@ const START_SERVER = () => {
   const app = express()
   const httpServer = createServer(app)
   const io = new Server(httpServer, {
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
     cors: {
       origin: WHITELIST_DOMAINS,
       credentials: true

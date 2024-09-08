@@ -21,6 +21,8 @@ var START_SERVER = function START_SERVER() {
   var app = (0, _express["default"])();
   var httpServer = (0, _http.createServer)(app);
   var io = new _socket.Server(httpServer, {
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
     cors: {
       origin: _constants.WHITELIST_DOMAINS,
       credentials: true
