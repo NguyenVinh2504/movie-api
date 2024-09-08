@@ -22,7 +22,8 @@ var START_SERVER = function START_SERVER() {
   var httpServer = (0, _http.createServer)(app);
   var io = new _socket.Server(httpServer, {
     cors: {
-      origin: _constants.WHITELIST_DOMAINS
+      origin: _constants.WHITELIST_DOMAINS,
+      credentials: true
     }
   });
   io.on('connection', function (socket) {

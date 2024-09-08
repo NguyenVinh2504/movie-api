@@ -19,7 +19,8 @@ const START_SERVER = () => {
   const httpServer = createServer(app)
   const io = new Server(httpServer, {
     cors: {
-      origin: WHITELIST_DOMAINS
+      origin: WHITELIST_DOMAINS,
+      credentials: true
     }
   })
 
