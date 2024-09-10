@@ -76,7 +76,7 @@ var START_SERVER = function START_SERVER() {
   //Middleware xử lý lỗi tập trung
   app.use(_errorHandlingMiddleware.errorHandlingMiddleware);
   setInterval(function () {
-    _axios["default"].get('http://localhost:2504').then(function (response) {
+    _axios["default"].get('https://api.viejoy.site').then(function (response) {
       if (_environment.env.BUILD_MODE === 'production') {
         console.log('Server is awake');
       }

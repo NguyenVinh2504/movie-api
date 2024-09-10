@@ -72,7 +72,7 @@ const START_SERVER = () => {
   setInterval(
     () => {
       axios
-        .get('http://localhost:2504')
+        .get('https://api.viejoy.site')
         .then((response) => {
           if (env.BUILD_MODE === 'production') {
             console.log('Server is awake')
