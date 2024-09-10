@@ -1,8 +1,6 @@
 "use strict";
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _express = _interopRequireDefault(require("express"));
 var _cors = _interopRequireDefault(require("cors"));
 var _cors2 = require("./config/cors.js");
@@ -17,7 +15,6 @@ var _file = require("./utils/file.js");
 var _http = require("http");
 var _socket = require("socket.io");
 var _constants = require("./utils/constants.js");
-var _commentModel = require("./models/commentModel.js");
 /* eslint-disable no-console */
 
 var START_SERVER = function START_SERVER() {
@@ -31,41 +28,16 @@ var START_SERVER = function START_SERVER() {
   });
   io.on('connection', function (socket) {
     console.log('Socket connected with user have id: ', socket.id);
-    var userId = socket.handshake.auth.id;
-    console.log('userId: ', userId);
-    socket.on('addComment', /*#__PURE__*/function () {
-      var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(data) {
-        var movieId, movieType, content, newComment;
-        return _regenerator["default"].wrap(function _callee$(_context) {
-          while (1) switch (_context.prev = _context.next) {
-            case 0:
-              movieId = data.movieId, movieType = data.movieType, content = data.content;
-              _context.next = 3;
-              return _commentModel.commentModel.createComment({
-                movieId: movieId,
-                userId: userId,
-                content: content,
-                movieType: movieType
-              });
-            case 3:
-              newComment = _context.sent;
-              console.log(newComment);
-              socket.emit('newListComments', newComment);
-            case 6:
-            case "end":
-              return _context.stop();
-          }
-        }, _callee);
-      }));
-      return function (_x) {
-        return _ref.apply(this, arguments);
-      };
-    }());
+
+    // Lắng nghe sự kiện khi client gửi lên server
+    socket.on('addComment', function (newComment) {
+      io.to("".concat(newComment.movieId, "-").concat(newComment.movieType)).emit('newComment', newComment);
+    });
     // // Lắng nghe sự kiện người dùng tham gia room movie
-    // socket.on('joinMovieRoom', (movieId) => {
-    //   socket.join(movieId) // Tham gia room tương ứng với movieId
-    //   console.log(`User with socket id ${socket.id} joined room ${movieId}`)
-    // })
+    socket.on('joinMovieRoom', function (idRoom) {
+      socket.join(idRoom); // Tham gia room tương ứng với movieId
+      console.log("User with socket id ".concat(socket.id, " joined room ").concat(idRoom));
+    });
     socket.on('disconnect', function () {
       console.log('Socket disconnected with user have id: ', socket.id);
     });
