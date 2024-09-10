@@ -14,6 +14,7 @@ import { initFolder } from './utils/file.js'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { WHITELIST_DOMAINS } from './utils/constants.js'
+import axios from 'axios'
 const START_SERVER = () => {
   const app = express()
   const httpServer = createServer(app)
@@ -68,7 +69,23 @@ const START_SERVER = () => {
 
   //Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
-
+  setInterval(
+    () => {
+      axios
+        .get('http://localhost:2504')
+        .then((response) => {
+          if (env.BUILD_MODE === 'production') {
+            console.log('Server is awake')
+          }
+        })
+        .catch((error) => {
+          if (env.BUILD_MODE === 'production') {
+            console.log(error)
+          }
+        })
+    },
+    1000 * 60 * 1
+  )
   if (env.BUILD_MODE === 'production') {
     httpServer.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console

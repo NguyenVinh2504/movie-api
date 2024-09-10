@@ -15,6 +15,7 @@ var _file = require("./utils/file.js");
 var _http = require("http");
 var _socket = require("socket.io");
 var _constants = require("./utils/constants.js");
+var _axios = _interopRequireDefault(require("axios"));
 /* eslint-disable no-console */
 
 var START_SERVER = function START_SERVER() {
@@ -74,6 +75,17 @@ var START_SERVER = function START_SERVER() {
 
   //Middleware xử lý lỗi tập trung
   app.use(_errorHandlingMiddleware.errorHandlingMiddleware);
+  setInterval(function () {
+    _axios["default"].get('http://localhost:2504').then(function (response) {
+      if (_environment.env.BUILD_MODE === 'production') {
+        console.log('Server is awake');
+      }
+    })["catch"](function (error) {
+      if (_environment.env.BUILD_MODE === 'production') {
+        console.log(error);
+      }
+    });
+  }, 1000 * 60 * 1);
   if (_environment.env.BUILD_MODE === 'production') {
     httpServer.listen(process.env.PORT, function () {
       // eslint-disable-next-line no-console
