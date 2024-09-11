@@ -69,23 +69,21 @@ const START_SERVER = () => {
 
   //Middleware xử lý lỗi tập trung
   app.use(errorHandlingMiddleware)
-  setInterval(
-    () => {
-      axios
-        .get('https://api.viejoy.site')
-        .then((response) => {
-          if (env.BUILD_MODE === 'production') {
+  if (env.BUILD_MODE === 'production') {
+    setInterval(
+      () => {
+        axios
+          .get('https://api.viejoy.site')
+          .then((response) => {
             console.log('Server is awake')
-          }
-        })
-        .catch((error) => {
-          if (env.BUILD_MODE === 'production') {
+          })
+          .catch((error) => {
             console.log(error)
-          }
-        })
-    },
-    1000 * 60 * 1
-  )
+          })
+      },
+      1000 * 60 * 1
+    )
+  }
   if (env.BUILD_MODE === 'production') {
     httpServer.listen(process.env.PORT, () => {
       // eslint-disable-next-line no-console
