@@ -74,11 +74,11 @@ const START_SERVER = () => {
       () => {
         axios
           .get('https://api.viejoy.site')
-          .then((response) => {
-            console.log('Server is awake')
+          .then(() => {
+            // console.log('Server is awake')
           })
-          .catch((error) => {
-            console.log(error)
+          .catch(() => {
+            // console.log(error)
           })
       },
       1000 * 60 * 1
