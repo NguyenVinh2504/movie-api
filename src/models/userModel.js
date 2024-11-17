@@ -123,8 +123,7 @@ const deleteUser = async (data) => {
   }
 }
 
-const updateProfile = async (data) => {
-  const { id, body } = data
+const updateProfile = async ({ id, body }) => {
   try {
     await GET_DB()
       .collection(USER_COLLECTION_NAME)

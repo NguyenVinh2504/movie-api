@@ -206,12 +206,12 @@ var deleteUser = /*#__PURE__*/function () {
   };
 }();
 var updateProfile = /*#__PURE__*/function () {
-  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(data) {
+  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(_ref6) {
     var id, body, result;
     return _regenerator["default"].wrap(function _callee6$(_context6) {
       while (1) switch (_context6.prev = _context6.next) {
         case 0:
-          id = data.id, body = data.body;
+          id = _ref6.id, body = _ref6.body;
           _context6.prev = 1;
           _context6.next = 4;
           return (0, _mongodb2.GET_DB)().collection(USER_COLLECTION_NAME).updateOne({
@@ -242,7 +242,7 @@ var updateProfile = /*#__PURE__*/function () {
     }, _callee6, null, [[1, 10]]);
   }));
   return function updateProfile(_x6) {
-    return _ref6.apply(this, arguments);
+    return _ref7.apply(this, arguments);
   };
 }();
 var userModel = {

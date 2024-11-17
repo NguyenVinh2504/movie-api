@@ -73,31 +73,37 @@ const updatePassword = async (req) => {
 const updateProfile = async (req) => {
   try {
     const user = await userModel.getIdUser(req.user._id)
+    const { body, file } = req
+
+    let newUser = {}
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }
-    if (req.body.avatar) {
-      const imageDel = ref(storage, req.body.avatar)
+
+    if (body.avatar) {
+      const imageDel = ref(storage, body.avatar)
       // const err = await deleteObject(imageDel)
       deleteObject(imageDel)
         .then((data) => {})
         .catch((error) => {})
-      req.body.avatar = null
-      req.body.temporaryAvatar = null
+      body.avatar = null
+      newUser = await userModel.updateProfile({ id: user._id, body })
     }
     if (req.file) {
+      // Tạo ref cho một file up lên firebase
       const imageRef = ref(storage, `images/${v4()}`)
-      const medadate = {
-        contentType: req.file.mimetype
+      const metaData = {
+        contentType: file.mimetype
       }
-      const res = await uploadBytes(imageRef, req.file.buffer, medadate)
+      const res = await uploadBytes(imageRef, file.buffer, metaData)
       if (res) {
         const url = await getDownloadURL(res.ref)
-        req.body.avatar = url
+        newUser = await userModel.updateProfile({ id: user._id, body: { avatar: url, temporaryAvatar: null } })
       }
+    } else {
+      newUser = await userModel.updateProfile({ id: user._id, body })
     }
-    // token mang id nào thì tìm user mang id của token tương ứng đó
-    const newUser = await userModel.updateProfile({ id: user._id, body: req.body })
+
     return newUser
   } catch (error) {
     throw error

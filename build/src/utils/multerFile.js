@@ -8,14 +8,20 @@ exports.videoUploadMulter = exports.uploadMulter = void 0;
 var _multer = _interopRequireDefault(require("multer"));
 var _ApiError = _interopRequireDefault(require("./ApiError"));
 var _httpStatusCodes = require("http-status-codes");
+var _validators = require("./validators");
 var uploadMulter = (0, _multer["default"])({
+  limits: {
+    fieldSize: _validators.LIMIT_COMMON_FILE_SIZE
+  },
   storage: _multer["default"].memoryStorage(),
   fileFilter: function fileFilter(req, file, cb) {
-    if (!file.mimetype.includes('image/')) {
-      // upload only mp4 and mkv format
+    // Nếu validate lỗi thì sẽ vào đây
+    if (!_validators.ALLOW_COMMON_FILE_TYPES.includes(file.mimetype)) {
+      // Truyền lỗi vào đối số cb của multer để ném ra lỗi
       return cb(new _ApiError["default"](_httpStatusCodes.StatusCodes.BAD_REQUEST, 'Please upload a Image'), false);
     }
-    cb(undefined, true);
+    // Còn không thì truyền null với true là validate thành công
+    cb(null, true);
   }
 });
 exports.uploadMulter = uploadMulter;

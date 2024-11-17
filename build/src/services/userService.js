@@ -152,7 +152,7 @@ var updatePassword = /*#__PURE__*/function () {
 }();
 var updateProfile = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req) {
-    var user, imageDel, imageRef, medadate, res, url, newUser;
+    var user, body, file, newUser, imageDel, imageRef, metaData, res, url;
     return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
@@ -161,57 +161,82 @@ var updateProfile = /*#__PURE__*/function () {
           return _userModel.userModel.getIdUser(req.user._id);
         case 3:
           user = _context3.sent;
+          body = req.body, file = req.file;
+          newUser = {};
           if (user) {
-            _context3.next = 6;
+            _context3.next = 8;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có người dùng này');
-        case 6:
-          if (req.body.avatar) {
-            imageDel = (0, _storage.ref)(_firebase.storage, req.body.avatar); // const err = await deleteObject(imageDel)
-            (0, _storage.deleteObject)(imageDel).then(function (data) {})["catch"](function (error) {});
-            req.body.avatar = null;
-            req.body.temporaryAvatar = null;
-          }
-          if (!req.file) {
-            _context3.next = 18;
+        case 8:
+          if (!body.avatar) {
+            _context3.next = 15;
             break;
           }
-          imageRef = (0, _storage.ref)(_firebase.storage, "images/".concat((0, _uuid.v4)()));
-          medadate = {
-            contentType: req.file.mimetype
-          };
-          _context3.next = 12;
-          return (0, _storage.uploadBytes)(imageRef, req.file.buffer, medadate);
-        case 12:
-          res = _context3.sent;
-          if (!res) {
-            _context3.next = 18;
-            break;
-          }
-          _context3.next = 16;
-          return (0, _storage.getDownloadURL)(res.ref);
-        case 16:
-          url = _context3.sent;
-          req.body.avatar = url;
-        case 18:
-          _context3.next = 20;
+          imageDel = (0, _storage.ref)(_firebase.storage, body.avatar); // const err = await deleteObject(imageDel)
+          (0, _storage.deleteObject)(imageDel).then(function (data) {})["catch"](function (error) {});
+          body.avatar = null;
+          _context3.next = 14;
           return _userModel.userModel.updateProfile({
             id: user._id,
-            body: req.body
+            body: body
           });
-        case 20:
+        case 14:
           newUser = _context3.sent;
-          return _context3.abrupt("return", newUser);
+        case 15:
+          if (!req.file) {
+            _context3.next = 30;
+            break;
+          }
+          // Tạo ref cho một file up lên firebase
+          imageRef = (0, _storage.ref)(_firebase.storage, "images/".concat((0, _uuid.v4)()));
+          metaData = {
+            contentType: file.mimetype
+          };
+          _context3.next = 20;
+          return (0, _storage.uploadBytes)(imageRef, file.buffer, metaData);
+        case 20:
+          res = _context3.sent;
+          if (!res) {
+            _context3.next = 28;
+            break;
+          }
+          _context3.next = 24;
+          return (0, _storage.getDownloadURL)(res.ref);
         case 24:
-          _context3.prev = 24;
+          url = _context3.sent;
+          _context3.next = 27;
+          return _userModel.userModel.updateProfile({
+            id: user._id,
+            body: {
+              avatar: url,
+              temporaryAvatar: null
+            }
+          });
+        case 27:
+          newUser = _context3.sent;
+        case 28:
+          _context3.next = 33;
+          break;
+        case 30:
+          _context3.next = 32;
+          return _userModel.userModel.updateProfile({
+            id: user._id,
+            body: body
+          });
+        case 32:
+          newUser = _context3.sent;
+        case 33:
+          return _context3.abrupt("return", newUser);
+        case 36:
+          _context3.prev = 36;
           _context3.t0 = _context3["catch"](0);
           throw _context3.t0;
-        case 27:
+        case 39:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[0, 24]]);
+    }, _callee3, null, [[0, 36]]);
   }));
   return function updateProfile(_x3) {
     return _ref3.apply(this, arguments);
