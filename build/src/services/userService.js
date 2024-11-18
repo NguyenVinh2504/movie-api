@@ -151,41 +151,32 @@ var updatePassword = /*#__PURE__*/function () {
   };
 }();
 var updateProfile = /*#__PURE__*/function () {
-  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req) {
-    var user, body, file, newUser, imageDel, imageRef, metaData, res, url;
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(req) {
+    var user, body, file, tasks, imageDel, deleteTask, imageRef, metaData, uploadTask, results, updateBody, uploadResult, newUser;
+    return _regenerator["default"].wrap(function _callee4$(_context4) {
+      while (1) switch (_context4.prev = _context4.next) {
         case 0:
-          _context3.prev = 0;
-          _context3.next = 3;
+          _context4.prev = 0;
+          _context4.next = 3;
           return _userModel.userModel.getIdUser(req.user._id);
         case 3:
-          user = _context3.sent;
+          user = _context4.sent;
           body = req.body, file = req.file;
-          newUser = {};
           if (user) {
-            _context3.next = 8;
+            _context4.next = 7;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có người dùng này');
-        case 8:
-          if (!body.avatar) {
-            _context3.next = 15;
-            break;
+        case 7:
+          tasks = [];
+          if (body.avatar) {
+            imageDel = (0, _storage.ref)(_firebase.storage, body.avatar); // const err = await deleteObject(imageDel)
+            deleteTask = (0, _storage.deleteObject)(imageDel).then(function (data) {})["catch"](function (error) {});
+            tasks.push(deleteTask);
+            body.avatar = null;
           }
-          imageDel = (0, _storage.ref)(_firebase.storage, body.avatar); // const err = await deleteObject(imageDel)
-          (0, _storage.deleteObject)(imageDel).then(function (data) {})["catch"](function (error) {});
-          body.avatar = null;
-          _context3.next = 14;
-          return _userModel.userModel.updateProfile({
-            id: user._id,
-            body: body
-          });
-        case 14:
-          newUser = _context3.sent;
-        case 15:
           if (!req.file) {
-            _context3.next = 30;
+            _context4.next = 16;
             break;
           }
           // Tạo ref cho một file up lên firebase
@@ -193,103 +184,121 @@ var updateProfile = /*#__PURE__*/function () {
           metaData = {
             contentType: file.mimetype
           };
-          _context3.next = 20;
-          return (0, _storage.uploadBytes)(imageRef, file.buffer, metaData);
-        case 20:
-          res = _context3.sent;
-          if (!res) {
-            _context3.next = 28;
-            break;
-          }
-          _context3.next = 24;
-          return (0, _storage.getDownloadURL)(res.ref);
-        case 24:
-          url = _context3.sent;
-          _context3.next = 27;
-          return _userModel.userModel.updateProfile({
-            id: user._id,
-            body: {
-              avatar: url,
-              temporaryAvatar: null
+          _context4.next = 14;
+          return (0, _storage.uploadBytes)(imageRef, file.buffer, metaData).then( /*#__PURE__*/function () {
+            var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(res) {
+              var url;
+              return _regenerator["default"].wrap(function _callee3$(_context3) {
+                while (1) switch (_context3.prev = _context3.next) {
+                  case 0:
+                    _context3.next = 2;
+                    return (0, _storage.getDownloadURL)(res.ref);
+                  case 2:
+                    url = _context3.sent;
+                    return _context3.abrupt("return", {
+                      avatar: url,
+                      temporaryAvatar: null
+                    });
+                  case 4:
+                  case "end":
+                    return _context3.stop();
+                }
+              }, _callee3);
+            }));
+            return function (_x4) {
+              return _ref4.apply(this, arguments);
+            };
+          }())["catch"](function (error) {
+            throw error;
+          });
+        case 14:
+          uploadTask = _context4.sent;
+          tasks.push(uploadTask);
+        case 16:
+          _context4.next = 18;
+          return Promise.all(tasks);
+        case 18:
+          results = _context4.sent;
+          // Cập nhật profile
+          updateBody = body;
+          if (results.length > 0) {
+            uploadResult = results.find(function (result) {
+              return result && result.avatar;
+            }); // Tìm kết quả từ upload ảnh
+            if (uploadResult) {
+              updateBody = _objectSpread(_objectSpread({}, body), uploadResult);
             }
-          });
-        case 27:
-          newUser = _context3.sent;
-        case 28:
-          _context3.next = 33;
-          break;
-        case 30:
-          _context3.next = 32;
+          }
+          _context4.next = 23;
           return _userModel.userModel.updateProfile({
             id: user._id,
-            body: body
+            body: updateBody
           });
-        case 32:
-          newUser = _context3.sent;
-        case 33:
-          return _context3.abrupt("return", newUser);
-        case 36:
-          _context3.prev = 36;
-          _context3.t0 = _context3["catch"](0);
-          throw _context3.t0;
-        case 39:
+        case 23:
+          newUser = _context4.sent;
+          return _context4.abrupt("return", newUser);
+        case 27:
+          _context4.prev = 27;
+          _context4.t0 = _context4["catch"](0);
+          throw _context4.t0;
+        case 30:
         case "end":
-          return _context3.stop();
+          return _context4.stop();
       }
-    }, _callee3, null, [[0, 36]]);
+    }, _callee4, null, [[0, 27]]);
   }));
   return function updateProfile(_x3) {
     return _ref3.apply(this, arguments);
   };
 }();
 var getInfo = /*#__PURE__*/function () {
-  var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(id) {
+  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(id) {
     var user;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
-      while (1) switch (_context4.prev = _context4.next) {
-        case 0:
-          _context4.prev = 0;
-          _context4.next = 3;
-          return _userModel.userModel.getInfo(id);
-        case 3:
-          user = _context4.sent;
-          if (user) {
-            _context4.next = 6;
-            break;
-          }
-          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có người dùng này');
-        case 6:
-          return _context4.abrupt("return", _objectSpread({
-            id: id
-          }, user));
-        case 9:
-          _context4.prev = 9;
-          _context4.t0 = _context4["catch"](0);
-          throw _context4.t0;
-        case 12:
-        case "end":
-          return _context4.stop();
-      }
-    }, _callee4, null, [[0, 9]]);
-  }));
-  return function getInfo(_x4) {
-    return _ref4.apply(this, arguments);
-  };
-}();
-var checkEmail = /*#__PURE__*/function () {
-  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(req) {
-    var email, user;
     return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          email = req.body.email;
-          _context5.next = 4;
-          return _userModel.userModel.getEmail(email);
-        case 4:
+          _context5.next = 3;
+          return _userModel.userModel.getInfo(id);
+        case 3:
           user = _context5.sent;
           if (user) {
-            _context5.next = 7;
+            _context5.next = 6;
+            break;
+          }
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có người dùng này');
+        case 6:
+          return _context5.abrupt("return", _objectSpread({
+            id: id
+          }, user));
+        case 9:
+          _context5.prev = 9;
+          _context5.t0 = _context5["catch"](0);
+          throw _context5.t0;
+        case 12:
+        case "end":
+          return _context5.stop();
+      }
+    }, _callee5, null, [[0, 9]]);
+  }));
+  return function getInfo(_x5) {
+    return _ref5.apply(this, arguments);
+  };
+}();
+var checkEmail = /*#__PURE__*/function () {
+  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(req) {
+    var email, user;
+    return _regenerator["default"].wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
+          email = req.body.email;
+          _context6.next = 4;
+          return _userModel.userModel.getEmail(email);
+        case 4:
+          user = _context6.sent;
+          if (user) {
+            _context6.next = 7;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
@@ -297,40 +306,40 @@ var checkEmail = /*#__PURE__*/function () {
             message: 'Không có email này'
           });
         case 7:
-          return _context5.abrupt("return", {
+          return _context6.abrupt("return", {
             message: 'Valid Email'
           });
         case 10:
-          _context5.prev = 10;
-          _context5.t0 = _context5["catch"](0);
-          throw _context5.t0;
+          _context6.prev = 10;
+          _context6.t0 = _context6["catch"](0);
+          throw _context6.t0;
         case 13:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
-    }, _callee5, null, [[0, 10]]);
+    }, _callee6, null, [[0, 10]]);
   }));
-  return function checkEmail(_x5) {
-    return _ref5.apply(this, arguments);
+  return function checkEmail(_x6) {
+    return _ref6.apply(this, arguments);
   };
 }();
 var sendEmail = /*#__PURE__*/function () {
-  var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(req) {
+  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(req) {
     var email, otpHolder, OTP, transporter;
-    return _regenerator["default"].wrap(function _callee6$(_context6) {
-      while (1) switch (_context6.prev = _context6.next) {
+    return _regenerator["default"].wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          _context6.prev = 0;
+          _context7.prev = 0;
           email = req.body.email;
-          _context6.next = 4;
+          _context7.next = 4;
           return _otpModel.otpModel.findOtp(email);
         case 4:
-          otpHolder = _context6.sent;
+          otpHolder = _context7.sent;
           if (!otpHolder) {
-            _context6.next = 8;
+            _context7.next = 8;
             break;
           }
-          _context6.next = 8;
+          _context7.next = 8;
           return _otpModel.otpModel.deleteOtp(email);
         case 8:
           OTP = _otpGenerator["default"].generate(6, {
@@ -339,7 +348,7 @@ var sendEmail = /*#__PURE__*/function () {
             upperCaseAlphabets: false,
             specialChars: false
           });
-          _context6.next = 11;
+          _context7.next = 11;
           return _otpService.otpService.otpCreate({
             email: email,
             otp: OTP
@@ -355,7 +364,7 @@ var sendEmail = /*#__PURE__*/function () {
               pass: _environment.env.EMAIL_PASS
             }
           }); // send mail with defined transport object
-          _context6.next = 14;
+          _context7.next = 14;
           return transporter.sendMail({
             from: 'Viejoy <viejoy2023@gmail.com>',
             // sender address
@@ -366,74 +375,74 @@ var sendEmail = /*#__PURE__*/function () {
             text: "OTP: ".concat(OTP) // plain text body
           });
         case 14:
-          _context6.next = 19;
+          _context7.next = 19;
           break;
         case 16:
-          _context6.prev = 16;
-          _context6.t0 = _context6["catch"](0);
-          throw _context6.t0;
+          _context7.prev = 16;
+          _context7.t0 = _context7["catch"](0);
+          throw _context7.t0;
         case 19:
         case "end":
-          return _context6.stop();
+          return _context7.stop();
       }
-    }, _callee6, null, [[0, 16]]);
+    }, _callee7, null, [[0, 16]]);
   }));
-  return function sendEmail(_x6) {
-    return _ref6.apply(this, arguments);
+  return function sendEmail(_x7) {
+    return _ref7.apply(this, arguments);
   };
 }();
 var forgotPassword = /*#__PURE__*/function () {
-  var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(req) {
+  var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(req) {
     var _req$body, email, otp, newPassword, otpHolder, lastOtp, isValid, user, hashed;
-    return _regenerator["default"].wrap(function _callee7$(_context7) {
-      while (1) switch (_context7.prev = _context7.next) {
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
         case 0:
-          _context7.prev = 0;
+          _context8.prev = 0;
           _req$body = req.body, email = _req$body.email, otp = _req$body.otp, newPassword = _req$body.newPassword;
           otp.toString();
-          _context7.next = 5;
+          _context8.next = 5;
           return _otpModel.otpModel.findOtp(email);
         case 5:
-          otpHolder = _context7.sent;
+          otpHolder = _context8.sent;
           if (otpHolder.length) {
-            _context7.next = 8;
+            _context8.next = 8;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Expired Otp');
         case 8:
           lastOtp = otpHolder[otpHolder.length - 1];
-          _context7.next = 11;
+          _context8.next = 11;
           return _otpService.otpService.otpVerify({
             otp: otp,
             hashOtp: lastOtp.otp
           });
         case 11:
-          isValid = _context7.sent;
+          isValid = _context8.sent;
           if (isValid) {
-            _context7.next = 14;
+            _context8.next = 14;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.UNAUTHORIZED, 'Invalid Otp');
         case 14:
-          _context7.next = 16;
+          _context8.next = 16;
           return _userModel.userModel.getEmail(email);
         case 16:
-          user = _context7.sent;
+          user = _context8.sent;
           if (user) {
-            _context7.next = 19;
+            _context8.next = 19;
             break;
           }
           throw new _ApiError["default"](_httpStatusCodes.StatusCodes.NOT_FOUND, 'Không có người dùng này');
         case 19:
           if (!(isValid && user)) {
-            _context7.next = 28;
+            _context8.next = 28;
             break;
           }
-          _context7.next = 22;
+          _context8.next = 22;
           return (0, _hashPassword["default"])(newPassword);
         case 22:
-          hashed = _context7.sent;
-          _context7.next = 25;
+          hashed = _context8.sent;
+          _context8.next = 25;
           return _userModel.userModel.updateProfile({
             id: user._id,
             body: {
@@ -441,27 +450,27 @@ var forgotPassword = /*#__PURE__*/function () {
             }
           });
         case 25:
-          _context7.next = 27;
+          _context8.next = 27;
           return _otpModel.otpModel.deleteOtp(email);
         case 27:
-          return _context7.abrupt("return", {
+          return _context8.abrupt("return", {
             message: 'thay doi mat khau thanh cong'
           });
         case 28:
-          _context7.next = 33;
+          _context8.next = 33;
           break;
         case 30:
-          _context7.prev = 30;
-          _context7.t0 = _context7["catch"](0);
-          throw _context7.t0;
+          _context8.prev = 30;
+          _context8.t0 = _context8["catch"](0);
+          throw _context8.t0;
         case 33:
         case "end":
-          return _context7.stop();
+          return _context8.stop();
       }
-    }, _callee7, null, [[0, 30]]);
+    }, _callee8, null, [[0, 30]]);
   }));
-  return function forgotPassword(_x7) {
-    return _ref7.apply(this, arguments);
+  return function forgotPassword(_x8) {
+    return _ref8.apply(this, arguments);
   };
 }();
 var userService = {

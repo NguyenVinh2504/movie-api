@@ -75,19 +75,19 @@ const updateProfile = async (req) => {
     const user = await userModel.getIdUser(req.user._id)
     const { body, file } = req
 
-    let newUser = {}
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không có người dùng này')
     }
 
+    let tasks = []
     if (body.avatar) {
       const imageDel = ref(storage, body.avatar)
       // const err = await deleteObject(imageDel)
-      deleteObject(imageDel)
+      const deleteTask = deleteObject(imageDel)
         .then((data) => {})
         .catch((error) => {})
+      tasks.push(deleteTask)
       body.avatar = null
-      newUser = await userModel.updateProfile({ id: user._id, body })
     }
     if (req.file) {
       // Tạo ref cho một file up lên firebase
@@ -95,14 +95,28 @@ const updateProfile = async (req) => {
       const metaData = {
         contentType: file.mimetype
       }
-      const res = await uploadBytes(imageRef, file.buffer, metaData)
-      if (res) {
-        const url = await getDownloadURL(res.ref)
-        newUser = await userModel.updateProfile({ id: user._id, body: { avatar: url, temporaryAvatar: null } })
-      }
-    } else {
-      newUser = await userModel.updateProfile({ id: user._id, body })
+      const uploadTask = await uploadBytes(imageRef, file.buffer, metaData)
+        .then(async (res) => {
+          const url = await getDownloadURL(res.ref)
+          return { avatar: url, temporaryAvatar: null }
+        })
+        .catch((error) => {
+          throw error
+        })
+      tasks.push(uploadTask)
     }
+    // Chạy các tác vụ xóa và upload song song
+    const results = await Promise.all(tasks)
+
+    // Cập nhật profile
+    let updateBody = body
+    if (results.length > 0) {
+      const uploadResult = results.find((result) => result && result.avatar) // Tìm kết quả từ upload ảnh
+      if (uploadResult) {
+        updateBody = { ...body, ...uploadResult }
+      }
+    }
+    const newUser = await userModel.updateProfile({ id: user._id, body: updateBody })
 
     return newUser
   } catch (error) {
