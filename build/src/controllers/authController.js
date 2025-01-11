@@ -82,24 +82,25 @@ var loginGoogle = /*#__PURE__*/function () {
           return _authService.authService.loginGoogle(code, res);
         case 6:
           user = _context2.sent;
+          console.log(user, code);
           urlRedirect = "".concat(_environment.env.CLIENT_URL_REDIRECT, "?accessToken=").concat(user.accessToken, "&refreshToken=").concat(user.refreshToken); // Có kết quả thì trả về Client
           res.redirect(urlRedirect);
           // res.status(StatusCodes.CREATED).json(
           //   //dữ liệu từ service
           //   user
           // )
-          _context2.next = 14;
+          _context2.next = 15;
           break;
-        case 11:
-          _context2.prev = 11;
+        case 12:
+          _context2.prev = 12;
           _context2.t0 = _context2["catch"](0);
           // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
           next(_context2.t0);
-        case 14:
+        case 15:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 11]]);
+    }, _callee2, null, [[0, 12]]);
   }));
   return function loginGoogle(_x4, _x5, _x6) {
     return _ref2.apply(this, arguments);

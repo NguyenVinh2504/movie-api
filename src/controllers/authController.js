@@ -46,6 +46,7 @@ const loginGoogle = async (req, res, next) => {
     }
     const code = req.query.code
     const user = await authService.loginGoogle(code, res)
+    console.log(user, code)
 
     const urlRedirect = `${env.CLIENT_URL_REDIRECT}?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`
     // Có kết quả thì trả về Client
