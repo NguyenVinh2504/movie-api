@@ -40,6 +40,8 @@ const signUp = async (req, res, next) => {
 
 const loginGoogle = async (req, res, next) => {
   try {
+    console.log(req.query)
+
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
     if (req.query.error) {
       return res.redirect(`${env.CLIENT_URL_REDIRECT}?error=${req.query.error}`)

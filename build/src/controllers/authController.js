@@ -71,16 +71,19 @@ var loginGoogle = /*#__PURE__*/function () {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
+          console.log(req.query);
+
+          //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
           if (!req.query.error) {
-            _context2.next = 3;
+            _context2.next = 4;
             break;
           }
           return _context2.abrupt("return", res.redirect("".concat(_environment.env.CLIENT_URL_REDIRECT, "?error=").concat(req.query.error)));
-        case 3:
+        case 4:
           code = req.query.code;
-          _context2.next = 6;
+          _context2.next = 7;
           return _authService.authService.loginGoogle(code, res);
-        case 6:
+        case 7:
           user = _context2.sent;
           console.log(user, code);
           urlRedirect = "".concat(_environment.env.CLIENT_URL_REDIRECT, "?accessToken=").concat(user.accessToken, "&refreshToken=").concat(user.refreshToken); // Có kết quả thì trả về Client
@@ -89,18 +92,18 @@ var loginGoogle = /*#__PURE__*/function () {
           //   //dữ liệu từ service
           //   user
           // )
-          _context2.next = 15;
+          _context2.next = 16;
           break;
-        case 12:
-          _context2.prev = 12;
+        case 13:
+          _context2.prev = 13;
           _context2.t0 = _context2["catch"](0);
           // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
           next(_context2.t0);
-        case 15:
+        case 16:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 12]]);
+    }, _callee2, null, [[0, 13]]);
   }));
   return function loginGoogle(_x4, _x5, _x6) {
     return _ref2.apply(this, arguments);
