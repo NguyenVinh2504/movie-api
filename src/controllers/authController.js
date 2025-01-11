@@ -40,15 +40,12 @@ const signUp = async (req, res, next) => {
 
 const loginGoogle = async (req, res, next) => {
   try {
-    console.log(req.query)
-
     //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
     if (req.query.error) {
       return res.redirect(`${env.CLIENT_URL_REDIRECT}?error=${req.query.error}`)
     }
     const code = req.query.code
     const user = await authService.loginGoogle(code, res)
-    console.log(user, code)
 
     const urlRedirect = `${env.CLIENT_URL_REDIRECT}?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`
     // Có kết quả thì trả về Client
