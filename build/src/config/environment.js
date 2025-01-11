@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.env = void 0;
 require("dotenv/config.js");
 var env = {
+  BASE_URL: process.env.BASE_URL,
   PRODUCT_APP_HOST: process.env.PRODUCT_APP_HOST,
   MONGODB_URI: process.env.MONGODB_URI,
   DATABASE_NAME: process.env.DATABASE_NAME,

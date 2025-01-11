@@ -77,7 +77,7 @@ var START_SERVER = function START_SERVER() {
   app.use(_errorHandlingMiddleware.errorHandlingMiddleware);
   if (_environment.env.BUILD_MODE === 'production') {
     setInterval(function () {
-      _axios["default"].get('https://api.viejoy.site').then(function () {
+      _axios["default"].get(_environment.env.BASE_URL).then(function () {
         // console.log('Server is awake')
       })["catch"](function () {
         // console.log(error)

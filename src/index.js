@@ -73,7 +73,7 @@ const START_SERVER = () => {
     setInterval(
       () => {
         axios
-          .get('https://api.viejoy.site')
+          .get(env.BASE_URL)
           .then(() => {
             // console.log('Server is awake')
           })
