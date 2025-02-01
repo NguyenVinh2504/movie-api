@@ -5,7 +5,7 @@ import ApiError from '~/utils/ApiError'
 import { UPLOAD_VIDEO_DIR } from '~/utils/constants'
 import fs from 'fs'
 import mime from 'mime'
-import { getStream, ref } from 'firebase/storage'
+import { getMetadata, getStream, ref } from 'firebase/storage'
 import { storage } from '~/config/firebase'
 
 const uploadImage = async (req, res) => {
@@ -36,24 +36,81 @@ const serveImage = async (req, res) => {
   // })
 }
 
-const serveM3u8 = (req, res) => {
-  const { id } = req.params
-  const filePath = path.resolve(UPLOAD_VIDEO_DIR, id, 'master.m3u8')
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(StatusCodes.NOT_FOUND).json({ message: 'Not found', err: err.message })
+const serveM3u8 = async (req, res) => {
+  try {
+    const { id } = req.params
+    const fileRef = ref(storage, `video-hls/${id}/master.m3u8`)
+
+    // Kiểm tra file có tồn tại không trước khi get stream
+    // const [exists] = await getMetadata(fileRef)
+    //   .then(() => [true])
+    //   .catch(() => [false])
+
+    // if (!exists) {
+    //   return res.status(404).send('File not found')
+    // }
+
+    const stream = await getStream(fileRef)
+
+    // Xử lý lỗi stream
+    stream.on('error', (error) => {
+      res.status(500).send('Error streaming file')
+    })
+
+    res.setHeader('Content-Type', 'application/vnd.apple.mpegurl') // Content type cho .m3u8
+    res.setHeader('Content-Disposition', `attachment; filename=${id}-master.m3u8`)
+    stream.pipe(res)
+
+    // const filePath = path.resolve(UPLOAD_VIDEO_DIR, 'test.m3u8')
+    // res.sendFile(filePath)
+  } catch (error) {
+    if (!res.headersSent) {
+      if (error.code === 'storage/object-not-found') {
+        res.status(404).send('File not found')
+      } else {
+        res.status(500).send('Error downloading file')
+      }
     }
-  })
+  }
 }
 
-const serveSegment = (req, res) => {
-  const { id, v, segment } = req.params
-  const filePath = path.resolve(UPLOAD_VIDEO_DIR, id, v, segment)
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(StatusCodes.NOT_FOUND).json({ message: 'Not found', err: err.message })
+const serveSegment = async (req, res) => {
+  try {
+    const { id, v, segment } = req.params
+    const fileRef = ref(storage, `video-hls/${id}/${v}/${segment}`)
+
+    // Kiểm tra file tồn tại
+    const [exists] = await getMetadata(fileRef)
+      .then(() => [true])
+      .catch(() => [false])
+
+    if (!exists) {
+      return res.status(404).send('Segment not found')
     }
-  })
+
+    const stream = await getStream(fileRef)
+
+    // Set content type phù hợp cho segment file (.ts)
+    res.setHeader('Content-Type', 'video/MP2T')
+
+    // Xử lý lỗi stream
+    stream.on('error', (error) => {
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming segment')
+      }
+    })
+
+    // Stream trực tiếp không cần attachment
+    stream.pipe(res)
+  } catch (error) {
+    if (!res.headersSent) {
+      if (error.code === 'storage/object-not-found') {
+        res.status(404).send('Segment not found')
+      } else {
+        res.status(500).send('Error streaming segment')
+      }
+    }
+  }
 }
 
 const serveVideoStream = async (req, res) => {
@@ -97,6 +154,61 @@ const videoStatus = async (req, res) => {
   return res.status(StatusCodes.OK).json({ message: 'Get video status successfully', result })
 }
 
+const serveSubtitle = async (req, res) => {
+  try {
+    const { id, name } = req.params
+    const fileRef = ref(storage, `/video-hls/${id}/subtitle/${name}`)
+
+    // Kiểm tra sự tồn tại của file
+    const [exists] = await getMetadata(fileRef)
+      .then(() => [true])
+      .catch(() => [false])
+
+    if (!exists) {
+      return res.status(404).send('File not found')
+    }
+
+    const stream = await getStream(fileRef)
+
+    // Xác định Content-Type phù hợp
+    const contentType = getContentType(name) // Thêm hàm xử lý định dạng file
+
+    // Thiết lập headers QUAN TRỌNG
+    res.setHeader('Content-Type', `${contentType}; charset=utf-8`)
+    res.setHeader('Content-Disposition', `inline; filename="${name}"`) // Sử dụng "inline" thay vì "attachment"
+    res.setHeader('Cache-Control', 'public, max-age=3600') // Tùy chọn cache
+
+    // Xử lý lỗi stream
+    stream.on('error', (error) => {
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming file')
+      }
+    })
+
+    stream.pipe(res)
+  } catch (error) {
+    if (!res.headersSent) {
+      if (error.code === 'storage/object-not-found') {
+        res.status(404).send('File not found')
+      } else {
+        res.status(500).send('Internal Server Error')
+      }
+    }
+  }
+}
+
+// Hỗ trợ xác định Content-Type
+function getContentType(filename) {
+  const ext = filename.split('.').pop().toLowerCase()
+  const typeMap = {
+    vtt: 'text/vtt',
+    srt: 'text/plain',
+    ass: 'text/x-ssa',
+    dfxp: 'application/ttml+xml'
+  }
+  return typeMap[ext] || 'application/octet-stream'
+}
+
 export const mediaUploadController = {
   uploadImage,
   serveM3u8,
@@ -105,5 +217,6 @@ export const mediaUploadController = {
   uploadVideoHls,
   serveImage,
   serveVideoStream,
-  videoStatus
+  videoStatus,
+  serveSubtitle
 }

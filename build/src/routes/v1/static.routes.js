@@ -13,5 +13,6 @@ Router.get('/image/:name', (0, _wrapRequestHandler["default"])(_mediaUpload.medi
 Router.get('/video-stream/:name', (0, _wrapRequestHandler["default"])(_mediaUpload.mediaUploadController.serveVideoStream));
 Router.get('/video-hls/:id/master.m3u8', (0, _wrapRequestHandler["default"])(_mediaUpload.mediaUploadController.serveM3u8));
 Router.get('/video-hls/:id/:v/:segment', (0, _wrapRequestHandler["default"])(_mediaUpload.mediaUploadController.serveSegment));
+Router.get('/subtitle/:id/:name', (0, _wrapRequestHandler["default"])(_mediaUpload.mediaUploadController.serveSubtitle));
 var staticRoute = Router;
 exports.staticRoute = staticRoute;

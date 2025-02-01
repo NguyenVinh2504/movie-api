@@ -1,5 +1,6 @@
 import express from 'express'
 import { mediaController } from '~/controllers/media.controller'
+import tokenMiddleware from '~/middlewares/token.middleware'
 
 const Router = express.Router({ mergeParams: true })
 

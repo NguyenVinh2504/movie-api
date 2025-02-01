@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import { movieVideoModel } from '~/models/movieVideoModel'
 // import { favoriteModel } from '~/models/favoriteModel'
 import tmdbApi from '~/tmdb/tmdb.api'
 import ApiError from '~/utils/ApiError'
@@ -121,6 +122,7 @@ const search = async (req) => {
 //       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
 //     }
 //   }
+
 export const mediaService = {
   getList,
   getTrending,

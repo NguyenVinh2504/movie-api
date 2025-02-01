@@ -8,6 +8,7 @@ exports.mediaService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _httpStatusCodes = require("http-status-codes");
+var _movieVideoModel = require("../models/movieVideoModel");
 var _tmdb = _interopRequireDefault(require("../tmdb/tmdb.api"));
 var _ApiError = _interopRequireDefault(require("../utils/ApiError"));
 // import { favoriteModel } from '~/models/favoriteModel'
@@ -250,6 +251,7 @@ var search = /*#__PURE__*/function () {
 //       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
 //     }
 //   }
+
 var mediaService = {
   getList: getList,
   getTrending: getTrending,

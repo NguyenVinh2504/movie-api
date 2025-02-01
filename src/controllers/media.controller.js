@@ -57,6 +57,7 @@ const search = async (req, res, next) => {
     next(error)
   }
 }
+
 export const mediaController = {
   getList,
   getTrending,
