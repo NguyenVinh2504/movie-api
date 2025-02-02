@@ -42,7 +42,42 @@ var getMovieVideo = /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }();
+var getTvVideo = /*#__PURE__*/function () {
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
+    var _req$params, mediaId, episodeId, seasonNumber, episodeNumber, mediaVideo;
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
+      while (1) switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          _req$params = req.params, mediaId = _req$params.mediaId, episodeId = _req$params.episodeId, seasonNumber = _req$params.seasonNumber, episodeNumber = _req$params.episodeNumber;
+          _context2.next = 4;
+          return videoService.getTvVideo({
+            mediaId: mediaId,
+            episodeId: episodeId,
+            seasonNumber: seasonNumber,
+            episodeNumber: episodeNumber
+          });
+        case 4:
+          mediaVideo = _context2.sent;
+          res.status(StatusCodes.CREATED).json(mediaVideo);
+          _context2.next = 11;
+          break;
+        case 8:
+          _context2.prev = 8;
+          _context2.t0 = _context2["catch"](0);
+          next(_context2.t0);
+        case 11:
+        case "end":
+          return _context2.stop();
+      }
+    }, _callee2, null, [[0, 8]]);
+  }));
+  return function getTvVideo(_x4, _x5, _x6) {
+    return _ref2.apply(this, arguments);
+  };
+}();
 var videoController = {
-  getMovieVideo: getMovieVideo
+  getMovieVideo: getMovieVideo,
+  getTvVideo: getTvVideo
 };
 exports.videoController = videoController;
