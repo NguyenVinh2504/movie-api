@@ -85,6 +85,13 @@ var tmdbEndpoints = {
   personMedias: function personMedias(_ref13) {
     var personId = _ref13.personId;
     return _tmdbConfig["default"].getUrl("person/".concat(personId, "/combined_credits"));
+  },
+  searchKeyword: function searchKeyword(_ref14) {
+    var query = _ref14.query;
+    var qs = new URLSearchParams({
+      query: query
+    });
+    return "https://www.themoviedb.org/search/trending?".concat(qs, "&language=en-US");
   }
 };
 var _default = tmdbEndpoints;

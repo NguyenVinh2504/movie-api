@@ -320,6 +320,30 @@ var tmdbApi = {
       return _personMedias.apply(this, arguments);
     }
     return personMedias;
+  }(),
+  searchKeyword: function () {
+    var _searchKeyword = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(_ref14) {
+      var query;
+      return _regenerator["default"].wrap(function _callee13$(_context13) {
+        while (1) switch (_context13.prev = _context13.next) {
+          case 0:
+            query = _ref14.query;
+            _context13.next = 3;
+            return _axiosClient["default"].get(_tmdbEndpoints["default"].searchKeyword({
+              query: query
+            }));
+          case 3:
+            return _context13.abrupt("return", _context13.sent);
+          case 4:
+          case "end":
+            return _context13.stop();
+        }
+      }, _callee13);
+    }));
+    function searchKeyword(_x13) {
+      return _searchKeyword.apply(this, arguments);
+    }
+    return searchKeyword;
   }()
 };
 var _default = tmdbApi;

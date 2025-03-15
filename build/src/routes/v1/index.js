@@ -35,7 +35,7 @@ Router.use('/files', _staticRoutes.staticRoute);
 Router.use('/files/video', _express["default"]["static"](_constants.UPLOAD_VIDEO_TEMP_DIR));
 Router.use('/medias-upload', _mediasUploadRoutes.mediasUploadRoutes);
 Router.use('/comment', _commentRoute.commentRoutes);
-Router.use('/:mediaType', _mediaRoute.mediaRoute);
+Router.use('/media', _mediaRoute.mediaRoute);
 Router.use('/get-video', _videoRoute.videoRoute);
 var _default = Router;
 exports["default"] = _default;

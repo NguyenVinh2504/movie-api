@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.timeExpired = exports.WHITELIST_DOMAINS = exports.UPLOAD_VIDEO_TEMP_DIR = exports.UPLOAD_VIDEO_DIR = exports.UPLOAD_IMAGE_TEMP_DIR = exports.UPLOAD_IMAGE_DIR = exports.EncodingStatus = void 0;
 var _path = _interopRequireDefault(require("path"));
-var WHITELIST_DOMAINS = ['https://viejoy.vercel.app', 'http://localhost:3000', 'https://viejoy.site', 'https://www.viejoy.site', 'https://viejoy.io.vn'];
+var WHITELIST_DOMAINS = ['https://viejoy.vercel.app', 'http://localhost:3000', 'https://viejoy.site', 'https://www.viejoy.site', 'https://viejoy.io.vn', 'http://localhost:5173'];
 exports.WHITELIST_DOMAINS = WHITELIST_DOMAINS;
 var UPLOAD_IMAGE_TEMP_DIR = _path["default"].resolve('uploads/images/temp');
 exports.UPLOAD_IMAGE_TEMP_DIR = UPLOAD_IMAGE_TEMP_DIR;

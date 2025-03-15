@@ -16,7 +16,12 @@ const tmdbEndpoints = {
   mediaImages: ({ mediaType, mediaId }) => tmdbConfig.getUrl(`${mediaType}/${mediaId}/images`),
   mediaSearch: ({ mediaType, query, page }) => tmdbConfig.getUrl(`search/${mediaType}`, { query, page }),
   personDetail: ({ personId }) => tmdbConfig.getUrl(`person/${personId}`),
-  personMedias: ({ personId }) => tmdbConfig.getUrl(`person/${personId}/combined_credits`)
+  personMedias: ({ personId }) => tmdbConfig.getUrl(`person/${personId}/combined_credits`),
+  searchKeyword: ({ query }) => {
+    const qs = new URLSearchParams({ query })
+
+    return `https://www.themoviedb.org/search/trending?${qs}&language=en-US`
+  }
 }
 
 export default tmdbEndpoints

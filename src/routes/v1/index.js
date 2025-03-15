@@ -27,7 +27,8 @@ Router.use('/files/video', express.static(UPLOAD_VIDEO_TEMP_DIR))
 Router.use('/medias-upload', mediasUploadRoutes)
 
 Router.use('/comment', commentRoutes)
-Router.use('/:mediaType', mediaRoute)
+Router.use('/media', mediaRoute)
+
 Router.use('/get-video', videoRoute)
 
 export default Router

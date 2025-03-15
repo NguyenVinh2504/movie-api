@@ -205,6 +205,34 @@ var search = /*#__PURE__*/function () {
     return _ref7.apply(this, arguments);
   };
 }();
+var searchKeyword = /*#__PURE__*/function () {
+  var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(req, res, next) {
+    var mediaDetailSeason;
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          _context8.next = 3;
+          return _media.mediaService.searchKeyword(req);
+        case 3:
+          mediaDetailSeason = _context8.sent;
+          res.status(_httpStatusCodes.StatusCodes.CREATED).json(mediaDetailSeason);
+          _context8.next = 10;
+          break;
+        case 7:
+          _context8.prev = 7;
+          _context8.t0 = _context8["catch"](0);
+          next(_context8.t0);
+        case 10:
+        case "end":
+          return _context8.stop();
+      }
+    }, _callee8, null, [[0, 7]]);
+  }));
+  return function searchKeyword(_x22, _x23, _x24) {
+    return _ref8.apply(this, arguments);
+  };
+}();
 var mediaController = {
   getList: getList,
   getTrending: getTrending,
@@ -212,6 +240,7 @@ var mediaController = {
   getGenres: getGenres,
   getDetail: getDetail,
   getDetailSeason: getDetailSeason,
-  search: search
+  search: search,
+  searchKeyword: searchKeyword
 };
 exports.mediaController = mediaController;

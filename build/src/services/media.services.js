@@ -251,7 +251,35 @@ var search = /*#__PURE__*/function () {
 //       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
 //     }
 //   }
-
+var searchKeyword = /*#__PURE__*/function () {
+  var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(req) {
+    var query, response;
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          query = req.query.query;
+          _context8.next = 4;
+          return _tmdb["default"].searchKeyword({
+            query: query
+          });
+        case 4:
+          response = _context8.sent;
+          return _context8.abrupt("return", response);
+        case 8:
+          _context8.prev = 8;
+          _context8.t0 = _context8["catch"](0);
+          throw new _ApiError["default"](_httpStatusCodes.StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!');
+        case 11:
+        case "end":
+          return _context8.stop();
+      }
+    }, _callee8, null, [[0, 8]]);
+  }));
+  return function searchKeyword(_x8) {
+    return _ref8.apply(this, arguments);
+  };
+}();
 var mediaService = {
   getList: getList,
   getTrending: getTrending,
@@ -259,6 +287,7 @@ var mediaService = {
   getGenres: getGenres,
   getDetail: getDetail,
   getDetailSeason: getDetailSeason,
-  search: search
+  search: search,
+  searchKeyword: searchKeyword
 };
 exports.mediaService = mediaService;

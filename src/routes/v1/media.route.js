@@ -8,11 +8,13 @@ const Router = express.Router({ mergeParams: true })
 
 // Router.get('/detail/:mediaId', mediaController.getDetail)
 
-Router.route('/trending/:timeWindow').get(mediaController.getTrending)
+Router.route('/keywords/search').get(mediaController.searchKeyword)
+
+Router.route('/:mediaType/trending/:timeWindow').get(mediaController.getTrending)
 // discover/:mediaType
-Router.route('/discover').get(mediaController.getDiscoverGenres)
-Router.route('/detail/:mediaId').get(mediaController.getDetail)
-Router.route('/search').get(mediaController.search)
-Router.route('/:mediaCategory').get(mediaController.getList)
-Router.route('/:series_id/season/:season_number').get(mediaController.getDetailSeason)
+Router.route('/:mediaType/discover').get(mediaController.getDiscoverGenres)
+Router.route('/:mediaType/detail/:mediaId').get(mediaController.getDetail)
+Router.route('/:mediaType/search').get(mediaController.search)
+Router.route('/:mediaType/:mediaCategory').get(mediaController.getList)
+Router.route('/:mediaType/:series_id/season/:season_number').get(mediaController.getDetailSeason)
 export const mediaRoute = Router

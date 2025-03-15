@@ -57,7 +57,15 @@ const search = async (req, res, next) => {
     next(error)
   }
 }
+const searchKeyword = async (req, res, next) => {
+  try {
+    const mediaDetailSeason = await mediaService.searchKeyword(req)
 
+    res.status(StatusCodes.CREATED).json(mediaDetailSeason)
+  } catch (error) {
+    next(error)
+  }
+}
 export const mediaController = {
   getList,
   getTrending,
@@ -65,5 +73,6 @@ export const mediaController = {
   getGenres,
   getDetail,
   getDetailSeason,
-  search
+  search,
+  searchKeyword
 }

@@ -122,6 +122,19 @@ const search = async (req) => {
 //       throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
 //     }
 //   }
+const searchKeyword = async (req) => {
+  try {
+    const { query } = req.query
+
+    const response = await tmdbApi.searchKeyword({
+      query
+    })
+
+    return response
+  } catch (err) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Oops! Something worng!')
+  }
+}
 
 export const mediaService = {
   getList,
@@ -130,5 +143,6 @@ export const mediaService = {
   getGenres,
   getDetail,
   getDetailSeason,
-  search
+  search,
+  searchKeyword
 }

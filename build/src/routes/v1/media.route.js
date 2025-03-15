@@ -16,12 +16,13 @@ var Router = _express["default"].Router({
 
 // Router.get('/detail/:mediaId', mediaController.getDetail)
 
-Router.route('/trending/:timeWindow').get(_media.mediaController.getTrending);
+Router.route('/keywords/search').get(_media.mediaController.searchKeyword);
+Router.route('/:mediaType/trending/:timeWindow').get(_media.mediaController.getTrending);
 // discover/:mediaType
-Router.route('/discover').get(_media.mediaController.getDiscoverGenres);
-Router.route('/detail/:mediaId').get(_media.mediaController.getDetail);
-Router.route('/search').get(_media.mediaController.search);
-Router.route('/:mediaCategory').get(_media.mediaController.getList);
-Router.route('/:series_id/season/:season_number').get(_media.mediaController.getDetailSeason);
+Router.route('/:mediaType/discover').get(_media.mediaController.getDiscoverGenres);
+Router.route('/:mediaType/detail/:mediaId').get(_media.mediaController.getDetail);
+Router.route('/:mediaType/search').get(_media.mediaController.search);
+Router.route('/:mediaType/:mediaCategory').get(_media.mediaController.getList);
+Router.route('/:mediaType/:series_id/season/:season_number').get(_media.mediaController.getDetailSeason);
 var mediaRoute = Router;
 exports.mediaRoute = mediaRoute;

@@ -5,7 +5,8 @@ export const WHITELIST_DOMAINS = [
   'http://localhost:3000',
   'https://viejoy.site',
   'https://www.viejoy.site',
-  'https://viejoy.io.vn'
+  'https://viejoy.io.vn',
+  'http://localhost:5173'
 ]
 
 export const UPLOAD_IMAGE_TEMP_DIR = path.resolve('uploads/images/temp')
