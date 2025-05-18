@@ -37,7 +37,12 @@ var START_SERVER = function START_SERVER() {
     // // Lắng nghe sự kiện người dùng tham gia room movie
     socket.on('joinMovieRoom', function (idRoom) {
       socket.join(idRoom); // Tham gia room tương ứng với movieId
+
       console.log("User with socket id ".concat(socket.id, " joined room ").concat(idRoom));
+    });
+    socket.on('leaveMovieRoom', function (idRoom) {
+      socket.leave(idRoom);
+      console.log("User with socket id ".concat(socket.id, " leaved room ").concat(idRoom));
     });
     socket.on('disconnect', function () {
       console.log('Socket disconnected with user have id: ', socket.id);

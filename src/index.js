@@ -34,8 +34,15 @@ const START_SERVER = () => {
     // // Lắng nghe sự kiện người dùng tham gia room movie
     socket.on('joinMovieRoom', (idRoom) => {
       socket.join(idRoom) // Tham gia room tương ứng với movieId
+
       console.log(`User with socket id ${socket.id} joined room ${idRoom}`)
     })
+
+    socket.on('leaveMovieRoom', (idRoom) => {
+      socket.leave(idRoom)
+      console.log(`User with socket id ${socket.id} leaved room ${idRoom}`)
+    })
+
     socket.on('disconnect', () => {
       console.log('Socket disconnected with user have id: ', socket.id)
     })
