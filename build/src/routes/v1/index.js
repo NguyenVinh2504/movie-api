@@ -16,6 +16,7 @@ var _staticRoutes = require("./static.routes.js");
 var _constants = require("../../utils/constants.js");
 var _commentRoute = require("./commentRoute.js");
 var _videoRoute = require("./video.route.js");
+var _adminRoutes = require("./adminRoutes.js");
 var Router = _express["default"].Router({
   mergeParams: true
 });
@@ -37,5 +38,8 @@ Router.use('/medias-upload', _mediasUploadRoutes.mediasUploadRoutes);
 Router.use('/comment', _commentRoute.commentRoutes);
 Router.use('/media', _mediaRoute.mediaRoute);
 Router.use('/get-video', _videoRoute.videoRoute);
+
+// Admin APIs
+Router.use('/admin', _adminRoutes.adminRoute);
 var _default = Router;
 exports["default"] = _default;

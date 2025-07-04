@@ -9,6 +9,7 @@ import { staticRoute } from './static.routes.js'
 import { UPLOAD_VIDEO_TEMP_DIR } from '~/utils/constants.js'
 import { commentRoutes } from './commentRoute.js'
 import { videoRoute } from './video.route.js'
+import { adminRoute } from './adminRoutes.js'
 const Router = express.Router({ mergeParams: true })
 
 // Check api v1
@@ -30,5 +31,8 @@ Router.use('/comment', commentRoutes)
 Router.use('/media', mediaRoute)
 
 Router.use('/get-video', videoRoute)
+
+// Admin APIs
+Router.use('/admin', adminRoute)
 
 export default Router
