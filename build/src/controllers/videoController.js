@@ -13,15 +13,15 @@ var _require2 = require("../services/videoService"),
   videoService = _require2.videoService;
 var getMovieVideo = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(req, res, next) {
-    var mediaId, mediaVideo;
+    var tmdbId, mediaVideo;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          mediaId = req.params.mediaId;
+          tmdbId = req.params.tmdbId;
           _context.next = 4;
           return videoService.getMovieVideo({
-            mediaId: mediaId
+            tmdbId: tmdbId
           });
         case 4:
           mediaVideo = _context.sent;
@@ -44,33 +44,36 @@ var getMovieVideo = /*#__PURE__*/function () {
 }();
 var getTvVideo = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
-    var _req$params, mediaId, episodeId, seasonNumber, episodeNumber, mediaVideo;
+    var _req$params, tmdbId, episodeId, seasonNumber, episodeNumber, mediaVideo;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          _req$params = req.params, mediaId = _req$params.mediaId, episodeId = _req$params.episodeId, seasonNumber = _req$params.seasonNumber, episodeNumber = _req$params.episodeNumber;
-          _context2.next = 4;
+          Object.keys(req.params).forEach(function (key) {
+            return req.params[key] = parseInt(req.params[key]);
+          });
+          _req$params = req.params, tmdbId = _req$params.tmdbId, episodeId = _req$params.episodeId, seasonNumber = _req$params.seasonNumber, episodeNumber = _req$params.episodeNumber;
+          _context2.next = 5;
           return videoService.getTvVideo({
-            mediaId: mediaId,
+            tmdbId: tmdbId,
             episodeId: episodeId,
             seasonNumber: seasonNumber,
             episodeNumber: episodeNumber
           });
-        case 4:
+        case 5:
           mediaVideo = _context2.sent;
           res.status(StatusCodes.CREATED).json(mediaVideo);
-          _context2.next = 11;
+          _context2.next = 12;
           break;
-        case 8:
-          _context2.prev = 8;
+        case 9:
+          _context2.prev = 9;
           _context2.t0 = _context2["catch"](0);
           next(_context2.t0);
-        case 11:
+        case 12:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 8]]);
+    }, _callee2, null, [[0, 9]]);
   }));
   return function getTvVideo(_x4, _x5, _x6) {
     return _ref2.apply(this, arguments);

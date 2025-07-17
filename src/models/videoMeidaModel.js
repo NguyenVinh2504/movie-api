@@ -277,6 +277,86 @@ const deleteOneById = async (columnId) => {
   }
 }
 
+const getMovieByTmdbIdForUser = async ({ tmdbId }) => {
+  try {
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOne(
+        {
+          tmdb_id: +tmdbId,
+          status: 'published',
+          media_type: 'movie'
+        },
+        {
+          projection: {
+            _id: 1,
+            title: 1,
+            poster_path: 1,
+            video_links: 1,
+            subtitle_links: 1,
+            createdAt: 1,
+            updatedAt: 1
+          }
+        }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error.message || 'Failed to fetch media')
+  }
+}
+
+const getEpisodeForUser = async ({ tmdbId, seasonNumber, episodeNumber, episodeId }) => {
+  try {
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOne(
+        {
+          tmdb_id: +tmdbId,
+          status: 'published',
+          media_type: 'tv'
+        },
+        {
+          projection: {
+            name: 1,
+            poster_path: 1,
+            'seasons.season_number': 1,
+            'seasons.episodes': 1
+          }
+        }
+      )
+
+    if (!result) {
+      throw new Error('TV show not found or not available')
+    }
+
+    // Tìm season
+    const season = result.seasons?.find((s) => s.season_number === seasonNumber)
+    if (!season) {
+      throw new Error('Season not found')
+    }
+
+    // Tìm episode với nhiều điều kiện
+    const episode = season.episodes?.find((e) => e.episode_number === episodeNumber && e.episode_id === episodeId)
+    if (!episode) {
+      throw new Error('Episode not found')
+    }
+
+    // Trả về format đã flatten
+    return {
+      poster_path: result.poster_path,
+      season_number: seasonNumber,
+      episode_id: episode.episode_id,
+      episode_number: episode.episode_number,
+      name: episode.name,
+      video_links: episode.video_links,
+      subtitle_links: episode.subtitle_links
+    }
+  } catch (error) {
+    throw new Error(error.message || 'Failed to fetch episode')
+  }
+}
+
 export const videoMediaModel = {
   createMovie,
   getMovieList,
@@ -287,5 +367,8 @@ export const videoMediaModel = {
 
   //Tv show
   createTvShow,
-  getTvShowList
+  getTvShowList,
+
+  getMovieByTmdbIdForUser,
+  getEpisodeForUser
 }

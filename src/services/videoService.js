@@ -1,23 +1,19 @@
-import { tvVideoModel } from '~/models/tvVideoModel'
+import { videoMediaModel } from '~/models/videoMeidaModel'
 
 const { StatusCodes } = require('http-status-codes')
-const { movieVideoModel } = require('~/models/movieVideoModel')
 const { default: ApiError } = require('~/utils/ApiError')
 
-const getMovieVideo = async ({ mediaId }) => {
-  const movieVideo = await movieVideoModel.getMovieVideoInfo({ mediaId })
+const getMovieVideo = async ({ tmdbId }) => {
+  const movieVideo = await videoMediaModel.getMovieByTmdbIdForUser({ tmdbId })
   if (!movieVideo) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Movie video not found')
   }
   return movieVideo
 }
 
-const getTvVideo = async ({ mediaId, episodeId, seasonNumber, episodeNumber }) => {
-  const movieVideo = await tvVideoModel.getTvVideoInfo({ mediaId, episodeId, seasonNumber, episodeNumber })
-  if (!movieVideo) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Tv video not found')
-  }
-  return movieVideo
+const getTvVideo = async ({ tmdbId, episodeId, seasonNumber, episodeNumber }) => {
+  const episodeVideo = await videoMediaModel.getEpisodeForUser({ tmdbId, episodeId, seasonNumber, episodeNumber })
+  return episodeVideo
 }
 export const videoService = {
   getMovieVideo,

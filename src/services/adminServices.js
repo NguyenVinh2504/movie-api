@@ -46,7 +46,11 @@ const createMovie = async (body) => {
     }
     // Validate và thêm vào DB
     const createdMovie = await videoMediaModel.createMovie(data)
-    return createdMovie
+    return {
+      status: 'success',
+      message: 'Tạo phim thành công',
+      data: createdMovie
+    }
   } catch (error) {
     // Xử lý lỗi validation
     throw error
@@ -83,7 +87,7 @@ const updateMovie = async (idMovie, reqBody) => {
     const processedSubtitles = subtitle_links.map((sub) => ({
       ...sub,
       lang: resolveLangCode(sub.label),
-      kind: 'subtitle'
+      kind: 'subtitles'
     }))
 
     const updateData = {
@@ -162,7 +166,10 @@ const updateTvShow = async (idTvShow, reqBody) => {
     reqBody.seasons
       .flatMap((s) => s.episodes)
       .flatMap((e) => e.subtitle_links)
-      .forEach((sub) => (sub.lang = resolveLangCode(sub.label)))
+      .forEach((sub) => {
+        sub.lang = resolveLangCode(sub.label)
+        sub.kind = 'subtitles'
+      })
 
     const { status, name, poster_path, seasons } = reqBody
 

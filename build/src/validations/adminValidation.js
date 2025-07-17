@@ -200,7 +200,7 @@ var updateMovie = /*#__PURE__*/function () {
 
 // Sub‑schema cho Episode
 var EpisodeSchema = _joi["default"].object({
-  episode_number: _joi["default"].number().integer().required(),
+  episode_number: _joi["default"].number().integer().positive().required(),
   episode_id: _joi["default"].number().integer().positive().required(),
   name: _joi["default"].string().trim().min(1).required(),
   video_links: _joi["default"].array().items(linkSchema).required(),

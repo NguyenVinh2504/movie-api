@@ -140,7 +140,7 @@ const updateMovie = async (req, res, next) => {
 
 // Sub‑schema cho Episode
 const EpisodeSchema = Joi.object({
-  episode_number: Joi.number().integer().required(),
+  episode_number: Joi.number().integer().positive().required(),
   episode_id: Joi.number().integer().positive().required(),
   name: Joi.string().trim().min(1).required(),
   video_links: Joi.array().items(linkSchema).required(),

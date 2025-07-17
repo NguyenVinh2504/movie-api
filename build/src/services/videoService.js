@@ -7,23 +7,21 @@ Object.defineProperty(exports, "__esModule", {
 exports.videoService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-var _tvVideoModel = require("../models/tvVideoModel");
+var _videoMeidaModel = require("../models/videoMeidaModel");
 var _require = require('http-status-codes'),
   StatusCodes = _require.StatusCodes;
-var _require2 = require("../models/movieVideoModel"),
-  movieVideoModel = _require2.movieVideoModel;
-var _require3 = require("../utils/ApiError"),
-  ApiError = _require3["default"];
+var _require2 = require("../utils/ApiError"),
+  ApiError = _require2["default"];
 var getMovieVideo = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(_ref) {
-    var mediaId, movieVideo;
+    var tmdbId, movieVideo;
     return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          mediaId = _ref.mediaId;
+          tmdbId = _ref.tmdbId;
           _context.next = 3;
-          return movieVideoModel.getMovieVideoInfo({
-            mediaId: mediaId
+          return _videoMeidaModel.videoMediaModel.getMovieByTmdbIdForUser({
+            tmdbId: tmdbId
           });
         case 3:
           movieVideo = _context.sent;
@@ -46,28 +44,22 @@ var getMovieVideo = /*#__PURE__*/function () {
 }();
 var getTvVideo = /*#__PURE__*/function () {
   var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref3) {
-    var mediaId, episodeId, seasonNumber, episodeNumber, movieVideo;
+    var tmdbId, episodeId, seasonNumber, episodeNumber, episodeVideo;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          mediaId = _ref3.mediaId, episodeId = _ref3.episodeId, seasonNumber = _ref3.seasonNumber, episodeNumber = _ref3.episodeNumber;
+          tmdbId = _ref3.tmdbId, episodeId = _ref3.episodeId, seasonNumber = _ref3.seasonNumber, episodeNumber = _ref3.episodeNumber;
           _context2.next = 3;
-          return _tvVideoModel.tvVideoModel.getTvVideoInfo({
-            mediaId: mediaId,
+          return _videoMeidaModel.videoMediaModel.getEpisodeForUser({
+            tmdbId: tmdbId,
             episodeId: episodeId,
             seasonNumber: seasonNumber,
             episodeNumber: episodeNumber
           });
         case 3:
-          movieVideo = _context2.sent;
-          if (movieVideo) {
-            _context2.next = 6;
-            break;
-          }
-          throw new ApiError(StatusCodes.NOT_FOUND, 'Tv video not found');
-        case 6:
-          return _context2.abrupt("return", movieVideo);
-        case 7:
+          episodeVideo = _context2.sent;
+          return _context2.abrupt("return", episodeVideo);
+        case 5:
         case "end":
           return _context2.stop();
       }

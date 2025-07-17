@@ -3,10 +3,10 @@ const { videoService } = require('~/services/videoService')
 
 const getMovieVideo = async (req, res, next) => {
   try {
-    const { mediaId } = req.params
+    const { tmdbId } = req.params
 
     const mediaVideo = await videoService.getMovieVideo({
-      mediaId
+      tmdbId
     })
     res.status(StatusCodes.CREATED).json(mediaVideo)
   } catch (error) {
@@ -15,9 +15,10 @@ const getMovieVideo = async (req, res, next) => {
 }
 const getTvVideo = async (req, res, next) => {
   try {
-    const { mediaId, episodeId, seasonNumber, episodeNumber } = req.params
+    Object.keys(req.params).forEach((key) => (req.params[key] = parseInt(req.params[key])))
+    const { tmdbId, episodeId, seasonNumber, episodeNumber } = req.params
 
-    const mediaVideo = await videoService.getTvVideo({ mediaId, episodeId, seasonNumber, episodeNumber })
+    const mediaVideo = await videoService.getTvVideo({ tmdbId, episodeId, seasonNumber, episodeNumber })
     res.status(StatusCodes.CREATED).json(mediaVideo)
   } catch (error) {
     next(error)

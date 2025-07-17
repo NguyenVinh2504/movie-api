@@ -11,7 +11,7 @@ var _joi = _interopRequireDefault(require("joi"));
 var _mongodb = require("../config/mongodb");
 // import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 // import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
-var MOVIE_VIDEO_COLLECTION_NAME = 'movieVideo';
+var MOVIE_VIDEO_COLLECTION_NAME = 'media';
 var MOVIE_VIDEO_COLLECTION_SCHEMA = _joi["default"].object({
   // name: Joi.string().optional(),
   // status: Joi.string().valid('pending', 'processing', 'success', 'failed').required(),
@@ -29,7 +29,7 @@ var getMovieVideoInfo = /*#__PURE__*/function () {
           mediaId = _ref.mediaId;
           _context.next = 3;
           return (0, _mongodb.GET_DB)().collection(MOVIE_VIDEO_COLLECTION_NAME).findOne({
-            mediaId: mediaId
+            tmdb_id: +mediaId
           });
         case 3:
           result = _context.sent;

@@ -431,6 +431,119 @@ var deleteOneById = /*#__PURE__*/function () {
     return _ref10.apply(this, arguments);
   };
 }();
+var getMovieByTmdbIdForUser = /*#__PURE__*/function () {
+  var _ref12 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(_ref11) {
+    var tmdbId, result;
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
+        case 0:
+          tmdbId = _ref11.tmdbId;
+          _context8.prev = 1;
+          _context8.next = 4;
+          return (0, _mongodb2.GET_DB)().collection(MEDIA_COLLECTION_NAME).findOne({
+            tmdb_id: +tmdbId,
+            status: 'published',
+            media_type: 'movie'
+          }, {
+            projection: {
+              _id: 1,
+              title: 1,
+              poster_path: 1,
+              video_links: 1,
+              subtitle_links: 1,
+              createdAt: 1,
+              updatedAt: 1
+            }
+          });
+        case 4:
+          result = _context8.sent;
+          return _context8.abrupt("return", result);
+        case 8:
+          _context8.prev = 8;
+          _context8.t0 = _context8["catch"](1);
+          throw new Error(_context8.t0.message || 'Failed to fetch media');
+        case 11:
+        case "end":
+          return _context8.stop();
+      }
+    }, _callee8, null, [[1, 8]]);
+  }));
+  return function getMovieByTmdbIdForUser(_x10) {
+    return _ref12.apply(this, arguments);
+  };
+}();
+var getEpisodeForUser = /*#__PURE__*/function () {
+  var _ref14 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9(_ref13) {
+    var tmdbId, seasonNumber, episodeNumber, episodeId, _result$seasons, _season$episodes, result, season, episode;
+    return _regenerator["default"].wrap(function _callee9$(_context9) {
+      while (1) switch (_context9.prev = _context9.next) {
+        case 0:
+          tmdbId = _ref13.tmdbId, seasonNumber = _ref13.seasonNumber, episodeNumber = _ref13.episodeNumber, episodeId = _ref13.episodeId;
+          _context9.prev = 1;
+          _context9.next = 4;
+          return (0, _mongodb2.GET_DB)().collection(MEDIA_COLLECTION_NAME).findOne({
+            tmdb_id: +tmdbId,
+            status: 'published',
+            media_type: 'tv'
+          }, {
+            projection: {
+              name: 1,
+              poster_path: 1,
+              'seasons.season_number': 1,
+              'seasons.episodes': 1
+            }
+          });
+        case 4:
+          result = _context9.sent;
+          if (result) {
+            _context9.next = 7;
+            break;
+          }
+          throw new Error('TV show not found or not available');
+        case 7:
+          // Tìm season
+          season = (_result$seasons = result.seasons) === null || _result$seasons === void 0 ? void 0 : _result$seasons.find(function (s) {
+            return s.season_number === seasonNumber;
+          });
+          if (season) {
+            _context9.next = 10;
+            break;
+          }
+          throw new Error('Season not found');
+        case 10:
+          // Tìm episode với nhiều điều kiện
+          episode = (_season$episodes = season.episodes) === null || _season$episodes === void 0 ? void 0 : _season$episodes.find(function (e) {
+            return e.episode_number === episodeNumber && e.episode_id === episodeId;
+          });
+          if (episode) {
+            _context9.next = 13;
+            break;
+          }
+          throw new Error('Episode not found');
+        case 13:
+          return _context9.abrupt("return", {
+            poster_path: result.poster_path,
+            season_number: seasonNumber,
+            episode_id: episode.episode_id,
+            episode_number: episode.episode_number,
+            name: episode.name,
+            video_links: episode.video_links,
+            subtitle_links: episode.subtitle_links
+          });
+        case 16:
+          _context9.prev = 16;
+          _context9.t0 = _context9["catch"](1);
+          throw new Error(_context9.t0.message || 'Failed to fetch episode');
+        case 19:
+        case "end":
+          return _context9.stop();
+      }
+    }, _callee9, null, [[1, 16]]);
+  }));
+  return function getEpisodeForUser(_x11) {
+    return _ref14.apply(this, arguments);
+  };
+}();
 var videoMediaModel = {
   createMovie: createMovie,
   getMovieList: getMovieList,
@@ -440,6 +553,8 @@ var videoMediaModel = {
   deleteOneById: deleteOneById,
   //Tv show
   createTvShow: createTvShow,
-  getTvShowList: getTvShowList
+  getTvShowList: getTvShowList,
+  getMovieByTmdbIdForUser: getMovieByTmdbIdForUser,
+  getEpisodeForUser: getEpisodeForUser
 };
 exports.videoMediaModel = videoMediaModel;

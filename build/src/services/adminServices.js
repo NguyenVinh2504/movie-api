@@ -88,7 +88,11 @@ var createMovie = /*#__PURE__*/function () {
           return _videoMeidaModel.videoMediaModel.createMovie(data);
         case 10:
           createdMovie = _context2.sent;
-          return _context2.abrupt("return", createdMovie);
+          return _context2.abrupt("return", {
+            status: 'success',
+            message: 'Tạo phim thành công',
+            data: createdMovie
+          });
         case 14:
           _context2.prev = 14;
           _context2.t0 = _context2["catch"](0);
@@ -159,7 +163,7 @@ var updateMovie = /*#__PURE__*/function () {
           processedSubtitles = subtitle_links.map(function (sub) {
             return _objectSpread(_objectSpread({}, sub), {}, {
               lang: (0, _resolveLangCode["default"])(sub.label),
-              kind: 'subtitle'
+              kind: 'subtitles'
             });
           });
           updateData = {
@@ -303,7 +307,8 @@ var updateTvShow = /*#__PURE__*/function () {
           }).flatMap(function (e) {
             return e.subtitle_links;
           }).forEach(function (sub) {
-            return sub.lang = (0, _resolveLangCode["default"])(sub.label);
+            sub.lang = (0, _resolveLangCode["default"])(sub.label);
+            sub.kind = 'subtitles';
           });
           status = reqBody.status, name = reqBody.name, poster_path = reqBody.poster_path, seasons = reqBody.seasons;
           updateData = {
