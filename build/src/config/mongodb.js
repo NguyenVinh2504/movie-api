@@ -4,7 +4,7 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.GET_DB = exports.CONNECT_DB = exports.CLOSE_DB = void 0;
+exports.mongoClientInstance = exports.GET_DB = exports.CONNECT_DB = exports.CLOSE_DB = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _mongodb = require("mongodb");
@@ -19,6 +19,7 @@ var mongoClientInstance = new _mongodb.MongoClient(_environment.env.MONGODB_URI,
     deprecationErrors: true
   }
 });
+exports.mongoClientInstance = mongoClientInstance;
 var CONNECT_DB = /*#__PURE__*/function () {
   var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee() {
     return _regenerator["default"].wrap(function _callee$(_context) {

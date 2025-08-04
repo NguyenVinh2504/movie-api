@@ -1,3 +1,4 @@
+import { episodeModel } from '~/models/episodeModel'
 import { videoMediaModel } from '~/models/videoMeidaModel'
 
 const { StatusCodes } = require('http-status-codes')
@@ -12,7 +13,7 @@ const getMovieVideo = async ({ tmdbId }) => {
 }
 
 const getTvVideo = async ({ tmdbId, episodeId, seasonNumber, episodeNumber }) => {
-  const episodeVideo = await videoMediaModel.getEpisodeForUser({ tmdbId, episodeId, seasonNumber, episodeNumber })
+  const episodeVideo = await episodeModel.getEpisodeForUser({ tmdbId, episodeId, seasonNumber, episodeNumber })
   return episodeVideo
 }
 export const videoService = {

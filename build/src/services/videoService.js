@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.videoService = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+var _episodeModel = require("../models/episodeModel");
 var _videoMeidaModel = require("../models/videoMeidaModel");
 var _require = require('http-status-codes'),
   StatusCodes = _require.StatusCodes;
@@ -50,7 +51,7 @@ var getTvVideo = /*#__PURE__*/function () {
         case 0:
           tmdbId = _ref3.tmdbId, episodeId = _ref3.episodeId, seasonNumber = _ref3.seasonNumber, episodeNumber = _ref3.episodeNumber;
           _context2.next = 3;
-          return _videoMeidaModel.videoMediaModel.getEpisodeForUser({
+          return _episodeModel.episodeModel.getEpisodeForUser({
             tmdbId: tmdbId,
             episodeId: episodeId,
             seasonNumber: seasonNumber,

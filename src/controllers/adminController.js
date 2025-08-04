@@ -30,9 +30,9 @@ const getMediaById = async (req, res, next) => {
 
 const deleteMedia = async (req, res, next) => {
   try {
-    const idMedia = req.params.mediaId
+    const mediaId = req.params.mediaId
 
-    const results = await adminService.deleteMedia(idMedia)
+    const results = await adminService.deleteMedia(mediaId)
     res.status(StatusCodes.OK).json(results)
   } catch (error) {
     next(error)
@@ -99,6 +99,73 @@ const updateTvShow = async (req, res, next) => {
   return updateMedia(req, res, next, adminService.updateTvShow)
 }
 
+const addEpisode = async (req, res, next) => {
+  try {
+    const { tvShowId } = req.params
+    const episodeData = req.body
+
+    // Gọi service để thêm tập phim, truyền vào cả tvShowId và dữ liệu tập phim
+    const newEpisode = await adminService.addEpisode(tvShowId, episodeData)
+
+    res.status(StatusCodes.CREATED).json(newEpisode)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getEpisodeList = async (req, res, next) => {
+  try {
+    const { tvShowId } = req.params
+    const { page, pageSize } = req.query
+
+    const result = await adminService.getEpisodeList(tvShowId, { page, pageSize })
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getEpisodeDetails = async (req, res, next) => {
+  try {
+    const { tvShowId, episodeId } = req.params
+    const result = await adminService.getEpisodeDetails(tvShowId, episodeId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getEpisodeDetailsByTmdbId = async (req, res, next) => {
+  try {
+    const { tvShowId } = req.params
+    const { episodeTmdbId } = req.query
+    const result = await adminService.getEpisodeDetailsByTmdbId({ tvShowId, episodeTmdbId })
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateEpisode = async (req, res, next) => {
+  try {
+    const { tvShowId, episodeId } = req.params
+    const result = await adminService.updateEpisode(tvShowId, episodeId, req.body)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const deleteEpisode = async (req, res, next) => {
+  try {
+    const { tvShowId, episodeId } = req.params
+    const result = await adminService.deleteEpisode(tvShowId, episodeId)
+    res.status(StatusCodes.OK).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const adminController = {
   createMovie,
   getMovieList,
@@ -107,6 +174,13 @@ export const adminController = {
   createTvShow,
   getTvShowList,
   updateTvShow,
+
+  addEpisode,
+  getEpisodeList,
+  updateEpisode,
+  deleteEpisode,
+  getEpisodeDetails,
+  getEpisodeDetailsByTmdbId,
 
   getMediaById,
   deleteMedia

@@ -4,12 +4,15 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.videoMediaModel = exports.TV_SHOW_INPUT_SCHEMA = exports.MOVIE_INPUT_SCHEMA = void 0;
+exports.videoMediaModel = exports.videoLinkSchema = exports.subtitleLinkSchema = exports.TV_SHOW_INPUT_SCHEMA = exports.MOVIE_INPUT_SCHEMA = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 var _joi = _interopRequireDefault(require("joi"));
 var _mongodb = require("mongodb");
 var _mongodb2 = require("../config/mongodb");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { (0, _defineProperty2["default"])(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 // --- 1. ĐỊNH NGHĨA CONSTANTS VÀ SCHEMA ---
 // Tên collection cho media (bao gồm cả movies và tv_shows)
 var MEDIA_COLLECTION_NAME = 'media';
@@ -29,8 +32,9 @@ var videoLinkSchema = _joi["default"].object({
 });
 
 // Sub‑schema chung cho subtitle link
+exports.videoLinkSchema = videoLinkSchema;
 var subtitleLinkSchema = _joi["default"].object({
-  lang: _joi["default"].string().trim().lowercase().length(2).allow(null).required().messages({
+  lang: _joi["default"].string().trim().lowercase().length(2).allow(null).optional()["default"](null).messages({
     'any.required': 'Mỗi subtitle phải có mã ngôn ngữ "lang" (ví dụ: "vi", "en").',
     'string.length': '"lang" phải là mã ISO 639-1 (2 ký tự).'
   }),
@@ -48,6 +52,7 @@ var subtitleLinkSchema = _joi["default"].object({
 });
 
 // Schema cơ bản chung cho mọi media (Movie & TVShow)
+exports.subtitleLinkSchema = subtitleLinkSchema;
 var MediaBaseSchema = _joi["default"].object({
   tmdb_id: _joi["default"].number().integer().positive().required(),
   poster_path: _joi["default"].string().uri({
@@ -66,27 +71,20 @@ var MOVIE_INPUT_SCHEMA = MediaBaseSchema.keys({
   subtitle_links: _joi["default"].array().items(subtitleLinkSchema).required()
 });
 
-// Sub‑schema cho Episode
-exports.MOVIE_INPUT_SCHEMA = MOVIE_INPUT_SCHEMA;
-var EpisodeSchema = _joi["default"].object({
-  episode_number: _joi["default"].number().integer().required(),
-  episode_id: _joi["default"].number().integer().positive().required(),
-  name: _joi["default"].string().trim().min(1).required(),
-  video_links: _joi["default"].array().items(videoLinkSchema).required(),
-  subtitle_links: _joi["default"].array().items(subtitleLinkSchema).required()
-});
-
-// Sub‑schema cho Season
-var SeasonSchema = _joi["default"].object({
-  season_number: _joi["default"].number().integer().required(),
-  episodes: _joi["default"].array().items(EpisodeSchema).required()
-});
+// // Sub‑schema cho Season
+// const SeasonSchema = Joi.object({
+//   season_number: Joi.number().integer().required(),
+//   episodes: Joi.array().items(EpisodeSchema).required()
+// })
 
 // Schema dành cho TVShow
+exports.MOVIE_INPUT_SCHEMA = MOVIE_INPUT_SCHEMA;
 var TV_SHOW_INPUT_SCHEMA = MediaBaseSchema.keys({
   media_type: _joi["default"].valid('tv').required(),
   name: _joi["default"].string().trim().min(1).required(),
-  seasons: _joi["default"].array().items(SeasonSchema).required()
+  seasonCount: _joi["default"].number().integer().min(0)["default"](0),
+  episodeCount: _joi["default"].number().integer().min(0)["default"](0)
+  // seasons: Joi.array().items(SeasonSchema).required()
 });
 
 // --- 2. HÀM TƯƠNG TÁC VỚI DATABASE ---
@@ -242,25 +240,21 @@ var getTvShowList = /*#__PURE__*/function () {
               createdAt: -1
             }
           },
-          // Giai đoạn 3: Thêm các trường tính toán
-          {
-            $addFields: {
-              seasonCount: {
-                $size: '$seasons'
-              },
-              episodeCount: {
-                $sum: {
-                  $map: {
-                    input: '$seasons',
-                    as: 'season',
-                    "in": {
-                      $size: '$$season.episodes'
-                    }
-                  }
-                }
-              }
-            }
-          },
+          // // Giai đoạn 3: Thêm các trường tính toán
+          // {
+          //   $addFields: {
+          //     seasonCount: { $size: '$seasons' },
+          //     episodeCount: {
+          //       $sum: {
+          //         $map: {
+          //           input: '$seasons',
+          //           as: 'season',
+          //           in: { $size: '$$season.episodes' }
+          //         }
+          //       }
+          //     }
+          //   }
+          // },
           // Giai đoạn 4: Định hình lại output cuối cùng
           {
             $project: {
@@ -365,67 +359,88 @@ var findById = /*#__PURE__*/function () {
 }();
 var update = /*#__PURE__*/function () {
   var _ref9 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(_ref8) {
-    var mediaId, media_type, updateData, result;
+    var mediaId,
+      media_type,
+      updateData,
+      options,
+      session,
+      result,
+      _args6 = arguments;
     return _regenerator["default"].wrap(function _callee6$(_context6) {
       while (1) switch (_context6.prev = _context6.next) {
         case 0:
           mediaId = _ref8.mediaId, media_type = _ref8.media_type, updateData = _ref8.updateData;
-          _context6.prev = 1;
-          _context6.next = 4;
+          options = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : {};
+          // Lấy session từ options
+          session = options.session;
+          _context6.prev = 3;
+          _context6.next = 6;
           return (0, _mongodb2.GET_DB)().collection(MEDIA_COLLECTION_NAME).findOneAndUpdate({
             _id: new _mongodb.ObjectId(mediaId),
             media_type: media_type
           }, {
-            $set: updateData
+            // Dùng $set để cập nhật các trường trong updateData
+            $set: _objectSpread(_objectSpread({}, updateData), {}, {
+              updatedAt: new Date()
+            })
           }, {
-            returnDocument: 'after' // Trả về document sau khi cập nhật
+            returnDocument: 'after',
+            // Trả về document sau khi cập nhật
+            session: session // <-- Thêm session vào đây
           });
-        case 4:
+        case 6:
           result = _context6.sent;
           if (result) {
-            _context6.next = 7;
+            _context6.next = 9;
             break;
           }
-          throw 'Có lỗi trong quá trình cập nhật phim';
-        case 7:
+          throw new Error("Kh\xF4ng t\xECm th\u1EA5y ".concat(media_type, " v\u1EDBi ID n\xE0y \u0111\u1EC3 c\u1EADp nh\u1EADt."));
+        case 9:
           return _context6.abrupt("return", result);
-        case 10:
-          _context6.prev = 10;
-          _context6.t0 = _context6["catch"](1);
+        case 12:
+          _context6.prev = 12;
+          _context6.t0 = _context6["catch"](3);
           throw new Error(_context6.t0);
-        case 13:
+        case 15:
         case "end":
           return _context6.stop();
       }
-    }, _callee6, null, [[1, 10]]);
+    }, _callee6, null, [[3, 12]]);
   }));
   return function update(_x8) {
     return _ref9.apply(this, arguments);
   };
 }();
 var deleteOneById = /*#__PURE__*/function () {
-  var _ref10 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(columnId) {
-    var result;
+  var _ref10 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(mediaId) {
+    var options,
+      session,
+      result,
+      _args7 = arguments;
     return _regenerator["default"].wrap(function _callee7$(_context7) {
       while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          _context7.prev = 0;
-          _context7.next = 3;
-          return (0, _mongodb2.GET_DB)().collection(MEDIA_COLLECTION_NAME).deleteOne({
-            _id: new _mongodb.ObjectId(columnId)
+          options = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : {};
+          session = options.session;
+          _context7.prev = 2;
+          _context7.next = 5;
+          return (0, _mongodb2.GET_DB)().collection(MEDIA_COLLECTION_NAME).findOneAndDelete({
+            _id: new _mongodb.ObjectId(mediaId)
+          }, {
+            session: session
           });
-        case 3:
+        case 5:
           result = _context7.sent;
           return _context7.abrupt("return", result);
-        case 7:
-          _context7.prev = 7;
-          _context7.t0 = _context7["catch"](0);
+        case 9:
+          _context7.prev = 9;
+          _context7.t0 = _context7["catch"](2);
           throw new Error(_context7.t0);
-        case 10:
+        case 12:
         case "end":
           return _context7.stop();
       }
-    }, _callee7, null, [[0, 7]]);
+    }, _callee7, null, [[2, 9]]);
   }));
   return function deleteOneById(_x9) {
     return _ref10.apply(this, arguments);
@@ -545,6 +560,7 @@ var getEpisodeForUser = /*#__PURE__*/function () {
   };
 }();
 var videoMediaModel = {
+  MEDIA_COLLECTION_NAME: MEDIA_COLLECTION_NAME,
   createMovie: createMovie,
   getMovieList: getMovieList,
   findMediaByTmdbId: findMediaByTmdbId,

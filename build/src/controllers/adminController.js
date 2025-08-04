@@ -76,14 +76,14 @@ var getMediaById = /*#__PURE__*/function () {
 }();
 var deleteMedia = /*#__PURE__*/function () {
   var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(req, res, next) {
-    var idMedia, results;
+    var mediaId, results;
     return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          idMedia = req.params.mediaId;
+          mediaId = req.params.mediaId;
           _context3.next = 4;
-          return _adminServices.adminService.deleteMedia(idMedia);
+          return _adminServices.adminService.deleteMedia(mediaId);
         case 4:
           results = _context3.sent;
           res.status(_httpStatusCodes.StatusCodes.OK).json(results);
@@ -250,6 +250,189 @@ var updateTvShow = /*#__PURE__*/function () {
     return _ref8.apply(this, arguments);
   };
 }();
+var addEpisode = /*#__PURE__*/function () {
+  var _ref9 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9(req, res, next) {
+    var tvShowId, episodeData, newEpisode;
+    return _regenerator["default"].wrap(function _callee9$(_context9) {
+      while (1) switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
+          tvShowId = req.params.tvShowId;
+          episodeData = req.body; // Gọi service để thêm tập phim, truyền vào cả tvShowId và dữ liệu tập phim
+          _context9.next = 5;
+          return _adminServices.adminService.addEpisode(tvShowId, episodeData);
+        case 5:
+          newEpisode = _context9.sent;
+          res.status(_httpStatusCodes.StatusCodes.CREATED).json(newEpisode);
+          _context9.next = 12;
+          break;
+        case 9:
+          _context9.prev = 9;
+          _context9.t0 = _context9["catch"](0);
+          next(_context9.t0);
+        case 12:
+        case "end":
+          return _context9.stop();
+      }
+    }, _callee9, null, [[0, 9]]);
+  }));
+  return function addEpisode(_x26, _x27, _x28) {
+    return _ref9.apply(this, arguments);
+  };
+}();
+var getEpisodeList = /*#__PURE__*/function () {
+  var _ref10 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10(req, res, next) {
+    var tvShowId, _req$query, page, pageSize, result;
+    return _regenerator["default"].wrap(function _callee10$(_context10) {
+      while (1) switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          tvShowId = req.params.tvShowId;
+          _req$query = req.query, page = _req$query.page, pageSize = _req$query.pageSize;
+          _context10.next = 5;
+          return _adminServices.adminService.getEpisodeList(tvShowId, {
+            page: page,
+            pageSize: pageSize
+          });
+        case 5:
+          result = _context10.sent;
+          res.status(_httpStatusCodes.StatusCodes.OK).json(result);
+          _context10.next = 12;
+          break;
+        case 9:
+          _context10.prev = 9;
+          _context10.t0 = _context10["catch"](0);
+          next(_context10.t0);
+        case 12:
+        case "end":
+          return _context10.stop();
+      }
+    }, _callee10, null, [[0, 9]]);
+  }));
+  return function getEpisodeList(_x29, _x30, _x31) {
+    return _ref10.apply(this, arguments);
+  };
+}();
+var getEpisodeDetails = /*#__PURE__*/function () {
+  var _ref11 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11(req, res, next) {
+    var _req$params, tvShowId, episodeId, result;
+    return _regenerator["default"].wrap(function _callee11$(_context11) {
+      while (1) switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          _req$params = req.params, tvShowId = _req$params.tvShowId, episodeId = _req$params.episodeId;
+          _context11.next = 4;
+          return _adminServices.adminService.getEpisodeDetails(tvShowId, episodeId);
+        case 4:
+          result = _context11.sent;
+          res.status(_httpStatusCodes.StatusCodes.OK).json(result);
+          _context11.next = 11;
+          break;
+        case 8:
+          _context11.prev = 8;
+          _context11.t0 = _context11["catch"](0);
+          next(_context11.t0);
+        case 11:
+        case "end":
+          return _context11.stop();
+      }
+    }, _callee11, null, [[0, 8]]);
+  }));
+  return function getEpisodeDetails(_x32, _x33, _x34) {
+    return _ref11.apply(this, arguments);
+  };
+}();
+var getEpisodeDetailsByTmdbId = /*#__PURE__*/function () {
+  var _ref12 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(req, res, next) {
+    var tvShowId, episodeTmdbId, result;
+    return _regenerator["default"].wrap(function _callee12$(_context12) {
+      while (1) switch (_context12.prev = _context12.next) {
+        case 0:
+          _context12.prev = 0;
+          tvShowId = req.params.tvShowId;
+          episodeTmdbId = req.query.episodeTmdbId;
+          _context12.next = 5;
+          return _adminServices.adminService.getEpisodeDetailsByTmdbId({
+            tvShowId: tvShowId,
+            episodeTmdbId: episodeTmdbId
+          });
+        case 5:
+          result = _context12.sent;
+          res.status(_httpStatusCodes.StatusCodes.OK).json(result);
+          _context12.next = 12;
+          break;
+        case 9:
+          _context12.prev = 9;
+          _context12.t0 = _context12["catch"](0);
+          next(_context12.t0);
+        case 12:
+        case "end":
+          return _context12.stop();
+      }
+    }, _callee12, null, [[0, 9]]);
+  }));
+  return function getEpisodeDetailsByTmdbId(_x35, _x36, _x37) {
+    return _ref12.apply(this, arguments);
+  };
+}();
+var updateEpisode = /*#__PURE__*/function () {
+  var _ref13 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(req, res, next) {
+    var _req$params2, tvShowId, episodeId, result;
+    return _regenerator["default"].wrap(function _callee13$(_context13) {
+      while (1) switch (_context13.prev = _context13.next) {
+        case 0:
+          _context13.prev = 0;
+          _req$params2 = req.params, tvShowId = _req$params2.tvShowId, episodeId = _req$params2.episodeId;
+          _context13.next = 4;
+          return _adminServices.adminService.updateEpisode(tvShowId, episodeId, req.body);
+        case 4:
+          result = _context13.sent;
+          res.status(_httpStatusCodes.StatusCodes.OK).json(result);
+          _context13.next = 11;
+          break;
+        case 8:
+          _context13.prev = 8;
+          _context13.t0 = _context13["catch"](0);
+          next(_context13.t0);
+        case 11:
+        case "end":
+          return _context13.stop();
+      }
+    }, _callee13, null, [[0, 8]]);
+  }));
+  return function updateEpisode(_x38, _x39, _x40) {
+    return _ref13.apply(this, arguments);
+  };
+}();
+var deleteEpisode = /*#__PURE__*/function () {
+  var _ref14 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee14(req, res, next) {
+    var _req$params3, tvShowId, episodeId, result;
+    return _regenerator["default"].wrap(function _callee14$(_context14) {
+      while (1) switch (_context14.prev = _context14.next) {
+        case 0:
+          _context14.prev = 0;
+          _req$params3 = req.params, tvShowId = _req$params3.tvShowId, episodeId = _req$params3.episodeId;
+          _context14.next = 4;
+          return _adminServices.adminService.deleteEpisode(tvShowId, episodeId);
+        case 4:
+          result = _context14.sent;
+          res.status(_httpStatusCodes.StatusCodes.OK).json(result);
+          _context14.next = 11;
+          break;
+        case 8:
+          _context14.prev = 8;
+          _context14.t0 = _context14["catch"](0);
+          next(_context14.t0);
+        case 11:
+        case "end":
+          return _context14.stop();
+      }
+    }, _callee14, null, [[0, 8]]);
+  }));
+  return function deleteEpisode(_x41, _x42, _x43) {
+    return _ref14.apply(this, arguments);
+  };
+}();
 var adminController = {
   createMovie: createMovie,
   getMovieList: getMovieList,
@@ -258,6 +441,12 @@ var adminController = {
   createTvShow: createTvShow,
   getTvShowList: getTvShowList,
   updateTvShow: updateTvShow,
+  addEpisode: addEpisode,
+  getEpisodeList: getEpisodeList,
+  updateEpisode: updateEpisode,
+  deleteEpisode: deleteEpisode,
+  getEpisodeDetails: getEpisodeDetails,
+  getEpisodeDetailsByTmdbId: getEpisodeDetailsByTmdbId,
   getMediaById: getMediaById,
   deleteMedia: deleteMedia
 };

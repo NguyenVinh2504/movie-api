@@ -6,7 +6,7 @@ import { GET_DB } from '~/config/mongodb'
 const MEDIA_COLLECTION_NAME = 'media'
 
 // Sub‑schema chung cho video link
-const videoLinkSchema = Joi.object({
+export const videoLinkSchema = Joi.object({
   label: Joi.string().trim().min(1).required().messages({
     'any.required': 'Mỗi video link phải có "label".',
     'string.empty': '"label" không được để trống.'
@@ -18,8 +18,8 @@ const videoLinkSchema = Joi.object({
 })
 
 // Sub‑schema chung cho subtitle link
-const subtitleLinkSchema = Joi.object({
-  lang: Joi.string().trim().lowercase().length(2).allow(null).required().messages({
+export const subtitleLinkSchema = Joi.object({
+  lang: Joi.string().trim().lowercase().length(2).allow(null).optional().default(null).messages({
     'any.required': 'Mỗi subtitle phải có mã ngôn ngữ "lang" (ví dụ: "vi", "en").',
     'string.length': '"lang" phải là mã ISO 639-1 (2 ký tự).'
   }),
@@ -51,26 +51,19 @@ export const MOVIE_INPUT_SCHEMA = MediaBaseSchema.keys({
   subtitle_links: Joi.array().items(subtitleLinkSchema).required()
 })
 
-// Sub‑schema cho Episode
-const EpisodeSchema = Joi.object({
-  episode_number: Joi.number().integer().required(),
-  episode_id: Joi.number().integer().positive().required(),
-  name: Joi.string().trim().min(1).required(),
-  video_links: Joi.array().items(videoLinkSchema).required(),
-  subtitle_links: Joi.array().items(subtitleLinkSchema).required()
-})
-
-// Sub‑schema cho Season
-const SeasonSchema = Joi.object({
-  season_number: Joi.number().integer().required(),
-  episodes: Joi.array().items(EpisodeSchema).required()
-})
+// // Sub‑schema cho Season
+// const SeasonSchema = Joi.object({
+//   season_number: Joi.number().integer().required(),
+//   episodes: Joi.array().items(EpisodeSchema).required()
+// })
 
 // Schema dành cho TVShow
 export const TV_SHOW_INPUT_SCHEMA = MediaBaseSchema.keys({
   media_type: Joi.valid('tv').required(),
   name: Joi.string().trim().min(1).required(),
-  seasons: Joi.array().items(SeasonSchema).required()
+  seasonCount: Joi.number().integer().min(0).default(0),
+  episodeCount: Joi.number().integer().min(0).default(0)
+  // seasons: Joi.array().items(SeasonSchema).required()
 })
 
 // --- 2. HÀM TƯƠNG TÁC VỚI DATABASE ---
@@ -172,21 +165,21 @@ const getTvShowList = async ({ page, pageSize }) => {
       {
         $sort: { createdAt: -1 }
       },
-      // Giai đoạn 3: Thêm các trường tính toán
-      {
-        $addFields: {
-          seasonCount: { $size: '$seasons' },
-          episodeCount: {
-            $sum: {
-              $map: {
-                input: '$seasons',
-                as: 'season',
-                in: { $size: '$$season.episodes' }
-              }
-            }
-          }
-        }
-      },
+      // // Giai đoạn 3: Thêm các trường tính toán
+      // {
+      //   $addFields: {
+      //     seasonCount: { $size: '$seasons' },
+      //     episodeCount: {
+      //       $sum: {
+      //         $map: {
+      //           input: '$seasons',
+      //           as: 'season',
+      //           in: { $size: '$$season.episodes' }
+      //         }
+      //       }
+      //     }
+      //   }
+      // },
       // Giai đoạn 4: Định hình lại output cuối cùng
       {
         $project: {
@@ -240,7 +233,10 @@ const findById = async (mediaId) => {
   }
 }
 
-const update = async ({ mediaId, media_type, updateData }) => {
+const update = async ({ mediaId, media_type, updateData }, options = {}) => {
+  // Lấy session từ options
+  const { session } = options
+
   try {
     const result = await GET_DB()
       .collection(MEDIA_COLLECTION_NAME)
@@ -250,28 +246,36 @@ const update = async ({ mediaId, media_type, updateData }) => {
           media_type
         },
         {
-          $set: updateData
+          // Dùng $set để cập nhật các trường trong updateData
+          $set: { ...updateData, updatedAt: new Date() }
         },
         {
-          returnDocument: 'after' // Trả về document sau khi cập nhật
+          returnDocument: 'after', // Trả về document sau khi cập nhật
+          session // <-- Thêm session vào đây
         }
       )
-    if (!result) throw 'Có lỗi trong quá trình cập nhật phim'
+
+    // findOneAndUpdate sẽ trả về null nếu không tìm thấy document để cập nhật
+    if (!result) {
+      throw new Error(`Không tìm thấy ${media_type} với ID này để cập nhật.`)
+    }
 
     return result
   } catch (error) {
+    // Ném lỗi ra ngoài để service có thể bắt và xử lý
     throw new Error(error)
   }
 }
 
-const deleteOneById = async (columnId) => {
+const deleteOneById = async (mediaId, options = {}) => {
+  const { session } = options
   try {
+    // Dùng findOneAndDelete thay vì deleteOne
+    // Nó sẽ xóa và trả về document đã xóa
     const result = await GET_DB()
       .collection(MEDIA_COLLECTION_NAME)
-      .deleteOne({
-        _id: new ObjectId(columnId)
-      })
-    return result
+      .findOneAndDelete({ _id: new ObjectId(mediaId) }, { session })
+    return result // Trả về document đã xóa
   } catch (error) {
     throw new Error(error)
   }
@@ -358,6 +362,8 @@ const getEpisodeForUser = async ({ tmdbId, seasonNumber, episodeNumber, episodeI
 }
 
 export const videoMediaModel = {
+  MEDIA_COLLECTION_NAME,
+
   createMovie,
   getMovieList,
   findMediaByTmdbId,

@@ -4,7 +4,7 @@ import { env } from './environment.js'
 let movieAppDatabaseInstance = null
 
 //Khởi tạo một đối tượng CLient Instrance để connect tới MongoDB
-const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
+export const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,

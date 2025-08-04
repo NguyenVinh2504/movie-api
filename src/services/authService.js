@@ -16,73 +16,52 @@ import { timeExpired } from '~/utils/constants'
 
 const signUp = async (req, res) => {
   try {
-    const checkEmail = await userModel.getEmail(req.body.email)
-    if (checkEmail)
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
-        name: 'EMAIL',
-        message: 'Email đã được đăng ký'
-      })
-    // Mã hóa mật khẩu từ phía người dùng nhập vào
-    const hashed = await hashPassword(req.body.password)
-    // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
-    const { confirmPassword, ...option } = req.body
+    // Kiểm tra email
+    await validateEmailIsAvailable(req.body.email)
 
-    // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-    const newUser = {
-      ...option,
-      password: hashed,
-      slug: slugify(req.body.name),
-      userName: `@${formatUserName(req.body.name)}`,
-      temporaryAvatar: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${formatUserName(req.body.name)}`
-    }
+    // Xử lí dữ liệu người dùng
+    const newUserPayload = await prepareNewUserData(req.body)
 
     // Truyền dữ liệu đã xử lí vào model
-    const user = await authModel.signUp(newUser)
+    const user = await authModel.signUp(newUserPayload)
     if (user) {
-      // const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-      //   modulusLength: 4096,
-      //   publicKeyEncoding: {
-      //     type: 'pkcs1',
-      //     format: 'pem'
-      //   },
-      //   privateKeyEncoding: {
-      //     type: 'pkcs1',
-      //     format: 'pem'
-      //   }
-      // })
-
-      // Tạo privateKey và publicKey mới cho user
-      const { publicKey, privateKey } = generateKey()
-      // Thêm vào db để lưu privateKey và publicKey
-      const keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
-
-      // Tạo accessToken và refreshToken bằng privateKey và publicKey
-      const accessToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
-      const refreshToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
-
-      await Promise.all([
-        // Thêm accessToken và refreshToke vào db
-        await authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
-        await authModel.addAccessToken({ userId: user._id.toString(), accessToken })
-      ])
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        path: '/',
-        // maxAge: 31557600000,
-        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'Lax'
-      })
-      user.password = undefined
+      const { accessToken, refreshToken } = await issueTokensAndSetCookie(user, res)
       return {
         accessToken,
         refreshToken,
-        ...user
+        ...user,
+        password: undefined
       }
     }
     // Tạo token
   } catch (error) {
     throw error
+  }
+}
+
+async function validateEmailIsAvailable(email) {
+  const existingUser = await userModel.getEmail(email)
+  if (existingUser) {
+    throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
+      name: 'EMAIL',
+      message: 'Email đã được đăng ký'
+    })
+  }
+}
+
+async function prepareNewUserData(body) {
+  const { password, name, confirmPassword, ...otherData } = body
+  // Mã hóa mật khẩu từ phía người dùng nhập vào
+  const hashedPassword = await hashPassword(password)
+  const formattedUserName = formatUserName(name)
+  // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
+  return {
+    ...otherData,
+    name,
+    password: hashedPassword,
+    slug: slugify(name),
+    userName: `@${formattedUserName}`,
+    temporaryAvatar: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${formattedUserName}`
   }
 }
 
@@ -187,146 +166,34 @@ const loginGoogle = async (code, res) => {
   if (!userInfo.email_verified) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Email not verified')
   }
-  const checkEmail = await userModel.getEmail(userInfo.email)
-  if (checkEmail) {
-    // Kiểm tra xem keyStore có tồn tại không
-    let keyStore = await authModel.getKeyToken(checkEmail._id.toString())
-    // Không thì tạo tài liệu keyStore
-    if (!keyStore) {
-      const { publicKey, privateKey } = generateKey()
-      await authModel.createKeyToken({ userId: checkEmail._id.toString(), privateKey, publicKey })
-    }
-    // Get privateKey và publicKey trong db để tạo token
-    keyStore = await authModel.getKeyToken(checkEmail._id.toString())
-    const accessToken = jwtHelper.generateToken({
-      user: checkEmail,
-      tokenSecret: keyStore.publicKey,
-      tokenLife: timeExpired
-    })
-    const refreshToken = jwtHelper.generateToken({
-      user: checkEmail,
-      tokenSecret: keyStore.privateKey,
-      tokenLife: '365d'
-    })
 
-    await Promise.all([
-      authModel.addRefreshToken({ userId: checkEmail._id.toString(), refreshToken }),
-      authModel.addAccessToken({ userId: checkEmail._id.toString(), accessToken })
-    ])
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      path: '/',
-      // maxAge: 31557600000,
-      expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      sameSite: 'Lax'
-    })
-    return {
-      ...checkEmail,
-      password: undefined,
-      accessToken,
-      refreshToken
-    }
+  let user = null
+  try {
+    user = await validateUserExists(userInfo.email)
+  } catch (error) {
+    user = null
   }
-  const { name, picture, email, sub } = userInfo
-  // Mã hóa mật khẩu từ phía người dùng nhập vào
-  const hashed = await hashPassword(sub)
-  // Lấy ra tất cả dữ liệu từ người dùng trừ confirmPassword
 
-  // Xử lí dữ liệu của người dùng và thêm vào một số thông tin khác
-  const newUser = {
-    password: hashed,
-    slug: slugify(name),
-    userName: `@${formatUserName(name)}`,
-    temporaryAvatar: picture,
-    email,
-    name
-  }
-  // Truyền dữ liệu đã xử lí vào model
-  const user = await authModel.signUp(newUser)
   if (user) {
-    // Tạo privateKey và publicKey mới cho user
-    const { publicKey, privateKey } = generateKey()
-    // Thêm vào db để lưu privateKey và publicKey
-    const keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
-
-    // Tạo accessToken và refreshToken bằng privateKey và publicKey
-    const accessToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
-    const refreshToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
-
-    await Promise.all([
-      // Thêm accessToken và refreshToke vào db
-      authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
-      authModel.addAccessToken({ userId: user._id.toString(), accessToken })
-    ])
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      path: '/',
-      // maxAge: 31557600000,
-      expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-      sameSite: 'Lax'
-    })
-    user.password = undefined
-    return {
-      accessToken,
-      refreshToken,
-      ...user
-    }
+    return await handleExistingUserLogin(user, res)
+  } else {
+    return await handleNewUserSignUp(userInfo, res)
   }
 }
 
 const login = async (req, res) => {
   try {
     // Kiểm tra user đã được đăng ký chưa
-    const user = await userModel.getEmail(req.body.email)
-    if (!user) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
-        name: 'EMAIL',
-        message: 'Không tìm thấy email'
-      })
-    }
+    const user = await validateUserExists(req.body.email)
 
     // Kiểm tra mật khẩu user gửi lên có khớp với mật khẩu đã đăng ký không
-    const validations = await validationsPassword({
-      id: user._id,
-      password: req.body.password
-    })
+    const validations = await verifyUserPasswords(user, req.body.password)
 
-    if (!validations) {
-      throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
-        name: 'PASSWORD',
-        message: 'Mật khẩu không chính xác'
-      })
-    }
     user.password = undefined
 
     if (user && validations) {
-      // Kiểm tra xem keyStore có tồn tại không
-      let keyStore = await authModel.getKeyToken(user._id.toString())
-      // Không thì tạo tài liệu keyStore
-      if (!keyStore) {
-        const { publicKey, privateKey } = generateKey()
-        await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
-      }
-      // Get privateKey và publicKey trong db để tạo token
-      keyStore = await authModel.getKeyToken(user._id.toString())
-      const accessToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
-      const refreshToken = jwtHelper.generateToken({ user: user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
+      const { accessToken, refreshToken } = await issueTokensAndSetCookie(user, res)
 
-      await Promise.all([
-        authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
-        authModel.addAccessToken({ userId: user._id.toString(), accessToken })
-      ])
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: true,
-        path: '/',
-        // maxAge: 31557600000,
-        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        sameSite: 'Lax'
-      })
       return {
         ...user,
         accessToken,
@@ -335,6 +202,127 @@ const login = async (req, res) => {
     }
   } catch (error) {
     throw error
+  }
+}
+
+async function validateUserExists(email) {
+  const user = await userModel.getEmail(email)
+  if (!user) {
+    throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
+      name: 'EMAIL',
+      message: 'Không tìm thấy email'
+    })
+  }
+  return user
+}
+
+async function verifyUserPasswords(user, password) {
+  const validations = await validationsPassword({
+    id: user._id,
+    password: password
+  })
+
+  if (!validations) {
+    throw new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, undefined, {
+      name: 'PASSWORD',
+      message: 'Mật khẩu không chính xác'
+    })
+  }
+
+  return validations
+}
+
+async function ensureUserKeyStore(user) {
+  // Kiểm tra xem keyStore có tồn tại không
+  let keyStore = await authModel.getKeyToken(user._id.toString())
+  // Không thì tạo tài liệu keyStore
+  if (!keyStore) {
+    const { publicKey, privateKey } = generateKey()
+    keyStore = await authModel.createKeyToken({ userId: user._id.toString(), privateKey, publicKey })
+  }
+
+  return keyStore
+}
+
+function generateTokenPair(user, keyStore) {
+  // Get privateKey và publicKey trong db để tạo token
+  const accessToken = jwtHelper.generateToken({ user, tokenSecret: keyStore.publicKey, tokenLife: timeExpired })
+  const refreshToken = jwtHelper.generateToken({ user: user, tokenSecret: keyStore.privateKey, tokenLife: '365d' })
+
+  return {
+    accessToken,
+    refreshToken
+  }
+}
+
+async function saveUserTokens({ user, accessToken, refreshToken }) {
+  return await Promise.all([
+    authModel.addRefreshToken({ userId: user._id.toString(), refreshToken }),
+    authModel.addAccessToken({ userId: user._id.toString(), accessToken })
+  ])
+}
+
+function setRefreshTokenCookie(res, refreshToken) {
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: true,
+    path: '/',
+    // maxAge: 31557600000,
+    expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+    sameSite: 'Lax'
+  })
+}
+
+async function handleExistingUserLogin(user, res) {
+  const { accessToken, refreshToken } = await issueTokensAndSetCookie(user, res)
+
+  return {
+    ...user,
+    password: undefined,
+    accessToken,
+    refreshToken
+  }
+}
+async function handleNewUserSignUp(userInfo, res) {
+  const newUser = await createNewUserFromGoogle(userInfo)
+  const { accessToken, refreshToken } = await issueTokensAndSetCookie(newUser, res)
+  return {
+    ...newUser,
+    password: undefined,
+    accessToken,
+    refreshToken
+  }
+}
+
+async function createNewUserFromGoogle(userInfo) {
+  const { name, picture, email, sub } = userInfo
+  const hashedPassword = await hashPassword(sub) // Dùng sub (Google ID) làm mật khẩu ban đầu
+
+  const newUserPayload = {
+    password: hashedPassword,
+    slug: slugify(name),
+    userName: `@${formatUserName(name)}`,
+    temporaryAvatar: picture,
+    email,
+    name
+  }
+
+  return await authModel.signUp(newUserPayload)
+}
+
+async function issueTokensAndSetCookie(user, res) {
+  // Đảm bảo user có keyStore
+  const keyStore = await ensureUserKeyStore(user)
+  // Tạo token bằng privateKey và publicKey từ keyStore
+  const { accessToken, refreshToken } = generateTokenPair(user, keyStore)
+  // Lưu accessToken và refreshToken user vào db
+  await saveUserTokens({ user, accessToken, refreshToken })
+
+  setRefreshTokenCookie(res, refreshToken)
+
+  return {
+    accessToken,
+    refreshToken
   }
 }
 
