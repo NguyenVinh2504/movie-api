@@ -66,40 +66,43 @@ var signUp = /*#__PURE__*/function () {
 
 var loginGoogle = /*#__PURE__*/function () {
   var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(req, res, next) {
-    var code, user, urlRedirect;
+    var state, redirectTo, code, user, urlRedirect;
     return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
+          //Điều hướng dữ liệu sang tầng Service, rồi Service trả dữ liệu về
+          state = req.query.state;
+          redirectTo = state ? "".concat(decodeURIComponent(state), "/login") : _environment.env.CLIENT_URL_REDIRECT;
           if (!req.query.error) {
-            _context2.next = 3;
+            _context2.next = 5;
             break;
           }
-          return _context2.abrupt("return", res.redirect("".concat(_environment.env.CLIENT_URL_REDIRECT, "?error=").concat(req.query.error)));
-        case 3:
+          return _context2.abrupt("return", res.redirect("".concat(redirectTo, "?error=").concat(req.query.error)));
+        case 5:
           code = req.query.code;
-          _context2.next = 6;
+          _context2.next = 8;
           return _authService.authService.loginGoogle(code, res);
-        case 6:
+        case 8:
           user = _context2.sent;
-          urlRedirect = "".concat(_environment.env.CLIENT_URL_REDIRECT, "?accessToken=").concat(user.accessToken, "&refreshToken=").concat(user.refreshToken); // Có kết quả thì trả về Client
+          urlRedirect = "".concat(redirectTo, "?accessToken=").concat(user.accessToken, "&refreshToken=").concat(user.refreshToken); // Có kết quả thì trả về Client
           res.redirect(urlRedirect);
           // res.status(StatusCodes.CREATED).json(
           //   //dữ liệu từ service
           //   user
           // )
-          _context2.next = 14;
+          _context2.next = 16;
           break;
-        case 11:
-          _context2.prev = 11;
+        case 13:
+          _context2.prev = 13;
           _context2.t0 = _context2["catch"](0);
           // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
           next(_context2.t0);
-        case 14:
+        case 16:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 11]]);
+    }, _callee2, null, [[0, 13]]);
   }));
   return function loginGoogle(_x4, _x5, _x6) {
     return _ref2.apply(this, arguments);
