@@ -162,9 +162,7 @@ const getTvShowList = async ({ page, pageSize }) => {
         $match: { media_type: 'tv' }
       },
       // Giai đoạn 2: Sắp xếp (ví dụ: mới nhất lên đầu)
-      {
-        $sort: { createdAt: -1 }
-      },
+      { $sort: { updatedAt: -1 } },
       // // Giai đoạn 3: Thêm các trường tính toán
       // {
       //   $addFields: {

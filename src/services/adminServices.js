@@ -261,7 +261,7 @@ const addEpisode = async (tvShowId, episodeData) => {
           {
             mediaId: tvShowId,
             media_type: 'tv',
-            updateData: { seasonCount, episodeCount }
+            updateData: { seasonCount, episodeCount, updatedAt: new Date() }
           },
           { session }
         )
@@ -413,6 +413,12 @@ const updateEpisode = async (tvShowId, episodeId, body) => {
   }
 
   const updatedEpisode = await episodeModel.update(episodeId, updateData)
+
+  await videoMediaModel.update({
+    mediaId: tvShowId,
+    media_type: 'tv',
+    updateData: { updatedAt: new Date() }
+  })
 
   return {
     status: 'success',

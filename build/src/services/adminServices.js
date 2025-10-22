@@ -448,7 +448,8 @@ var addEpisode = /*#__PURE__*/function () {
                     media_type: 'tv',
                     updateData: {
                       seasonCount: seasonCount,
-                      episodeCount: episodeCount
+                      episodeCount: episodeCount,
+                      updatedAt: new Date()
                     }
                   }, {
                     session: session
@@ -742,12 +743,21 @@ var updateEpisode = /*#__PURE__*/function () {
           return _episodeModel.episodeModel.update(episodeId, updateData);
         case 10:
           updatedEpisode = _context16.sent;
+          _context16.next = 13;
+          return _videoMeidaModel.videoMediaModel.update({
+            mediaId: tvShowId,
+            media_type: 'tv',
+            updateData: {
+              updatedAt: new Date()
+            }
+          });
+        case 13:
           return _context16.abrupt("return", {
             status: 'success',
             message: 'Cập nhật thông tin tập phim thành công.',
             data: updatedEpisode
           });
-        case 12:
+        case 14:
         case "end":
           return _context16.stop();
       }
