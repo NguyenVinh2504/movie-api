@@ -2,10 +2,10 @@
 import { StatusCodes } from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { mongoClientInstance } from '~/config/mongodb'
-import resolveLangCode from '~/helpers/resolveLangCode'
 import { episodeModel } from '~/models/episodeModel'
 import { videoMediaModel } from '~/models/videoMeidaModel'
 import ApiError from '~/utils/ApiError'
+import { subtitleService } from '~/services/subtitle.service'
 
 const getPaginatedList = async (fetchFn, { page, pageSize }, message) => {
   try {
@@ -37,17 +37,11 @@ const createMovie = async (body) => {
       throw new ApiError(StatusCodes.CONFLICT, 'Phim với tmdb_id này đã tồn tại trong hệ thống.')
     }
 
-    // Chuẩn hóa subtitle_links
-    const subtitle_links = (body.subtitle_links || []).map((sub) => ({
-      ...sub,
-      lang: resolveLangCode(sub.label)
-    }))
     const data = {
       ...body,
-      media_type: 'movie',
-      subtitle_links
+      media_type: 'movie'
     }
-    // Validate và thêm vào DB
+
     const createdMovie = await videoMediaModel.createMovie(data)
     return {
       status: 'success',
@@ -81,27 +75,18 @@ const getMediaById = async (mediaId) => {
 
 const updateMovie = async (idMovie, reqBody) => {
   try {
-    // const movie = await videoMediaModel.findById(idMovie)
-    // if (!movie) {
-    //   throw new ApiError(StatusCodes.NOT_FOUND, 'Phim không tồn tại.')
-    // }
-    const { status, video_links, subtitle_links, title, poster_path } = reqBody
-
-    const processedSubtitles = subtitle_links.map((sub) => ({
-      ...sub,
-      lang: resolveLangCode(sub.label),
-      kind: 'subtitles'
-    }))
+    const { status, title, poster_path } = reqBody
 
     const updateData = {
       status,
       title,
-      poster_path,
-      video_links,
-      subtitle_links: processedSubtitles
+      poster_path
     }
 
     const updatedMovie = await videoMediaModel.update({ mediaId: idMovie, updateData, media_type: 'movie' })
+    if (!updatedMovie) {
+      throw new ApiError(StatusCodes.NOT_FOUND, `Không tìm thấy movie với ID: ${idMovie} để cập nhật.`)
+    }
 
     return {
       status: 'success',
@@ -116,25 +101,41 @@ const updateMovie = async (idMovie, reqBody) => {
 const deleteMedia = async (mediaId) => {
   const session = mongoClientInstance.startSession()
   try {
-    let deletedMedia = null // Biến để lưu trữ media đã xóa
+    let mediaBeforeDelete = null
+    let r2KeysToDelete = []
+
+    mediaBeforeDelete = await videoMediaModel.findById(mediaId)
+    if (!mediaBeforeDelete) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Media không tồn tại.')
+    }
+
+    if (mediaBeforeDelete.media_type === 'movie') {
+      // Movie: gom keys từ media.subtitle_links (distinct) thông qua model
+      const mediaKeys = await videoMediaModel.collectMovieSubtitleR2Keys(mediaId, { session })
+      r2KeysToDelete.push(...mediaKeys)
+    } else if (mediaBeforeDelete.media_type === 'tv') {
+      // TV: gom keys từ episodes.subtitle_links (distinct) thông qua model và xóa episodes
+      const episodeKeys = await episodeModel.collectTvEpisodeSubtitleR2Keys(mediaId, { session })
+      r2KeysToDelete.push(...episodeKeys)
+    }
 
     await session.withTransaction(async () => {
-      deletedMedia = await videoMediaModel.deleteOneById(mediaId, { session })
+      // Xóa media sau cùng
+      await videoMediaModel.deleteOneById(mediaId, { session })
 
-      if (!deletedMedia) {
-        // Ném lỗi này sẽ khiến transaction tự động rollback
-        throw new ApiError(StatusCodes.NOT_FOUND, 'Media không tồn tại.')
-      }
-
-      // 2. Nếu media đã xóa là 'tv', thì xóa các episodes liên quan
-      if (deletedMedia.media_type === 'tv') {
+      if (mediaBeforeDelete.media_type === 'tv') {
         await episodeModel.deleteManyByTvShowId(mediaId, { session })
       }
     })
 
+    // Xóa file R2 theo lô (ngoài transaction)
+    const uniqueKeys = Array.from(new Set(r2KeysToDelete)).filter(Boolean)
+    await subtitleService.deleteFilesFromR2(uniqueKeys)
+
     return {
       status: 'success',
-      message: 'Xóa media thành công.'
+      message: 'Xóa media thành công.',
+      data: { deletedId: String(mediaId) }
     }
   } catch (error) {
     throw error
@@ -145,7 +146,6 @@ const deleteMedia = async (mediaId) => {
 
 const createTvShow = async (body) => {
   try {
-    // Kiểm tra trùng tmdb_id
     const existed = await videoMediaModel.findMediaByTmdbId(body.tmdb_id, 'tv')
     if (existed) {
       throw new ApiError(StatusCodes.CONFLICT, 'Phim với tmdb_id này đã tồn tại trong hệ thống.')
@@ -156,11 +156,13 @@ const createTvShow = async (body) => {
       media_type: 'tv'
     }
 
-    // Validate và thêm vào DB
     const createdTvShow = await videoMediaModel.createTvShow(data)
-    return createdTvShow
+    return {
+      status: 'success',
+      message: 'Tạo TV show thành công',
+      data: createdTvShow
+    }
   } catch (error) {
-    // Xử lý lỗi validation
     throw error
   }
 }
@@ -170,11 +172,6 @@ const getTvShowList = (params) =>
 
 const updateTvShow = async (idTvShow, reqBody) => {
   try {
-    // const tvShow = await videoMediaModel.findById(idTvShow)
-    // if (!tvShow) {
-    //   throw new ApiError(StatusCodes.NOT_FOUND, 'Phim không tồn tại.')
-    // }
-
     const { status, name, poster_path } = reqBody
 
     const updateData = {
@@ -184,6 +181,10 @@ const updateTvShow = async (idTvShow, reqBody) => {
     }
 
     const updatedTvShow = await videoMediaModel.update({ media_type: 'tv', mediaId: idTvShow, updateData })
+
+    if (!updatedTvShow) {
+      throw new ApiError(StatusCodes.NOT_FOUND, `Không tìm thấy tv show với ID: ${idTvShow} để cập nhật.`)
+    }
 
     return {
       status: 'success',
@@ -224,7 +225,7 @@ const addEpisode = async (tvShowId, episodeData) => {
         ...episodeData,
         tv_show_id: tvShowId
       }
-      // Gán kết quả vào newEpisode và truyền session
+
       newEpisode = await episodeModel.create(dataToCreate, { session })
 
       if (!newEpisode) {
@@ -268,7 +269,11 @@ const addEpisode = async (tvShowId, episodeData) => {
       }
     })
 
-    return newEpisode // Trả về tập phim đã tạo
+    return {
+      status: 'success',
+      message: 'Thêm tập phim thành công.',
+      data: newEpisode
+    } // Trả về tập phim đã tạo
   } finally {
     // Luôn luôn phải kết thúc session sau khi hoàn thành
     await session.endSession()
@@ -299,25 +304,35 @@ const getEpisodeList = async (tvShowId, { page, pageSize }) => {
 }
 
 const deleteEpisode = async (tvShowId, episodeId) => {
-  // 1. Kiểm tra sự tồn tại của TV Show và Episode
-  const tvShow = await videoMediaModel.findById(tvShowId)
+  // Kiểm tra cả TV show và episode CÙNG LÚC để giảm số query
+  const [tvShow, episode] = await Promise.all([
+    videoMediaModel.findById(tvShowId),
+    episodeModel.findOne({
+      _id: new ObjectId(episodeId),
+      tv_show_id: new ObjectId(tvShowId) // Kiểm tra luôn cả tv_show_id
+    })
+  ])
+
   if (!tvShow) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'TV show không tồn tại.')
   }
 
-  const episode = await episodeModel.findOne({ _id: new ObjectId(episodeId) })
   if (!episode) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Tập phim không tồn tại.')
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Tập phim không tồn tại hoặc không thuộc TV show này.')
   }
 
   // Bắt đầu một session để chạy transaction
   const session = mongoClientInstance.startSession()
 
+  let r2KeysToDelete = []
+  // 1. Gom r2_key subtitles (upload) bằng aggregation (không duyệt JS)
+  r2KeysToDelete = await episodeModel.collectEpisodeSubtitleR2Keys({ tvShowId, episodeId })
+
   try {
     // Chạy tất cả các thao tác trong một transaction
     await session.withTransaction(async () => {
       // 2. Xóa tập phim
-      await episodeModel.deleteOneById(episodeId, { session })
+      await episodeModel.deleteOneByIdAndTvShowId(episodeId, tvShowId, { session })
 
       // 3. Tính toán lại số liệu
       const stats = await episodeModel.aggregate(
@@ -346,9 +361,14 @@ const deleteEpisode = async (tvShowId, episodeId) => {
     await session.endSession()
   }
 
+  // Xóa file phụ đề trên R2 (ngoài transaction)
+  const uniqueKeys = Array.from(new Set(r2KeysToDelete)).filter(Boolean)
+  await subtitleService.deleteFilesFromR2(uniqueKeys)
+
   return {
     status: 'success',
-    message: 'Xóa tập phim thành công.'
+    message: 'Xóa tập phim thành công.',
+    data: { deletedId: String(episodeId) }
   }
 }
 
@@ -394,22 +414,13 @@ const updateEpisode = async (tvShowId, episodeId, body) => {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Tập phim không tồn tại hoặc không thuộc TV show này.')
   }
 
-  const { name, season_number, episode_number, episode_id, video_links, subtitle_links } = body
+  const { name, season_number, episode_number, episode_id } = body
 
-  const processedSubtitles = (subtitle_links ?? []).map((sub) => ({
-    ...sub,
-    lang: resolveLangCode(sub.label),
-    kind: 'subtitles'
-  }))
-
-  // Tạo object updateData chứa tất cả các trường
   const updateData = {
     name,
     season_number,
     episode_number,
-    episode_id,
-    video_links,
-    subtitle_links: processedSubtitles
+    episode_id
   }
 
   const updatedEpisode = await episodeModel.update(episodeId, updateData)

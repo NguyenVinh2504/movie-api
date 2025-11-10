@@ -52,16 +52,16 @@ const getMediaList = async (req, res, next) => {
   }
 }
 
-const linkSchema = Joi.object({
-  label: Joi.string().trim().min(1).required().messages({
-    'any.required': 'Trường "label" là bắt buộc cho mỗi link.',
-    'string.empty': 'Trường "label" không được để trống.'
-  }),
-  url: Joi.string().trim().uri().required().messages({
-    'any.required': 'Trường "url" là bắt buộc cho mỗi link.',
-    'string.uri': 'Trường "url" phải là một đường dẫn URL hợp lệ.'
-  })
-})
+// const linkSchema = Joi.object({
+//   label: Joi.string().trim().min(1).required().messages({
+//     'any.required': 'Trường "label" là bắt buộc cho mỗi link.',
+//     'string.empty': 'Trường "label" không được để trống.'
+//   }),
+//   url: Joi.string().trim().uri().required().messages({
+//     'any.required': 'Trường "url" là bắt buộc cho mỗi link.',
+//     'string.uri': 'Trường "url" phải là một đường dẫn URL hợp lệ.'
+//   })
+// })
 
 const MediaBaseSchema = Joi.object({
   // --- Các trường bắt buộc ---
@@ -119,53 +119,38 @@ const createMovie = async (req, res, next) => {
     title: Joi.string().trim().min(1).required().messages({
       'any.required': 'title là trường bắt buộc.',
       'string.empty': 'title không được để trống.'
-    }),
-    /**
-     * Mảng chứa các link video.
-     * Phải là một mảng và mỗi phần tử phải tuân thủ linkSchema.
-     */
-    video_links: Joi.array().items(linkSchema).required().messages({
-      'array.base': 'video_links phải là một mảng.'
-    }),
-    /**
-     * Mảng chứa các link phụ đề.
-     * Phải là một mảng và mỗi phần tử phải tuân thủ linkSchema.
-     */
-    subtitle_links: Joi.array().items(linkSchema).required().messages({
-      'array.base': 'subtitle_links phải là một mảng.'
     })
   })
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
-    // Kiểm tra dữ liệu xong xuôi cho giá trị client đi tiếp controller
+    const value = await correctCondition.validateAsync(req.body, { abortEarly: false })
+    req.body = value
     next()
   } catch (error) {
-    // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
     next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
   }
 }
 
 const updateMovie = async (req, res, next) => {
   const correctCondition = Joi.object({
-    status: Joi.string().valid('published', 'draft').required(),
-    video_links: Joi.array().items(linkSchema).required(),
-    subtitle_links: Joi.array().items(linkSchema).required(),
+    status: Joi.string().valid('published', 'draft'),
     poster_path: Joi.string()
       .uri({
         allowRelative: true
       })
-      .required()
       .allow(null, '')
       .messages({
         'string.uri': 'Poster_path phải là một đường dẫn URI hợp lệ.'
       }),
-    title: Joi.string().trim().min(1).required().messages({
+    title: Joi.string().trim().min(1).messages({
       'any.required': 'title là trường bắt buộc.',
       'string.empty': 'title không được để trống.'
     })
   })
+    .min(1)
+    .unknown(false)
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    const value = await correctCondition.validateAsync(req.body, { abortEarly: false })
+    req.body = value
     next()
   } catch (error) {
     // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
@@ -203,34 +188,34 @@ const createTvShow = async (req, res, next) => {
     // })
   })
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
-    // Kiểm tra dữ liệu xong xuôi cho giá trị client đi tiếp controller
+    const value = await correctCondition.validateAsync(req.body, { abortEarly: false })
+    req.body = value
     next()
   } catch (error) {
-    // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
     next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
   }
 }
 
 const updateTvShow = async (req, res, next) => {
   const correctCondition = Joi.object({
-    status: Joi.string().valid('published', 'draft').required(),
+    status: Joi.string().valid('published', 'draft'),
     poster_path: Joi.string()
       .uri({
         allowRelative: true
       })
-      .required()
       .allow(null, '')
       .messages({
         'string.uri': 'Poster_path phải là một đường dẫn URI hợp lệ.'
       }),
-    name: Joi.string().trim().min(1).required().messages({
-      'any.required': 'name là trường bắt buộc.',
+    name: Joi.string().trim().min(1).messages({
       'string.empty': 'name không được để trống.'
     })
   })
+    .min(1)
+    .unknown(false)
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    const value = await correctCondition.validateAsync(req.body, { abortEarly: false })
+    req.body = value
     next()
   } catch (error) {
     // Có lỗi thì đẩy ra Middleware xử lý lỗi tập trung
@@ -243,14 +228,15 @@ const addEpisode = async (req, res, next) => {
     season_number: Joi.number().integer().positive().required(),
     episode_number: Joi.number().integer().positive().required(),
     episode_id: Joi.number().integer().positive().required(),
-    name: Joi.string().trim().min(1).required(),
-    video_links: Joi.array().items(linkSchema).required(),
-    subtitle_links: Joi.array().items(linkSchema).required()
-  }).concat(tvShowIdSchema)
+    name: Joi.string().trim().min(1).required()
+  })
 
   try {
     // Validate đồng thời cả params và body
-    await episodeSchema.validateAsync({ ...req.params, ...req.body }, { abortEarly: false })
+    const tvShowId = await tvShowIdSchema.validateAsync(req.params, { abortEarly: false })
+    const body = await episodeSchema.validateAsync(req.body, { abortEarly: false })
+    req.body = body
+    req.params = tvShowId
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))
@@ -289,16 +275,17 @@ const validateEpisodeAction = async (req, res, next) => {
 const updateEpisode = async (req, res, next) => {
   // Schema bây giờ giống hệt với schema khi tạo mới
   const correctCondition = Joi.object({
-    name: Joi.string().trim().min(1).required(),
-    season_number: Joi.number().integer().positive().required(),
-    episode_number: Joi.number().integer().required(), // Chấp nhận cả số 0
-    episode_id: Joi.number().integer().positive().required(),
-    video_links: Joi.array().items(linkSchema).required(),
-    subtitle_links: Joi.array().items(linkSchema).required()
+    name: Joi.string().trim().min(1),
+    season_number: Joi.number().integer().positive(),
+    episode_number: Joi.number().integer(), // Chấp nhận cả số 0
+    episode_id: Joi.number().integer().positive()
   })
+    .min(1)
+    .unknown(false)
 
   try {
-    await correctCondition.validateAsync(req.body, { abortEarly: false })
+    const value = await correctCondition.validateAsync(req.body, { abortEarly: false })
+    req.body = value
     next()
   } catch (error) {
     next(new ApiError(StatusCodes.UNPROCESSABLE_ENTITY, error.message))

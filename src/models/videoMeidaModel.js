@@ -23,21 +23,27 @@ export const subtitleLinkSchema = Joi.object({
     'any.required': 'Mỗi subtitle phải có mã ngôn ngữ "lang" (ví dụ: "vi", "en").',
     'string.length': '"lang" phải là mã ISO 639-1 (2 ký tự).'
   }),
-  url: Joi.string().uri({ allowRelative: true }).required().messages({
-    'any.required': 'Mỗi subtitle phải có "url".',
+  url: Joi.string().uri({ allowRelative: true }).optional().allow(null).default(null).messages({
     'string.uri': '"url" phải là một đường dẫn hợp lệ.'
   }),
   label: Joi.string().trim().min(1).required().messages({
     'any.required': 'Mỗi video link phải có "label".',
     'string.empty': '"label" không được để trống.'
   }),
-  kind: Joi.string().trim().optional().default('subtitles')
+  kind: Joi.string().trim().optional().default('subtitles'),
+  // Mới: Fields cho file management
+  r2_key: Joi.string().trim().optional().allow(null).default(null).messages({
+    'string.empty': '"r2_key" không được để trống.'
+  }),
+  source: Joi.string().valid('upload', 'external').optional().default('external').messages({
+    'any.only': '"source" phải là "upload" hoặc "external".'
+  })
 })
 
 // Schema cơ bản chung cho mọi media (Movie & TVShow)
 const MediaBaseSchema = Joi.object({
   tmdb_id: Joi.number().integer().positive().required(),
-  poster_path: Joi.string().uri({ allowRelative: true }).allow(null, '').optional(),
+  poster_path: Joi.string().uri({ allowRelative: true }).allow(null, '').default(null).optional(),
   status: Joi.string().valid('published', 'draft').required(),
   createdAt: Joi.forbidden(),
   updatedAt: Joi.forbidden()
@@ -47,8 +53,8 @@ const MediaBaseSchema = Joi.object({
 export const MOVIE_INPUT_SCHEMA = MediaBaseSchema.keys({
   media_type: Joi.valid('movie').required(),
   title: Joi.string().trim().min(1).required(),
-  video_links: Joi.array().items(videoLinkSchema).required(),
-  subtitle_links: Joi.array().items(subtitleLinkSchema).required()
+  video_links: Joi.array().items(videoLinkSchema).default([]).forbidden(),
+  subtitle_links: Joi.array().items(subtitleLinkSchema).default([]).forbidden()
 })
 
 // // Sub‑schema cho Season
@@ -68,21 +74,28 @@ export const TV_SHOW_INPUT_SCHEMA = MediaBaseSchema.keys({
 
 // --- 2. HÀM TƯƠNG TÁC VỚI DATABASE ---
 const createMedia = async (inputData, schema) => {
-  // Validate dữ liệu đầu vào bằng schema truyền vào
-  const validatedData = await schema.validateAsync(inputData, {
-    abortEarly: false,
-    stripUnknown: true
-  })
+  try {
+    const validatedData = await schema.validateAsync(inputData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
 
-  const now = new Date()
-  validatedData.createdAt = now
-  validatedData.updatedAt = now
+    const now = new Date()
 
-  const mediaCollection = GET_DB().collection(MEDIA_COLLECTION_NAME)
-  const insertResult = await mediaCollection.insertOne(validatedData)
-  const createdMedia = await mediaCollection.findOne({ _id: insertResult.insertedId })
+    const dataToInsert = {
+      ...validatedData,
+      createdAt: now,
+      updatedAt: now
+    }
 
-  return createdMedia
+    const mediaCollection = GET_DB().collection(MEDIA_COLLECTION_NAME)
+    const insertResult = await mediaCollection.insertOne(dataToInsert)
+    const createdMedia = await mediaCollection.findOne({ _id: insertResult.insertedId })
+
+    return createdMedia
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 // Sử dụng cho Movie
@@ -214,8 +227,12 @@ const getTvShowList = async ({ page, pageSize }) => {
 }
 
 const findMediaByTmdbId = async (tmdb_id, media_type) => {
-  const mediaCollection = GET_DB().collection(MEDIA_COLLECTION_NAME)
-  return await mediaCollection.findOne({ tmdb_id, media_type })
+  try {
+    const mediaCollection = GET_DB().collection(MEDIA_COLLECTION_NAME)
+    return await mediaCollection.findOne({ tmdb_id, media_type })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const findById = async (mediaId) => {
@@ -232,10 +249,10 @@ const findById = async (mediaId) => {
 }
 
 const update = async ({ mediaId, media_type, updateData }, options = {}) => {
-  // Lấy session từ options
-  const { session } = options
-
   try {
+    // Lấy session từ options
+    const { session } = options
+
     const result = await GET_DB()
       .collection(MEDIA_COLLECTION_NAME)
       .findOneAndUpdate(
@@ -253,27 +270,20 @@ const update = async ({ mediaId, media_type, updateData }, options = {}) => {
         }
       )
 
-    // findOneAndUpdate sẽ trả về null nếu không tìm thấy document để cập nhật
-    if (!result) {
-      throw new Error(`Không tìm thấy ${media_type} với ID này để cập nhật.`)
-    }
-
     return result
   } catch (error) {
-    // Ném lỗi ra ngoài để service có thể bắt và xử lý
     throw new Error(error)
   }
 }
 
 const deleteOneById = async (mediaId, options = {}) => {
-  const { session } = options
   try {
-    // Dùng findOneAndDelete thay vì deleteOne
-    // Nó sẽ xóa và trả về document đã xóa
+    const { session } = options
+
     const result = await GET_DB()
       .collection(MEDIA_COLLECTION_NAME)
       .findOneAndDelete({ _id: new ObjectId(mediaId) }, { session })
-    return result // Trả về document đã xóa
+    return result
   } catch (error) {
     throw new Error(error)
   }
@@ -304,7 +314,7 @@ const getMovieByTmdbIdForUser = async ({ tmdbId }) => {
 
     return result
   } catch (error) {
-    throw new Error(error.message || 'Failed to fetch media')
+    throw new Error(error)
   }
 }
 
@@ -355,7 +365,220 @@ const getEpisodeForUser = async ({ tmdbId, seasonNumber, episodeNumber, episodeI
       subtitle_links: episode.subtitle_links
     }
   } catch (error) {
-    throw new Error(error.message || 'Failed to fetch episode')
+    throw new Error(error)
+  }
+}
+
+// --- 3. HÀM QUẢN LÝ VIDEO LINKS VÀ SUBTITLE LINKS ---
+
+// Thêm video link vào media
+const addVideoLink = async (mediaId, videoLinkData) => {
+  try {
+    // Validate data trước khi thêm vào database
+    const validatedData = await videoLinkSchema.validateAsync(videoLinkData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
+
+    // Tạo video link object với _id mới
+    const newVideoLink = {
+      _id: new ObjectId(),
+      ...validatedData
+    }
+
+    await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId) },
+        { $push: { video_links: newVideoLink }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+
+    // Trả về link vừa thêm để FE dễ xử lý
+    return newVideoLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thu thập danh sách r2_key subtitles (upload) cho Movie từ media.subtitle_links bằng DISTINCT
+// Thu thập danh sách r2_key subtitles (upload) cho Movie từ media.subtitle_links bằng AGG
+const collectMovieSubtitleR2Keys = async (mediaId, options = {}) => {
+  try {
+    const { session } = options
+    const res = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { _id: new ObjectId(mediaId) } },
+          {
+            $project: {
+              _id: 0,
+              filtered_subs: {
+                $filter: {
+                  input: '$subtitle_links',
+                  as: 'sub',
+                  cond: {
+                    $and: [{ $eq: ['$$sub.source', 'upload'] }, { $ne: ['$$sub.r2_key', null] }]
+                  }
+                }
+              }
+            }
+          },
+          {
+            $project: {
+              keys: '$filtered_subs.r2_key' // Lấy trực tiếp mảng r2_key
+            }
+          }
+        ],
+        { session }
+      )
+      .toArray()
+    return res[0]?.keys || []
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Cập nhật video link trong media
+const updateVideoLink = async (mediaId, linkId, updateData) => {
+  try {
+    // Danh sách các field có thể update cho video link
+    const updatableFields = ['label', 'url']
+
+    // Tự động build updateFields từ các field có trong updateData
+    const updateFields = updatableFields.reduce((fields, fieldName) => {
+      if (updateData[fieldName] !== undefined) {
+        fields[`video_links.$.${fieldName}`] = updateData[fieldName]
+      }
+      return fields
+    }, {})
+
+    updateFields.updatedAt = new Date()
+
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId), 'video_links._id': new ObjectId(linkId) },
+        { $set: updateFields },
+        { returnDocument: 'after' }
+      )
+
+    // Tìm link vừa cập nhật trong document trả về
+    const updatedLink = result?.video_links?.find((l) => String(l._id) === String(linkId)) || null
+    return updatedLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Xóa video link khỏi media
+const deleteVideoLink = async (mediaId, linkId) => {
+  try {
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId), 'video_links._id': new ObjectId(linkId) },
+        { $pull: { video_links: { _id: new ObjectId(linkId) } }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const findSubtitleLinkById = async (mediaId, linkId) => {
+  try {
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOne(
+        { _id: new ObjectId(mediaId), 'subtitle_links._id': new ObjectId(linkId) },
+        { projection: { 'subtitle_links.$': 1 } }
+      )
+    return result?.subtitle_links?.[0] || null
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thêm subtitle link vào media
+const addSubtitleLink = async (mediaId, subtitleLinkData) => {
+  try {
+    // Validate data trước khi thêm vào database
+    const validatedData = await subtitleLinkSchema.validateAsync(subtitleLinkData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
+
+    // Tạo subtitle link object với _id mới
+    const newSubtitleLink = {
+      _id: new ObjectId(),
+      ...validatedData
+    }
+
+    await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId) },
+        { $push: { subtitle_links: newSubtitleLink }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+
+    // Trả về link vừa thêm để FE dễ xử lý
+    return newSubtitleLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Cập nhật subtitle link trong media
+const updateSubtitleLink = async (mediaId, linkId, updateData) => {
+  try {
+    // Danh sách các field có thể update cho subtitle link
+    const updatableFields = ['label', 'url', 'lang', 'kind', 'r2_key', 'source']
+
+    // Tự động build updateFields từ các field có trong updateData
+    const updateFields = updatableFields.reduce((fields, fieldName) => {
+      if (updateData[fieldName] !== undefined) {
+        fields[`subtitle_links.$.${fieldName}`] = updateData[fieldName]
+      }
+      return fields
+    }, {})
+
+    updateFields.updatedAt = new Date()
+
+    await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId), 'subtitle_links._id': new ObjectId(linkId) },
+        { $set: updateFields },
+        { returnDocument: 'after' }
+      )
+
+    // Tìm link vừa cập nhật trong document trả về
+    const updatedLink = await findSubtitleLinkById(mediaId, linkId)
+    return updatedLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Xóa subtitle link khỏi media
+const deleteSubtitleLink = async (mediaId, linkId) => {
+  try {
+    const result = await GET_DB()
+      .collection(MEDIA_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(mediaId), 'subtitle_links._id': new ObjectId(linkId) },
+        { $pull: { subtitle_links: { _id: new ObjectId(linkId) } }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+
+    return result
+  } catch (error) {
+    throw new Error(error)
   }
 }
 
@@ -368,11 +591,22 @@ export const videoMediaModel = {
   findById,
   update,
   deleteOneById,
+  collectMovieSubtitleR2Keys,
 
   //Tv show
   createTvShow,
   getTvShowList,
 
   getMovieByTmdbIdForUser,
-  getEpisodeForUser
+  getEpisodeForUser,
+
+  // Video & Subtitle Links Management
+  addVideoLink,
+  updateVideoLink,
+  deleteVideoLink,
+
+  findSubtitleLinkById,
+  addSubtitleLink,
+  updateSubtitleLink,
+  deleteSubtitleLink
 }

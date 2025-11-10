@@ -103,7 +103,6 @@ const addEpisode = async (req, res, next) => {
   try {
     const { tvShowId } = req.params
     const episodeData = req.body
-
     // Gọi service để thêm tập phim, truyền vào cả tvShowId và dữ liệu tập phim
     const newEpisode = await adminService.addEpisode(tvShowId, episodeData)
 

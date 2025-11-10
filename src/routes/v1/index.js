@@ -8,8 +8,10 @@ import { mediasUploadRoutes } from './mediasUploadRoutes.js'
 import { staticRoute } from './static.routes.js'
 import { UPLOAD_VIDEO_TEMP_DIR } from '~/utils/constants.js'
 import { commentRoutes } from './commentRoute.js'
-import { videoRoute } from './video.route.js'
+import { playbackRoute } from './playback.route.js'
 import { adminRoute } from './adminRoutes.js'
+
+import { subtitleRoute } from '~/routes/v1/subtitle.route.js'
 const Router = express.Router({ mergeParams: true })
 
 // Check api v1
@@ -30,9 +32,11 @@ Router.use('/medias-upload', mediasUploadRoutes)
 Router.use('/comment', commentRoutes)
 Router.use('/media', mediaRoute)
 
-Router.use('/get-video', videoRoute)
+// Playback API - RESTful route for video sources and subtitles
+Router.use('/playback', playbackRoute)
 
-// Admin APIs
+Router.use('/subtitle', subtitleRoute) // Đọc file subtitle từ R2
+
 Router.use('/admin', adminRoute)
 
 export default Router

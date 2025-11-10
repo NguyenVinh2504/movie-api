@@ -22,5 +22,12 @@ export const env = {
   CLIENT_URL_REDIRECT: process.env.CLIENT_URL_REDIRECT,
   CLIENT_ID_GOOGLE: process.env.CLIENT_ID_GOOGLE,
   REDIRECT_URI: process.env.REDIRECT_URI,
-  CLIENT_SECRET: process.env.CLIENT_SECRET
+  CLIENT_SECRET: process.env.CLIENT_SECRET,
+
+  // Cloudflare R2 Configuration
+  R2_ENDPOINT: process.env.R2_ENDPOINT,
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+  R2_SUBTITLE_BUCKET: process.env.R2_SUBTITLE_BUCKET,
+  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL // URL công khai để truy cập file (nếu có)
 }

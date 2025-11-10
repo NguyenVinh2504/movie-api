@@ -1,7 +1,7 @@
 import { GET_DB } from '~/config/mongodb'
 import Joi from 'joi'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
-import { subtitleLinkSchema, videoLinkSchema, videoMediaModel } from './videoMeidaModel'
+import { videoMediaModel, videoLinkSchema, subtitleLinkSchema } from './videoMeidaModel'
 import { ObjectId } from 'mongodb'
 
 const EpisodeSchema = Joi.object({
@@ -13,45 +13,59 @@ const EpisodeSchema = Joi.object({
   episode_number: Joi.number().integer().required(),
   episode_id: Joi.number().integer().positive().required(),
   name: Joi.string().trim().min(1).required(),
-  video_links: Joi.array().items(videoLinkSchema).required(),
-  subtitle_links: Joi.array().items(subtitleLinkSchema).required()
-})
+  createdAt: Joi.forbidden(),
+  updatedAt: Joi.forbidden()
+}).unknown(false)
 
 const EPISODE_COLLECTION_NAME = 'episodes'
 
 // Hàm tạo episode mới
 const create = async (episodeData, options = {}) => {
-  const { session } = options // Lấy session từ options
-  const validatedData = await EpisodeSchema.validateAsync(episodeData, {
-    abortEarly: false,
-    stripUnknown: true
-  })
+  try {
+    const { session } = options // Lấy session từ options
+    const validatedData = await EpisodeSchema.validateAsync(episodeData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
 
-  const now = new Date()
-  const newEpisodeToAdd = {
-    ...validatedData,
-    tv_show_id: new ObjectId(validatedData.tv_show_id),
-    createdAt: now,
-    updatedAt: now
+    const now = new Date()
+    const newEpisodeToAdd = {
+      ...validatedData,
+      tv_show_id: new ObjectId(validatedData.tv_show_id),
+      video_links: [],
+      subtitle_links: [],
+      createdAt: now,
+      updatedAt: now
+    }
+
+    const episodeCollection = GET_DB().collection(EPISODE_COLLECTION_NAME)
+    const insertResult = await episodeCollection.insertOne(newEpisodeToAdd, { session })
+    const createdEpisode = await episodeCollection.findOne({ _id: insertResult.insertedId }, { session })
+
+    return createdEpisode
+  } catch (error) {
+    throw new Error(error)
   }
-
-  const episodeCollection = GET_DB().collection(EPISODE_COLLECTION_NAME)
-  const insertResult = await episodeCollection.insertOne(newEpisodeToAdd, { session })
-  const createdEpisode = await episodeCollection.findOne({ _id: insertResult.insertedId }, { session })
-
-  return createdEpisode
 }
 
 // Hàm tìm một episode theo điều kiện
 const findOne = async (condition, options = {}) => {
-  const { session } = options // Lấy session từ options
-  return await GET_DB().collection(EPISODE_COLLECTION_NAME).findOne(condition, { session })
+  try {
+    const { session } = options // Lấy session từ options
+    return await GET_DB().collection(EPISODE_COLLECTION_NAME).findOne(condition, { session })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 // Hàm chạy aggregation trên collection episodes
 const aggregate = async (pipeline, options = {}) => {
-  const { session } = options // Lấy session từ options
-  return await GET_DB().collection(EPISODE_COLLECTION_NAME).aggregate(pipeline, { session }).toArray()
+  try {
+    const { session } = options // Lấy session từ options
+    return await GET_DB().collection(EPISODE_COLLECTION_NAME).aggregate(pipeline, { session }).toArray()
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const findByTvShow = async (tvShowId, { page, pageSize }, options = {}) => {
@@ -81,8 +95,7 @@ const findByTvShow = async (tvShowId, { page, pageSize }, options = {}) => {
         $project: {
           // Bỏ các trường không cần thiết để giảm dung lượng
           video_links: 0,
-          subtitle_links: 0,
-          updatedAt: 0
+          subtitle_links: 0
         }
       },
       // Giai đoạn 5: Dùng $facet để phân trang và lấy tổng số lượng
@@ -108,12 +121,16 @@ const findByTvShow = async (tvShowId, { page, pageSize }, options = {}) => {
 }
 
 const findByTmdbId = async ({ tvShowId, episodeTmdbId }) => {
-  return await GET_DB()
-    .collection(EPISODE_COLLECTION_NAME)
-    .findOne({
-      tv_show_id: new ObjectId(tvShowId),
-      episode_id: +episodeTmdbId
-    })
+  try {
+    return await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOne({
+        tv_show_id: new ObjectId(tvShowId),
+        episode_id: +episodeTmdbId
+      })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const update = async (episodeId, updateData, options = {}) => {
@@ -132,12 +149,12 @@ const update = async (episodeId, updateData, options = {}) => {
   }
 }
 
-const deleteOneById = async (episodeId, options = {}) => {
+const deleteOneByIdAndTvShowId = async (episodeId, tvShowId, options = {}) => {
   const { session } = options // Lấy session từ options
   try {
     const result = await GET_DB()
       .collection(EPISODE_COLLECTION_NAME)
-      .deleteOne({ _id: new ObjectId(episodeId) }, { session })
+      .findOneAndDelete({ _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId) }, { session })
     return result
   } catch (error) {
     throw new Error(error)
@@ -214,7 +231,259 @@ const getEpisodeForUser = async ({ tmdbId, seasonNumber, episodeNumber, episodeI
 
     return result[0] || null
   } catch (error) {
-    throw new Error(error.message || 'Failed to fetch episode')
+    throw new Error(error)
+  }
+}
+
+const findSubtitleLinkById = async (episodeId, linkId) => {
+  try {
+    const result = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOne(
+        { _id: new ObjectId(episodeId), 'subtitle_links._id': new ObjectId(linkId) },
+        { projection: { 'subtitle_links.$': 1 } }
+      )
+    return result?.subtitle_links?.[0] || null
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// --- HÀM QUẢN LÝ VIDEO LINKS VÀ SUBTITLE LINKS CHO EPISODE ---
+
+// Thêm video link vào episode
+const addVideoLink = async ({ tvShowId, episodeId, videoLinkData }) => {
+  try {
+    // Validate data trước khi thêm vào database
+    const validatedData = await videoLinkSchema.validateAsync(videoLinkData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
+
+    // Tạo video link object với _id mới
+    const newVideoLink = {
+      _id: new ObjectId(),
+      ...validatedData
+    }
+
+    await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId) },
+        { $push: { video_links: newVideoLink }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+    // Trả về link vừa thêm để FE dễ xử lý
+    return newVideoLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Cập nhật video link trong episode
+const updateVideoLink = async ({ tvShowId, episodeId, linkId, updateData }) => {
+  try {
+    // Danh sách các field có thể update cho video link
+    const updatableFields = ['label', 'url']
+
+    // Tự động build updateFields từ các field có trong updateData
+    const updateFields = updatableFields.reduce((fields, fieldName) => {
+      if (updateData[fieldName] !== undefined) {
+        fields[`video_links.$.${fieldName}`] = updateData[fieldName]
+      }
+      return fields
+    }, {})
+
+    updateFields.updatedAt = new Date()
+
+    const result = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId), 'video_links._id': new ObjectId(linkId) },
+        { $set: updateFields },
+        { returnDocument: 'after' }
+      )
+
+    // Tìm link vừa cập nhật trong document trả về
+    const updatedLink = result?.video_links?.find((l) => String(l._id) === String(linkId)) || null
+    return updatedLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Xóa video link khỏi episode
+const deleteVideoLink = async ({ tvShowId, episodeId, linkId }) => {
+  try {
+    const result = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId), 'video_links._id': new ObjectId(linkId) },
+        { $pull: { video_links: { _id: new ObjectId(linkId) } }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thêm subtitle link vào episode
+const addSubtitleLink = async ({ tvShowId, episodeId, subtitleLinkData }) => {
+  try {
+    // Validate data trước khi thêm vào database
+    const validatedData = await subtitleLinkSchema.validateAsync(subtitleLinkData, {
+      abortEarly: false,
+      stripUnknown: true
+    })
+
+    // Tạo subtitle link object với _id mới
+    const newSubtitleLink = {
+      _id: new ObjectId(),
+      ...validatedData
+    }
+
+    await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId) },
+        { $push: { subtitle_links: newSubtitleLink }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+
+    // Trả về link vừa thêm để FE dễ xử lý
+    return newSubtitleLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Cập nhật subtitle link trong episode
+const updateSubtitleLink = async ({ tvShowId, episodeId, linkId, updateData }) => {
+  try {
+    // Danh sách các field có thể update cho subtitle link
+    const updatableFields = ['label', 'url', 'lang', 'kind', 'r2_key', 'source']
+
+    // Tự động build updateFields từ các field có trong updateData
+    const updateFields = updatableFields.reduce((fields, fieldName) => {
+      if (updateData[fieldName] !== undefined) {
+        fields[`subtitle_links.$.${fieldName}`] = updateData[fieldName]
+      }
+      return fields
+    }, {})
+
+    updateFields.updatedAt = new Date()
+
+    await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: new ObjectId(episodeId),
+          tv_show_id: new ObjectId(tvShowId),
+          'subtitle_links._id': new ObjectId(linkId)
+        },
+        { $set: updateFields },
+        { returnDocument: 'after' }
+      )
+
+    // Tìm link vừa cập nhật trong document trả về
+    const updatedLink = await findSubtitleLinkById(episodeId, linkId)
+    return updatedLink
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Xóa subtitle link khỏi episode
+const deleteSubtitleLink = async ({ tvShowId, episodeId, linkId }) => {
+  try {
+    const result = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: new ObjectId(episodeId),
+          tv_show_id: new ObjectId(tvShowId),
+          'subtitle_links._id': new ObjectId(linkId)
+        },
+        { $pull: { subtitle_links: { _id: new ObjectId(linkId) } }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+      )
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thu thập danh sách r2_key subtitles (upload) cho toàn bộ Episodes của một TV show bằng AGG
+const collectTvEpisodeSubtitleR2Keys = async (tvShowId, options = {}) => {
+  const { session } = options
+  try {
+    const res = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { tv_show_id: new ObjectId(tvShowId) } },
+          {
+            $project: {
+              _id: 0,
+              filtered_subs: {
+                $filter: {
+                  input: '$subtitle_links',
+                  as: 'sub',
+                  cond: {
+                    $and: [{ $eq: ['$$sub.source', 'upload'] }, { $ne: ['$$sub.r2_key', null] }]
+                  }
+                }
+              }
+            }
+          },
+          { $unwind: '$filtered_subs' },
+          { $group: { _id: null, keys: { $addToSet: '$filtered_subs.r2_key' } } }
+        ],
+        { session }
+      )
+      .toArray()
+    return res[0]?.keys || []
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+// Thu thập r2_key subtitles (upload) cho một Episode cụ thể bằng Aggregation (không duyệt JS)
+const collectEpisodeSubtitleR2Keys = async ({ tvShowId, episodeId }, options = {}) => {
+  const { session } = options
+  try {
+    const res = await GET_DB()
+      .collection(EPISODE_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { _id: new ObjectId(episodeId), tv_show_id: new ObjectId(tvShowId) } },
+          {
+            $project: {
+              _id: 0,
+              filtered_subs: {
+                $filter: {
+                  input: '$subtitle_links',
+                  as: 'sub',
+                  cond: {
+                    $and: [{ $eq: ['$$sub.source', 'upload'] }, { $ne: ['$$sub.r2_key', null] }]
+                  }
+                }
+              }
+            }
+          },
+          {
+            $project: {
+              keys: '$filtered_subs.r2_key' // Lấy trực tiếp mảng r2_key
+            }
+          }
+        ],
+        { session }
+      )
+      .toArray()
+    return res[0]?.keys || []
+  } catch (error) {
+    throw new Error(error)
   }
 }
 
@@ -224,8 +493,18 @@ export const episodeModel = {
   aggregate,
   findByTvShow,
   findByTmdbId,
-  deleteOneById,
+  deleteOneByIdAndTvShowId,
   deleteManyByTvShowId,
   update,
-  getEpisodeForUser
+  getEpisodeForUser,
+  findSubtitleLinkById,
+  collectTvEpisodeSubtitleR2Keys,
+  collectEpisodeSubtitleR2Keys,
+  // Video & Subtitle Links Management
+  addVideoLink,
+  updateVideoLink,
+  deleteVideoLink,
+  addSubtitleLink,
+  updateSubtitleLink,
+  deleteSubtitleLink
 }
